@@ -17,13 +17,14 @@ import { equipmentService } from '@/services/equipment.service';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import type { Equipment } from '@/types/api';
+import { translateDynamicLabel } from '@/lib/i18n-labels';
 
 export default function EquipmentPage() {
   const t = useTranslations();
   const queryClient = useQueryClient();
   const pagination = usePagination({ initialPageSize: 20 });
   const { filters, setFilter, clearFilters, buildFilterParams } = useFilters({
-    initialFilters: { name: '', status: '' },
+    initialFilters: { name: '', status: 'ACTIVE', brand: '', type: '' },
   });
   const [activeFilters, setActiveFilters] = useState(filters);
   const [formOpen, setFormOpen] = useState(false);
@@ -40,12 +41,23 @@ export default function EquipmentPage() {
     queryFn: () => equipmentService.filter(queryParams),
   });
 
-  const results = data?.results || [];
-  const totalCount = data?.totalCount || 0;
+  const brandsQuery = useQuery({
+    queryKey: ['lookup', 'equipment-brands'],
+    queryFn: () => equipmentService.getBrands(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const typesQuery = useQuery({
+    queryKey: ['lookup', 'equipment-types'],
+    queryFn: () => equipmentService.getTypes(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const results = data?.results ?? [];
+  const totalCount = data?.totalCount ?? 0;
   if (totalCount !== pagination.totalCount) pagination.setTotalCount(totalCount);
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => equipmentService.delete(id),
+  const archiveMutation = useMutation({
+    mutationFn: (equipment: Equipment) => equipmentService.archive(equipment),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
       toast.success(t('equipment.deleteSuccess'));
@@ -54,18 +66,50 @@ export default function EquipmentPage() {
     onError: () => toast.error(t('notifications.errorOccurred')),
   });
 
+  const typeLabels: Record<string, string> = Object.fromEntries(
+    (typesQuery.data ?? []).map((tp) => [tp._id, translateDynamicLabel(tp.name, t)]),
+  );
+  const brandLabels: Record<string, string> = Object.fromEntries(
+    (brandsQuery.data ?? []).map((b) => [b._id, translateDynamicLabel(b.name, t)]),
+  );
+
   const columns: Column<Equipment>[] = [
     {
-      key: 'name',
-      headerKey: 'common.name',
-      render: (item) => <p className="font-medium text-white">{item.name}</p>,
+      key: 'code',
+      headerKey: 'equipment.code',
+      render: (item) => (
+        <p className="font-medium text-white">{item.code ?? item.name ?? '—'}</p>
+      ),
     },
-    { key: 'brand', headerKey: 'equipment.brand', render: (item) => item.brand || '—' },
-    { key: 'model', headerKey: 'equipment.model', render: (item) => item.model || '—' },
     {
-      key: 'serialNumber',
-      headerKey: 'equipment.serialNumber',
-      render: (item) => item.serialNumber || '—',
+      key: 'type',
+      headerKey: 'equipment.typeField',
+      render: (item) =>
+        item.type ? typeLabels[item.type] ?? translateDynamicLabel(item.type, t) : '—',
+    },
+    {
+      key: 'brand',
+      headerKey: 'equipment.brand',
+      render: (item) =>
+        item.brand ? brandLabels[item.brand] ?? translateDynamicLabel(item.brand, t) : '—',
+    },
+    {
+      key: 'client',
+      headerKey: 'common.client',
+      render: (item) => (typeof item.client === 'object' ? item.client?.name : '—'),
+    },
+    {
+      key: 'site',
+      headerKey: 'common.site',
+      render: (item) => (typeof item.site === 'object' ? item.site?.name : '—'),
+    },
+    {
+      key: 'createDate',
+      headerKey: 'common.createdAt',
+      render: (item) => {
+        const d = item.createDate ?? item.createdDate;
+        return d ? new Date(d).toLocaleDateString() : '—';
+      },
     },
     {
       key: 'status',
@@ -125,7 +169,25 @@ export default function EquipmentPage() {
 
         <FilterPanel
           fields={[
-            { key: 'name', labelKey: 'common.name', type: 'text' },
+            { key: 'name', labelKey: 'equipment.code', type: 'text' },
+            {
+              key: 'type',
+              labelKey: 'equipment.typeField',
+              type: 'select',
+              options: (typesQuery.data ?? []).map((tp) => ({
+                value: tp._id,
+                label: translateDynamicLabel(tp.name, t),
+              })),
+            },
+            {
+              key: 'brand',
+              labelKey: 'equipment.brand',
+              type: 'select',
+              options: (brandsQuery.data ?? []).map((b) => ({
+                value: b._id,
+                label: translateDynamicLabel(b.name, t),
+              })),
+            },
             {
               key: 'status',
               labelKey: 'common.status',
@@ -144,7 +206,7 @@ export default function EquipmentPage() {
           }}
           onClear={() => {
             clearFilters();
-            setActiveFilters({});
+            setActiveFilters({ name: '', status: 'ACTIVE', brand: '', type: '' });
             pagination.setPage(1);
           }}
         />
@@ -167,9 +229,9 @@ export default function EquipmentPage() {
           open={!!deleteTarget}
           onOpenChange={(open) => !open && setDeleteTarget(undefined)}
           title={t('equipment.deleteConfirm')}
-          description={deleteTarget?.name || ''}
-          onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget._id)}
-          isLoading={deleteMutation.isPending}
+          description={deleteTarget?.code ?? deleteTarget?.name ?? ''}
+          onConfirm={() => deleteTarget && archiveMutation.mutate(deleteTarget)}
+          isLoading={archiveMutation.isPending}
         />
       </div>
     </RoleGuard>

@@ -14,6 +14,24 @@ function required(name: string, value: string | undefined, fallback?: string): s
   return '';
 }
 
+const CHAT_HOST_ALIAS: Record<string, string> = {
+  // Legacy/broken hostname seen in production logs.
+  'api-chat.shieldgo.com.br': 'api-chat-hml.shieldgo.com.br',
+  // Legacy homolog alias from previous web client.
+  'chat-homolog.shieldgo.com.br': 'api-chat-hml.shieldgo.com.br',
+};
+
+function normalizeUrl(value: string): string {
+  try {
+    const parsed = new URL(value);
+    const mappedHost = CHAT_HOST_ALIAS[parsed.hostname];
+    if (mappedHost) parsed.hostname = mappedHost;
+    return parsed.toString().replace(/\/$/, '');
+  } catch {
+    return value.replace(/\/$/, '');
+  }
+}
+
 export const env = {
   // ── API ─────────────────────────────────────────────────────────
   apiUrl: required(
@@ -25,8 +43,10 @@ export const env = {
   // ── Socket / Chat (ms-chat) ─────────────────────────────────────
   chatUrl: required(
     'NEXT_PUBLIC_MS_CHAT_URL',
-    process.env.NEXT_PUBLIC_MS_CHAT_URL,
-    'http://localhost:3001',
+    process.env.NEXT_PUBLIC_MS_CHAT_URL
+      ? normalizeUrl(process.env.NEXT_PUBLIC_MS_CHAT_URL)
+      : undefined,
+    'https://api-chat-hml.shieldgo.com.br',
   ),
 
   // ── WebRTC ICE configuration ────────────────────────────────────

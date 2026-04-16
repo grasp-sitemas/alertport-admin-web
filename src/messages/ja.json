@@ -126,11 +126,31 @@
     "editSchedule": "スケジュール編集",
     "scheduleName": "スケジュール名",
     "frequency": "頻度",
+    "notRepeat": "繰り返さない",
     "daily": "毎日",
+    "everyOtherDay": "隔日",
     "weekly": "毎週",
     "monthly": "毎月",
     "yearly": "毎年",
     "once": "一回のみ",
+    "alertConfig": "アラート設定",
+    "frequencyMonthDay": "日（月内）",
+    "frequencyYearMonth": "月",
+    "frequencyYearDay": "日",
+    "months": {
+      "january": "1月",
+      "february": "2月",
+      "march": "3月",
+      "april": "4月",
+      "may": "5月",
+      "june": "6月",
+      "july": "7月",
+      "august": "8月",
+      "september": "9月",
+      "october": "10月",
+      "november": "11月",
+      "december": "12月"
+    },
     "beginDate": "開始日",
     "endDate": "終了日",
     "beginHour": "開始時間",
@@ -198,23 +218,32 @@
     "collaboratorDetails": "協力者詳細",
     "guard": "警備員",
     "guards": "警備員",
-    "deleteConfirm": "この協力者を削除してもよろしいですか？",
-    "deleteSuccess": "協力者が正常に削除されました",
-    "createSuccess": "協力者が正常に作成されました",
-    "updateSuccess": "協力者が正常に更新されました"
+    "type": "タイプ",
+    "vigilant": "警備員",
+    "supervisor": "スーパーバイザー",
+    "username": "ユーザー名",
+    "employeeCode": "社員番号",
+    "emailInUse": "メールは既に使用されています",
+    "usernameInUse": "ユーザー名は既に使用されています",
+    "deleteConfirm": "この協力者をアーカイブしますか？",
+    "deleteSuccess": "協力者をアーカイブしました",
+    "createSuccess": "協力者を作成しました",
+    "updateSuccess": "協力者を更新しました"
   },
   "equipment": {
     "title": "機器",
     "createEquipment": "機器作成",
     "editEquipment": "機器編集",
     "equipmentDetails": "機器詳細",
+    "code": "コード",
+    "typeField": "種類",
     "brand": "ブランド",
     "model": "モデル",
     "serialNumber": "シリアル番号",
-    "deleteConfirm": "この機器を削除してもよろしいですか？",
-    "deleteSuccess": "機器が正常に削除されました",
-    "createSuccess": "機器が正常に作成されました",
-    "updateSuccess": "機器が正常に更新されました"
+    "deleteConfirm": "この機器をアーカイブしますか？",
+    "deleteSuccess": "機器をアーカイブしました",
+    "createSuccess": "機器を作成しました",
+    "updateSuccess": "機器を更新しました"
   },
   "company": {
     "title": "会社",
@@ -310,5 +339,52 @@
     "deleteSuccess": "拠点をアーカイブしました",
     "createSuccess": "拠点を作成しました",
     "updateSuccess": "拠点を更新しました"
+  },
+  "str": {
+    "helpers": {
+      "type": {
+        "reports": {
+          "performance": {
+            "local": "拠点パフォーマンス"
+          },
+          "patrols": "巡回",
+          "alert": {
+            "sos": "SOSアラート"
+          },
+          "incidents": "インシデント",
+          "events": {
+            "not": {
+              "attended": "未対応イベント"
+            }
+          },
+          "supervision": {
+            "patrols": "監督巡回"
+          },
+          "analysis": {
+            "patrols": {
+              "integration": "巡回分析 - 連携"
+            }
+          },
+          "sequential": {
+            "reading": {
+              "history": "履歴データ"
+            }
+          }
+        }
+      },
+      "equipments": {
+        "brands": {
+          "ZOOY": "ZOOY",
+          "JWM": "JWM",
+          "ALERTPORT": "ALERTPORT",
+          "OTHER": "その他"
+        },
+        "types": {
+          "DEVICE-PHONE": "電話",
+          "DEVICE-READER": "リーダー",
+          "DEVICE-OTHER": "その他"
+        }
+      }
+    }
   }
 }

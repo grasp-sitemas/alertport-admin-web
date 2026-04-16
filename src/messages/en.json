@@ -126,11 +126,31 @@
     "editSchedule": "Edit Schedule",
     "scheduleName": "Schedule Name",
     "frequency": "Frequency",
+    "notRepeat": "Do not repeat",
     "daily": "Daily",
+    "everyOtherDay": "Every other day",
     "weekly": "Weekly",
     "monthly": "Monthly",
     "yearly": "Yearly",
     "once": "Once",
+    "alertConfig": "Alert Configuration",
+    "frequencyMonthDay": "Day of month",
+    "frequencyYearMonth": "Month",
+    "frequencyYearDay": "Day",
+    "months": {
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    },
     "beginDate": "Start Date",
     "endDate": "End Date",
     "beginHour": "Start Time",
@@ -198,8 +218,15 @@
     "collaboratorDetails": "Collaborator Details",
     "guard": "Guard",
     "guards": "Guards",
-    "deleteConfirm": "Are you sure you want to delete this collaborator?",
-    "deleteSuccess": "Collaborator deleted successfully",
+    "type": "Type",
+    "vigilant": "Guard",
+    "supervisor": "Supervisor",
+    "username": "Username",
+    "employeeCode": "Employee Code",
+    "emailInUse": "Email already in use",
+    "usernameInUse": "Username already in use",
+    "deleteConfirm": "Are you sure you want to archive this collaborator?",
+    "deleteSuccess": "Collaborator archived successfully",
     "createSuccess": "Collaborator created successfully",
     "updateSuccess": "Collaborator updated successfully"
   },
@@ -208,11 +235,13 @@
     "createEquipment": "Create Equipment",
     "editEquipment": "Edit Equipment",
     "equipmentDetails": "Equipment Details",
+    "code": "Code",
+    "typeField": "Type",
     "brand": "Brand",
     "model": "Model",
     "serialNumber": "Serial Number",
-    "deleteConfirm": "Are you sure you want to delete this equipment?",
-    "deleteSuccess": "Equipment deleted successfully",
+    "deleteConfirm": "Are you sure you want to archive this equipment?",
+    "deleteSuccess": "Equipment archived successfully",
     "createSuccess": "Equipment created successfully",
     "updateSuccess": "Equipment updated successfully"
   },
@@ -310,5 +339,52 @@
     "deleteSuccess": "Site archived successfully",
     "createSuccess": "Site created successfully",
     "updateSuccess": "Site updated successfully"
+  },
+  "str": {
+    "helpers": {
+      "type": {
+        "reports": {
+          "performance": {
+            "local": "Performance locals"
+          },
+          "patrols": "Patrols",
+          "alert": {
+            "sos": "SOS alerts"
+          },
+          "incidents": "Incidents",
+          "events": {
+            "not": {
+              "attended": "Events not attended"
+            }
+          },
+          "supervision": {
+            "patrols": "Supervision patrols"
+          },
+          "analysis": {
+            "patrols": {
+              "integration": "Analysis patrols - Integration"
+            }
+          },
+          "sequential": {
+            "reading": {
+              "history": "Historical Data"
+            }
+          }
+        }
+      },
+      "equipments": {
+        "brands": {
+          "ZOOY": "ZOOY",
+          "JWM": "JWM",
+          "ALERTPORT": "ALERTPORT",
+          "OTHER": "Other"
+        },
+        "types": {
+          "DEVICE-PHONE": "Phone",
+          "DEVICE-READER": "Reader",
+          "DEVICE-OTHER": "Other"
+        }
+      }
+    }
   }
 }

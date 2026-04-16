@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
+import { translateDynamicLabel } from '@/lib/i18n-labels';
 
 interface FilterField {
   key: string;
@@ -53,7 +54,7 @@ export function FilterPanel({ fields, values, onChange, onSearch, onClear }: Fil
                   <SelectItem value="__all__">{t('common.all')}</SelectItem>
                   {field.options?.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
+                      {translateDynamicLabel(opt.label, t)}
                     </SelectItem>
                   ))}
                 </SelectContent>

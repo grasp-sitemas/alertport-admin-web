@@ -126,11 +126,31 @@
     "editSchedule": "Editar Programación",
     "scheduleName": "Nombre de la Programación",
     "frequency": "Frecuencia",
+    "notRepeat": "No repetir",
     "daily": "Diario",
+    "everyOtherDay": "Días alternados",
     "weekly": "Semanal",
     "monthly": "Mensual",
     "yearly": "Anual",
     "once": "Una vez",
+    "alertConfig": "Configuración de Alerta",
+    "frequencyMonthDay": "Día del mes",
+    "frequencyYearMonth": "Mes",
+    "frequencyYearDay": "Día",
+    "months": {
+      "january": "Enero",
+      "february": "Febrero",
+      "march": "Marzo",
+      "april": "Abril",
+      "may": "Mayo",
+      "june": "Junio",
+      "july": "Julio",
+      "august": "Agosto",
+      "september": "Septiembre",
+      "october": "Octubre",
+      "november": "Noviembre",
+      "december": "Diciembre"
+    },
     "beginDate": "Fecha de Inicio",
     "endDate": "Fecha de Fin",
     "beginHour": "Hora de Inicio",
@@ -198,23 +218,32 @@
     "collaboratorDetails": "Detalles del Colaborador",
     "guard": "Guardia",
     "guards": "Guardias",
-    "deleteConfirm": "¿Estás seguro de que deseas eliminar este colaborador?",
-    "deleteSuccess": "Colaborador eliminado con éxito",
-    "createSuccess": "Colaborador creado con éxito",
-    "updateSuccess": "Colaborador actualizado con éxito"
+    "type": "Tipo",
+    "vigilant": "Vigilante",
+    "supervisor": "Supervisor",
+    "username": "Usuario",
+    "employeeCode": "Matrícula",
+    "emailInUse": "Correo ya en uso",
+    "usernameInUse": "Usuario ya en uso",
+    "deleteConfirm": "¿Archivar este colaborador?",
+    "deleteSuccess": "Colaborador archivado",
+    "createSuccess": "Colaborador creado",
+    "updateSuccess": "Colaborador actualizado"
   },
   "equipment": {
     "title": "Equipos",
     "createEquipment": "Crear Equipo",
     "editEquipment": "Editar Equipo",
     "equipmentDetails": "Detalles del Equipo",
+    "code": "Código",
+    "typeField": "Tipo",
     "brand": "Marca",
     "model": "Modelo",
     "serialNumber": "Número de Serie",
-    "deleteConfirm": "¿Estás seguro de que deseas eliminar este equipo?",
-    "deleteSuccess": "Equipo eliminado con éxito",
-    "createSuccess": "Equipo creado con éxito",
-    "updateSuccess": "Equipo actualizado con éxito"
+    "deleteConfirm": "¿Archivar este equipo?",
+    "deleteSuccess": "Equipo archivado",
+    "createSuccess": "Equipo creado",
+    "updateSuccess": "Equipo actualizado"
   },
   "company": {
     "title": "Empresa",
@@ -310,5 +339,52 @@
     "deleteSuccess": "Puesto archivado",
     "createSuccess": "Puesto creado",
     "updateSuccess": "Puesto actualizado"
+  },
+  "str": {
+    "helpers": {
+      "type": {
+        "reports": {
+          "performance": {
+            "local": "Rendimiento de locales"
+          },
+          "patrols": "Patrullas",
+          "alert": {
+            "sos": "Alertas SOS"
+          },
+          "incidents": "Incidentes",
+          "events": {
+            "not": {
+              "attended": "Eventos no atendidos"
+            }
+          },
+          "supervision": {
+            "patrols": "Patrullas de supervisión"
+          },
+          "analysis": {
+            "patrols": {
+              "integration": "Análisis de patrullas - Integración"
+            }
+          },
+          "sequential": {
+            "reading": {
+              "history": "Datos Históricos"
+            }
+          }
+        }
+      },
+      "equipments": {
+        "brands": {
+          "ZOOY": "ZOOY",
+          "JWM": "JWM",
+          "ALERTPORT": "ALERTPORT",
+          "OTHER": "Otro"
+        },
+        "types": {
+          "DEVICE-PHONE": "Teléfono",
+          "DEVICE-READER": "Lector",
+          "DEVICE-OTHER": "Otro"
+        }
+      }
+    }
   }
 }

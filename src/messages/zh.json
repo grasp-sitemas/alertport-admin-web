@@ -126,11 +126,31 @@
     "editSchedule": "编辑调度",
     "scheduleName": "调度名称",
     "frequency": "频率",
+    "notRepeat": "不重复",
     "daily": "每日",
+    "everyOtherDay": "隔日",
     "weekly": "每周",
     "monthly": "每月",
     "yearly": "每年",
     "once": "一次",
+    "alertConfig": "警报配置",
+    "frequencyMonthDay": "日（月）",
+    "frequencyYearMonth": "月份",
+    "frequencyYearDay": "日",
+    "months": {
+      "january": "一月",
+      "february": "二月",
+      "march": "三月",
+      "april": "四月",
+      "may": "五月",
+      "june": "六月",
+      "july": "七月",
+      "august": "八月",
+      "september": "九月",
+      "october": "十月",
+      "november": "十一月",
+      "december": "十二月"
+    },
     "beginDate": "开始日期",
     "endDate": "结束日期",
     "beginHour": "开始时间",
@@ -198,8 +218,15 @@
     "collaboratorDetails": "协作者详情",
     "guard": "警卫",
     "guards": "警卫",
-    "deleteConfirm": "确定要删除此协作者吗？",
-    "deleteSuccess": "协作者删除成功",
+    "type": "类型",
+    "vigilant": "警卫",
+    "supervisor": "主管",
+    "username": "用户名",
+    "employeeCode": "员工编号",
+    "emailInUse": "邮箱已被使用",
+    "usernameInUse": "用户名已被使用",
+    "deleteConfirm": "确定要归档此协作者吗？",
+    "deleteSuccess": "协作者已归档",
     "createSuccess": "协作者创建成功",
     "updateSuccess": "协作者更新成功"
   },
@@ -208,11 +235,13 @@
     "createEquipment": "创建设备",
     "editEquipment": "编辑设备",
     "equipmentDetails": "设备详情",
+    "code": "编码",
+    "typeField": "类型",
     "brand": "品牌",
     "model": "型号",
     "serialNumber": "序列号",
-    "deleteConfirm": "确定要删除此设备吗？",
-    "deleteSuccess": "设备删除成功",
+    "deleteConfirm": "确定要归档此设备吗？",
+    "deleteSuccess": "设备已归档",
     "createSuccess": "设备创建成功",
     "updateSuccess": "设备更新成功"
   },
@@ -310,5 +339,52 @@
     "deleteSuccess": "站点已归档",
     "createSuccess": "站点创建成功",
     "updateSuccess": "站点更新成功"
+  },
+  "str": {
+    "helpers": {
+      "type": {
+        "reports": {
+          "performance": {
+            "local": "站点绩效"
+          },
+          "patrols": "巡逻",
+          "alert": {
+            "sos": "SOS 警报"
+          },
+          "incidents": "事件",
+          "events": {
+            "not": {
+              "attended": "未处理事件"
+            }
+          },
+          "supervision": {
+            "patrols": "督导巡逻"
+          },
+          "analysis": {
+            "patrols": {
+              "integration": "巡逻分析 - 集成"
+            }
+          },
+          "sequential": {
+            "reading": {
+              "history": "历史数据"
+            }
+          }
+        }
+      },
+      "equipments": {
+        "brands": {
+          "ZOOY": "ZOOY",
+          "JWM": "JWM",
+          "ALERTPORT": "ALERTPORT",
+          "OTHER": "其他"
+        },
+        "types": {
+          "DEVICE-PHONE": "手机",
+          "DEVICE-READER": "读卡器",
+          "DEVICE-OTHER": "其他"
+        }
+      }
+    }
   }
 }
