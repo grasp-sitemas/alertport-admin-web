@@ -4,18 +4,27 @@ import { useQuery } from '@tanstack/react-query';
 import { companyService } from '@/services/company.service';
 import { equipmentService } from '@/services/equipment.service';
 import { useUserScope } from '@/hooks/use-user-scope';
+import { useAuth } from '@/hooks/use-auth';
+import { isSuperAdminMaster } from '@/config/roles';
 
 /**
- * Cascading lookups for Account → Client → Site dropdowns and Equipment,
- * used by Collaborator, Equipment, Site, Alert Schedule and other forms.
+ * Cascading lookups for Account → Client → Site → Equipment.
  *
- * All lookups auto-scope to the currently logged-in user's hierarchy when
- * no explicit parent is given — this matches the legacy shieldgo service
- * calls `getClients` / `getSites` that pick up `Common.getAccountId` /
- * `Common.getClientId` from the session.
+ * Mirrors the legacy shieldgo behaviour:
+ *   1. Accounts load ONLY for SUPER_ADMIN_MASTER (other roles don't pick an
+ *      account — theirs is fixed in the session).
+ *   2. Clients load ONLY once an account is known (either picked in the UI
+ *      by a super admin, or pulled from the session user for ADMIN+).
+ *   3. Sites load ONLY once a client is known.
+ *   4. Equipments load ONLY once a site is known.
+ *
+ * This avoids firing three parallel "list all" queries on page load and
+ * matches the `changeAccount` / `changeClient` flow from the legacy code.
  */
 
 export function useAccountsLookup() {
+  const { userSubtype } = useAuth();
+  const enabled = isSuperAdminMaster(userSubtype);
   return useQuery({
     queryKey: ['lookup', 'accounts'],
     queryFn: () =>
@@ -24,23 +33,28 @@ export function useAccountsLookup() {
         limit: 500,
         status: 'ACTIVE',
       }),
+    enabled,
     staleTime: 5 * 60 * 1000,
   });
 }
 
 export function useClientsLookup(account?: string) {
   const scope = useUserScope();
-  // Explicit account arg wins; otherwise scope to the session user's account.
-  const effectiveAccount = account || scope.accountId || '';
+  // Explicit account arg wins; otherwise use the session user's own account.
+  const effectiveAccount = account || scope.accountId;
+
   return useQuery({
-    queryKey: ['lookup', 'clients', effectiveAccount],
+    queryKey: ['lookup', 'clients', effectiveAccount ?? ''],
     queryFn: () =>
       companyService.filterClients({
         skip: 1,
         limit: 500,
         status: 'ACTIVE',
-        ...(effectiveAccount ? { account: effectiveAccount } : {}),
+        account: effectiveAccount,
       }),
+    // Do not fire until we know WHICH account to scope by — legacy changeAccount
+    // pattern: clients are only loaded after an account is chosen.
+    enabled: !!effectiveAccount,
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -51,12 +65,7 @@ export function useSitesLookup(client?: string) {
   const effectiveClient = client || scope.clientId;
 
   return useQuery({
-    queryKey: [
-      'lookup',
-      'sites',
-      effectiveAccount ?? '',
-      effectiveClient ?? '',
-    ],
+    queryKey: ['lookup', 'sites', effectiveAccount ?? '', effectiveClient ?? ''],
     queryFn: () =>
       companyService.filterSites({
         skip: 1,
@@ -65,7 +74,9 @@ export function useSitesLookup(client?: string) {
         ...(effectiveAccount ? { account: effectiveAccount } : {}),
         ...(effectiveClient ? { client: effectiveClient } : {}),
       }),
-    enabled: !!(effectiveAccount || effectiveClient),
+    // Wait for a client to be known (either picked or from session).
+    // The legacy changeClient handler only loads sites AFTER client is set.
+    enabled: !!effectiveClient,
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -73,9 +84,7 @@ export function useSitesLookup(client?: string) {
 /**
  * Legacy `Services.getEquipmentsBySite()` uses `type='DEVICE-PHONE'` to filter
  * only AlertPort / phone-capable devices for scheduling.
- * If no explicit `site` is passed, the hook auto-scopes to the session user's
- * site (if any); the service payload always includes account/client/site when
- * available so the backend respects the hierarchy scope.
+ * Fires only once a site is known.
  */
 export function useEquipmentsBySiteLookup(
   params: { account?: string; client?: string; site?: string; deviceType?: string } = {},
