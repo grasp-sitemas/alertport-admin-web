@@ -21,14 +21,28 @@ interface FilterPanelProps {
   onChange: (key: string, value: unknown) => void;
   onSearch: () => void;
   onClear: () => void;
+  /**
+   * Optional extra filter controls rendered inside the grid, before the
+   * declarative `fields`. Use this slot for components that can't be
+   * modeled as a simple field (cascading hierarchy, etc.).
+   */
+  extras?: React.ReactNode;
 }
 
-export function FilterPanel({ fields, values, onChange, onSearch, onClear }: FilterPanelProps) {
+export function FilterPanel({
+  fields,
+  values,
+  onChange,
+  onSearch,
+  onClear,
+  extras,
+}: FilterPanelProps) {
   const t = useTranslations();
 
   return (
     <div className="flex flex-col gap-4 p-4 rounded-xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)]">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        {extras}
         {fields.map((field) => (
           <div key={field.key}>
             <label className="text-xs font-medium text-text-secondary mb-1.5 block">
@@ -44,7 +58,7 @@ export function FilterPanel({ fields, values, onChange, onSearch, onClear }: Fil
             )}
             {field.type === 'select' && (
               <Select
-                value={(values[field.key] as string) || ''}
+                value={(values[field.key] as string) || '__all__'}
                 onValueChange={(val) => onChange(field.key, val === '__all__' ? '' : val)}
               >
                 <SelectTrigger>

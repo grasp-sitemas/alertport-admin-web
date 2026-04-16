@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { EquipmentFormDialog } from '@/features/equipment/equipment-form-dialog';
 import { equipmentService } from '@/services/equipment.service';
 import { usePagination } from '@/hooks/use-pagination';
@@ -26,7 +27,9 @@ export default function EquipmentPage() {
   const { filters, setFilter, clearFilters, buildFilterParams } = useFilters({
     initialFilters: { name: '', status: 'ACTIVE', brand: '', type: '' },
   });
+  const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
   const [activeFilters, setActiveFilters] = useState(filters);
+  const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Equipment | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<Equipment | undefined>();
@@ -34,6 +37,9 @@ export default function EquipmentPage() {
   const queryParams = {
     ...buildFilterParams(pagination.paginationParams),
     ...activeFilters,
+    ...(activeHierarchy.account ? { account: activeHierarchy.account } : {}),
+    ...(activeHierarchy.client ? { client: activeHierarchy.client } : {}),
+    ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
   };
 
   const { data, isLoading } = useQuery({
@@ -168,6 +174,7 @@ export default function EquipmentPage() {
         />
 
         <FilterPanel
+          extras={<HierarchyFilters value={hierarchy} onChange={setHierarchy} />}
           fields={[
             { key: 'name', labelKey: 'equipment.code', type: 'text' },
             {
@@ -203,9 +210,12 @@ export default function EquipmentPage() {
           onSearch={() => {
             pagination.setPage(1);
             setActiveFilters(filters);
+            setActiveHierarchy(hierarchy);
           }}
           onClear={() => {
             clearFilters();
+            setHierarchy({});
+            setActiveHierarchy({});
             setActiveFilters({ name: '', status: 'ACTIVE', brand: '', type: '' });
             pagination.setPage(1);
           }}

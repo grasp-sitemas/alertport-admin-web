@@ -6,26 +6,35 @@ import { PageHeader } from '@/components/shared/page-header';
 import { FilterPanel } from '@/components/shared/filter-panel';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { OccurrenceStatusBadge } from '@/components/shared/status-badge';
+import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { useOccurrences } from '@/features/alerts/use-occurrences';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import type { AlertOccurrence } from '@/types/api';
 
+const initialFilters = {
+  status: '',
+  startDate: last7DaysISO(),
+  endDate: nowISO(),
+};
+
 export default function AlertOccurrencesPage() {
   const t = useTranslations();
   const pagination = usePagination({ initialPageSize: 20 });
   const { filters, setFilter, clearFilters, buildFilterParams } = useFilters({
-    initialFilters: {
-      status: '',
-      startDate: last7DaysISO(),
-      endDate: nowISO(),
-    },
+    initialFilters,
   });
 
-  const [activeFilters, setActiveFilters] = useState(filters);
+  const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
+  const [activeFilters, setActiveFilters] = useState<Record<string, unknown>>(initialFilters);
+  const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
+
   const queryParams = {
     ...buildFilterParams(pagination.paginationParams),
     ...activeFilters,
+    ...(activeHierarchy.account ? { account: activeHierarchy.account } : {}),
+    ...(activeHierarchy.client ? { client: activeHierarchy.client } : {}),
+    ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
   };
 
   const { data, isLoading } = useOccurrences(queryParams);
@@ -33,7 +42,6 @@ export default function AlertOccurrencesPage() {
   const results = data?.results || [];
   const totalCount = data?.totalCount || 0;
 
-  // Update pagination total after data loads
   if (totalCount !== pagination.totalCount) {
     pagination.setTotalCount(totalCount);
   }
@@ -75,33 +83,26 @@ export default function AlertOccurrencesPage() {
   const handleSearch = () => {
     pagination.setPage(1);
     setActiveFilters(filters);
+    setActiveHierarchy(hierarchy);
   };
 
   const handleClear = () => {
     clearFilters();
-    setActiveFilters({});
+    setActiveFilters(initialFilters);
+    setHierarchy({});
+    setActiveHierarchy({});
     pagination.setPage(1);
   };
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t('alerts.timeline')}
-        description={t('alerts.maxDateRange')}
-      />
+      <PageHeader title={t('alerts.timeline')} description={t('alerts.maxDateRange')} />
 
       <FilterPanel
+        extras={<HierarchyFilters value={hierarchy} onChange={setHierarchy} />}
         fields={[
-          {
-            key: 'startDate',
-            labelKey: 'common.startDate',
-            type: 'date',
-          },
-          {
-            key: 'endDate',
-            labelKey: 'common.endDate',
-            type: 'date',
-          },
+          { key: 'startDate', labelKey: 'common.startDate', type: 'date' },
+          { key: 'endDate', labelKey: 'common.endDate', type: 'date' },
           {
             key: 'status',
             labelKey: 'alerts.status',

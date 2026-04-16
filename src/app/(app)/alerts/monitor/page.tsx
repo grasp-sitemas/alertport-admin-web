@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   AlertTriangle,
@@ -21,6 +21,8 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { FilterPanel } from '@/components/shared/filter-panel';
+import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { KpiCard } from '@/features/dashboard/kpi-card';
 import {
   usePatrolActions,
@@ -62,19 +64,24 @@ export default function AlertMonitorPage() {
   );
 
   const scope = useUserScope();
+  const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
+  const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
 
-  const patrolQuery = usePatrolActions(
-    applyUserScope(
+  const patrolQuery = usePatrolActions({
+    ...applyUserScope(
       {
         skip: patrolPagination.paginationParams.skip,
         limit: patrolPagination.paginationParams.limit,
       },
       scope,
     ),
-  );
+    ...(activeHierarchy.account ? { account: activeHierarchy.account } : {}),
+    ...(activeHierarchy.client ? { client: activeHierarchy.client } : {}),
+    ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
+  });
 
-  const timeQuery = useTimeEntries(
-    applyUserScope(
+  const timeQuery = useTimeEntries({
+    ...applyUserScope(
       {
         skip: timePagination.paginationParams.skip,
         limit: timePagination.paginationParams.limit,
@@ -82,7 +89,10 @@ export default function AlertMonitorPage() {
       },
       scope,
     ),
-  );
+    ...(activeHierarchy.account ? { account: activeHierarchy.account } : {}),
+    ...(activeHierarchy.client ? { client: activeHierarchy.client } : {}),
+    ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
+  });
 
   // Prefetch attendance types
   useAttendanceTypes();
@@ -135,6 +145,18 @@ export default function AlertMonitorPage() {
           title={t('alerts.monitor')}
           description={t('sidebar.monitoring')}
           action={<ChatConnectionBadge connected={call?.socketConnected ?? false} />}
+        />
+
+        <FilterPanel
+          extras={<HierarchyFilters value={hierarchy} onChange={setHierarchy} />}
+          fields={[]}
+          values={{}}
+          onChange={() => {}}
+          onSearch={() => setActiveHierarchy(hierarchy)}
+          onClear={() => {
+            setHierarchy({});
+            setActiveHierarchy({});
+          }}
         />
 
         {/* KPIs */}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -38,6 +39,23 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
   const queryClient = useQueryClient();
   const isEdit = !!client;
 
+  const defaults: ClientFormValues = client
+    ? {
+        _id: client._id,
+        name: client.name ?? '',
+        email: client.email || '',
+        primaryPhone: client.primaryPhone ?? '',
+        owner:
+          (client as unknown as { owner?: string }).owner ?? '',
+        account:
+          typeof client.account === 'object'
+            ? client.account?._id
+            : (client.account as string | undefined) ?? '',
+        type: 'CLIENT',
+        status: client.status ?? 'ACTIVE',
+      }
+    : DEFAULT_CLIENT_VALUES;
+
   const {
     register,
     control,
@@ -46,22 +64,13 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
     formState: { errors, isSubmitting },
   } = useForm<ClientFormValues>({
     resolver: zodResolver(clientFormSchema),
-    defaultValues: client
-      ? {
-          _id: client._id,
-          name: client.name,
-          email: client.email || '',
-          primaryPhone: client.primaryPhone,
-          account:
-            typeof client.account === 'object'
-              ? client.account?._id
-              : (client.account as string | undefined),
-          type: 'CLIENT',
-          status: client.status,
-          owner: '',
-        }
-      : DEFAULT_CLIENT_VALUES,
+    defaultValues: defaults,
   });
+
+  useEffect(() => {
+    if (open) reset(defaults);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, client?._id]);
 
   const mutation = useMutation({
     mutationFn: async (data: ClientFormValues) => {

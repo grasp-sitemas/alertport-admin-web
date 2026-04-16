@@ -6,26 +6,35 @@ import { PageHeader } from '@/components/shared/page-header';
 import { FilterPanel } from '@/components/shared/filter-panel';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { TimeEntryBadge } from '@/components/shared/status-badge';
+import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { useTimeEntries } from '@/features/alerts/use-occurrences';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import type { TimeEntry } from '@/types/api';
 
+const initialFilters = {
+  eventType: '',
+  startDate: last7DaysISO(),
+  endDate: nowISO(),
+};
+
 export default function AttendancePage() {
   const t = useTranslations();
   const pagination = usePagination({ initialPageSize: 20 });
   const { filters, setFilter, clearFilters, buildFilterParams } = useFilters({
-    initialFilters: {
-      eventType: '',
-      startDate: last7DaysISO(),
-      endDate: nowISO(),
-    },
+    initialFilters,
   });
 
-  const [activeFilters, setActiveFilters] = useState(filters);
+  const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
+  const [activeFilters, setActiveFilters] = useState<Record<string, unknown>>(initialFilters);
+  const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
+
   const queryParams = {
     ...buildFilterParams(pagination.paginationParams),
     ...activeFilters,
+    ...(activeHierarchy.account ? { account: activeHierarchy.account } : {}),
+    ...(activeHierarchy.client ? { client: activeHierarchy.client } : {}),
+    ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
   };
 
   const { data, isLoading } = useTimeEntries(queryParams);
@@ -53,14 +62,14 @@ export default function AttendancePage() {
       render: (item) => <TimeEntryBadge type={item.eventType} />,
     },
     {
-      key: 'site',
-      headerKey: 'common.site',
-      render: (item) => (typeof item.site === 'object' ? item.site?.name : '—'),
-    },
-    {
       key: 'client',
       headerKey: 'common.client',
       render: (item) => (typeof item.client === 'object' ? item.client?.name : '—'),
+    },
+    {
+      key: 'site',
+      headerKey: 'common.site',
+      render: (item) => (typeof item.site === 'object' ? item.site?.name : '—'),
     },
     {
       key: 'equipment',
@@ -72,11 +81,14 @@ export default function AttendancePage() {
   const handleSearch = () => {
     pagination.setPage(1);
     setActiveFilters(filters);
+    setActiveHierarchy(hierarchy);
   };
 
   const handleClear = () => {
     clearFilters();
-    setActiveFilters({});
+    setActiveFilters(initialFilters);
+    setHierarchy({});
+    setActiveHierarchy({});
     pagination.setPage(1);
   };
 
@@ -85,6 +97,7 @@ export default function AttendancePage() {
       <PageHeader title={t('attendance.title')} description={t('attendance.timeEntries')} />
 
       <FilterPanel
+        extras={<HierarchyFilters value={hierarchy} onChange={setHierarchy} />}
         fields={[
           { key: 'startDate', labelKey: 'common.startDate', type: 'date' },
           { key: 'endDate', labelKey: 'common.endDate', type: 'date' },

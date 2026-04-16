@@ -12,8 +12,8 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { SiteFormDialog } from '@/features/sites/site-form-dialog';
-import { useClientsLookup } from '@/features/sites/use-clients-lookup';
 import { companyService } from '@/services/company.service';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
@@ -24,9 +24,11 @@ export default function SitesPage() {
   const queryClient = useQueryClient();
   const pagination = usePagination({ initialPageSize: 20 });
   const { filters, setFilter, clearFilters, buildFilterParams } = useFilters({
-    initialFilters: { name: '', client: '', status: 'ACTIVE' },
+    initialFilters: { name: '', status: 'ACTIVE' },
   });
+  const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
   const [activeFilters, setActiveFilters] = useState(filters);
+  const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Company | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<Company | undefined>();
@@ -34,16 +36,14 @@ export default function SitesPage() {
   const queryParams = {
     ...buildFilterParams(pagination.paginationParams),
     ...activeFilters,
+    ...(activeHierarchy.account ? { account: activeHierarchy.account } : {}),
+    ...(activeHierarchy.client ? { client: activeHierarchy.client } : {}),
   };
 
   const { data, isLoading } = useQuery({
     queryKey: ['sites', queryParams],
     queryFn: () => companyService.filterSites(queryParams),
   });
-
-  const clientsLookup = useClientsLookup();
-  const clientOptions =
-    clientsLookup.data?.results?.map((c) => ({ value: c._id, label: c.name })) ?? [];
 
   const results = data?.results || [];
   const totalCount = data?.totalCount || 0;
@@ -149,14 +149,11 @@ export default function SitesPage() {
         />
 
         <FilterPanel
+          extras={
+            <HierarchyFilters value={hierarchy} onChange={setHierarchy} showSite={false} />
+          }
           fields={[
             { key: 'name', labelKey: 'common.name', type: 'text' },
-            {
-              key: 'client',
-              labelKey: 'common.client',
-              type: 'select',
-              options: clientOptions,
-            },
             {
               key: 'status',
               labelKey: 'common.status',
@@ -172,10 +169,13 @@ export default function SitesPage() {
           onSearch={() => {
             pagination.setPage(1);
             setActiveFilters(filters);
+            setActiveHierarchy(hierarchy);
           }}
           onClear={() => {
             clearFilters();
-            setActiveFilters({});
+            setActiveFilters({ name: '', status: 'ACTIVE' });
+            setHierarchy({});
+            setActiveHierarchy({});
             pagination.setPage(1);
           }}
         />

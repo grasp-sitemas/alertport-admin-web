@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { ClientFormDialog } from '@/features/clients/client-form-dialog';
 import { companyService } from '@/services/company.service';
 import { usePagination } from '@/hooks/use-pagination';
@@ -25,7 +26,9 @@ export default function ClientsPage() {
   const { filters, setFilter, clearFilters, buildFilterParams } = useFilters({
     initialFilters: { name: '', status: 'ACTIVE' },
   });
+  const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
   const [activeFilters, setActiveFilters] = useState(filters);
+  const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Company | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<Company | undefined>();
@@ -33,6 +36,7 @@ export default function ClientsPage() {
   const queryParams = {
     ...buildFilterParams(pagination.paginationParams),
     ...activeFilters,
+    ...(activeHierarchy.account ? { account: activeHierarchy.account } : {}),
   };
 
   const { data, isLoading } = useQuery({
@@ -128,6 +132,14 @@ export default function ClientsPage() {
         />
 
         <FilterPanel
+          extras={
+            <HierarchyFilters
+              value={hierarchy}
+              onChange={setHierarchy}
+              showClient={false}
+              showSite={false}
+            />
+          }
           fields={[
             { key: 'name', labelKey: 'common.name', type: 'text' },
             {
@@ -145,10 +157,13 @@ export default function ClientsPage() {
           onSearch={() => {
             pagination.setPage(1);
             setActiveFilters(filters);
+            setActiveHierarchy(hierarchy);
           }}
           onClear={() => {
             clearFilters();
-            setActiveFilters({});
+            setActiveFilters({ name: '', status: 'ACTIVE' });
+            setHierarchy({});
+            setActiveHierarchy({});
             pagination.setPage(1);
           }}
         />

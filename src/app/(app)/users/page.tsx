@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge, RoleBadge } from '@/components/shared/status-badge';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { UserFormDialog } from '@/features/users/user-form-dialog';
 import { usersService } from '@/services/users.service';
 import { usePagination } from '@/hooks/use-pagination';
@@ -23,9 +24,11 @@ export default function UsersPage() {
   const queryClient = useQueryClient();
   const pagination = usePagination({ initialPageSize: 20 });
   const { filters, setFilter, clearFilters, buildFilterParams } = useFilters({
-    initialFilters: { name: '', status: '' },
+    initialFilters: { name: '', status: 'ACTIVE', subtype: '' },
   });
+  const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
   const [activeFilters, setActiveFilters] = useState(filters);
+  const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<User | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<User | undefined>();
@@ -33,6 +36,9 @@ export default function UsersPage() {
   const queryParams = {
     ...buildFilterParams(pagination.paginationParams),
     ...activeFilters,
+    ...(activeHierarchy.account ? { account: activeHierarchy.account } : {}),
+    ...(activeHierarchy.client ? { client: activeHierarchy.client } : {}),
+    ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
   };
 
   const { data, isLoading } = useQuery({
@@ -45,7 +51,8 @@ export default function UsersPage() {
   if (totalCount !== pagination.totalCount) pagination.setTotalCount(totalCount);
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => usersService.delete(id),
+    // Legacy deletes by email via DELETE /api/users/v1/{email} with full body
+    mutationFn: (user: User) => usersService.delete(user.email, user as unknown as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success(t('users.deleteSuccess'));
@@ -58,13 +65,11 @@ export default function UsersPage() {
     {
       key: 'name',
       headerKey: 'common.name',
-      render: (item) => (
-        <div>
-          <p className="font-medium text-white">
-            {item.firstName} {item.lastName}
-          </p>
-        </div>
-      ),
+      render: (item) => {
+        const name =
+          item.fullName ?? `${item.firstName ?? ''} ${item.lastName ?? ''}`.trim();
+        return <p className="font-medium text-white">{name || '—'}</p>;
+      },
     },
     { key: 'email', headerKey: 'common.email', render: (item) => item.email },
     {
@@ -114,6 +119,15 @@ export default function UsersPage() {
   const handleSearch = () => {
     pagination.setPage(1);
     setActiveFilters(filters);
+    setActiveHierarchy(hierarchy);
+  };
+
+  const handleClear = () => {
+    clearFilters();
+    setActiveFilters({ name: '', status: 'ACTIVE', subtype: '' });
+    setHierarchy({});
+    setActiveHierarchy({});
+    pagination.setPage(1);
   };
 
   return (
@@ -135,8 +149,20 @@ export default function UsersPage() {
         />
 
         <FilterPanel
+          extras={<HierarchyFilters value={hierarchy} onChange={setHierarchy} />}
           fields={[
             { key: 'name', labelKey: 'common.name', type: 'text' },
+            {
+              key: 'subtype',
+              labelKey: 'users.role',
+              type: 'select',
+              options: [
+                { value: 'ADMIN', label: t('roles.admin') },
+                { value: 'MANAGER', label: t('roles.manager') },
+                { value: 'OPERATOR', label: t('roles.operator') },
+                { value: 'AUDITOR', label: t('roles.auditor') },
+              ],
+            },
             {
               key: 'status',
               labelKey: 'common.status',
@@ -150,11 +176,7 @@ export default function UsersPage() {
           values={filters}
           onChange={setFilter}
           onSearch={handleSearch}
-          onClear={() => {
-            clearFilters();
-            setActiveFilters({});
-            pagination.setPage(1);
-          }}
+          onClear={handleClear}
         />
 
         <DataTable
@@ -176,7 +198,7 @@ export default function UsersPage() {
           onOpenChange={(open) => !open && setDeleteTarget(undefined)}
           title={t('users.deleteConfirm')}
           description={`${deleteTarget?.firstName} ${deleteTarget?.lastName}`}
-          onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget._id)}
+          onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
           isLoading={deleteMutation.isPending}
         />
       </div>

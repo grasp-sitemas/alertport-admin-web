@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -42,6 +43,40 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
   const queryClient = useQueryClient();
   const isEdit = !!site;
 
+  const defaults: SiteFormValues = site
+    ? {
+        _id: site._id,
+        name: site.name ?? '',
+        account:
+          typeof site.account === 'object'
+            ? (site.account?._id ?? '')
+            : (site.account as string | undefined) ?? '',
+        client:
+          typeof site.client === 'object'
+            ? (site.client?._id ?? '')
+            : (site.client as string | undefined) ?? '',
+        primaryPhone: site.primaryPhone ?? '',
+        owner: (site as unknown as { owner?: string }).owner ?? '',
+        enableFreePatrol:
+          (site as unknown as { enableFreePatrol?: boolean }).enableFreePatrol ?? false,
+        address: {
+          cep: site.address?.cep ?? '',
+          address: site.address?.address ?? '',
+          number: site.address?.number ?? '',
+          complement: site.address?.complement ?? '',
+          neighborhood: site.address?.neighborhood ?? '',
+          city: site.address?.city ?? '',
+          state: site.address?.state ?? '',
+          country: site.address?.country ?? 'BR',
+          ibge: site.address?.ibge ?? '',
+          gia: site.address?.gia ?? '',
+          name: site.address?.name ?? 'MAIN',
+        },
+        type: 'SITE',
+        status: site.status ?? 'ACTIVE',
+      }
+    : DEFAULT_SITE_VALUES;
+
   const {
     register,
     control,
@@ -51,27 +86,13 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
     formState: { errors, isSubmitting },
   } = useForm<SiteFormValues>({
     resolver: zodResolver(siteFormSchema),
-    defaultValues: site
-      ? {
-          _id: site._id,
-          name: site.name,
-          account:
-            typeof site.account === 'object'
-              ? site.account?._id
-              : (site.account as string | undefined),
-          client:
-            typeof site.client === 'object'
-              ? (site.client?._id ?? '')
-              : ((site.client as string | undefined) ?? ''),
-          primaryPhone: site.primaryPhone,
-          owner: '',
-          enableFreePatrol: false,
-          address: site.address ?? DEFAULT_SITE_VALUES.address,
-          type: 'SITE',
-          status: site.status,
-        }
-      : DEFAULT_SITE_VALUES,
+    defaultValues: defaults,
   });
+
+  useEffect(() => {
+    if (open) reset(defaults);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, site?._id]);
 
   const accountWatched = useWatch({ control, name: 'account' });
   const clientsLookup = useClientsLookup(accountWatched || undefined);

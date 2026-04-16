@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { CollaboratorFormDialog } from '@/features/collaborators/collaborator-form-dialog';
 import { usersService } from '@/services/users.service';
 import { usePagination } from '@/hooks/use-pagination';
@@ -31,7 +32,9 @@ export default function CollaboratorsPage() {
   const { filters, setFilter, clearFilters, buildFilterParams } = useFilters({
     initialFilters: { name: '', status: 'ACTIVE', subtype: '' },
   });
+  const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
   const [activeFilters, setActiveFilters] = useState(filters);
+  const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<User | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<User | undefined>();
@@ -39,6 +42,9 @@ export default function CollaboratorsPage() {
   const queryParams = {
     ...buildFilterParams(pagination.paginationParams),
     ...activeFilters,
+    ...(activeHierarchy.account ? { account: activeHierarchy.account } : {}),
+    ...(activeHierarchy.client ? { client: activeHierarchy.client } : {}),
+    ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
   };
 
   const { data, isLoading } = useQuery({
@@ -161,6 +167,7 @@ export default function CollaboratorsPage() {
         />
 
         <FilterPanel
+          extras={<HierarchyFilters value={hierarchy} onChange={setHierarchy} />}
           fields={[
             { key: 'name', labelKey: 'common.name', type: 'text' },
             {
@@ -187,10 +194,13 @@ export default function CollaboratorsPage() {
           onSearch={() => {
             pagination.setPage(1);
             setActiveFilters(filters);
+            setActiveHierarchy(hierarchy);
           }}
           onClear={() => {
             clearFilters();
             setActiveFilters({ name: '', status: 'ACTIVE', subtype: '' });
+            setHierarchy({});
+            setActiveHierarchy({});
             pagination.setPage(1);
           }}
         />

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -39,6 +40,24 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
   const queryClient = useQueryClient();
   const isEdit = !!user;
 
+  const defaults: UserFormValues = user
+    ? {
+        _id: user._id,
+        firstName: user.firstName ?? '',
+        lastName: user.lastName ?? '',
+        email: user.email ?? '',
+        username: user.username ?? '',
+        primaryPhone: user.primaryPhone ?? '',
+        status: user.status ?? 'ACTIVE',
+        companyUser: {
+          subtype:
+            (user.companyUser?.subtype as 'ADMIN' | 'MANAGER' | 'OPERATOR' | 'AUDITOR') ||
+            'OPERATOR',
+          status: user.companyUser?.status || 'ACTIVE',
+        },
+      }
+    : DEFAULT_USER_VALUES;
+
   const {
     register,
     control,
@@ -47,22 +66,16 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
     formState: { errors, isSubmitting },
   } = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
-    defaultValues: user
-      ? {
-          _id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          username: user.username,
-          primaryPhone: user.primaryPhone,
-          status: user.status,
-          companyUser: {
-            subtype: (user.companyUser?.subtype as 'ADMIN' | 'MANAGER' | 'OPERATOR' | 'AUDITOR') || 'OPERATOR',
-            status: user.companyUser?.status || 'ACTIVE',
-          },
-        }
-      : DEFAULT_USER_VALUES,
+    defaultValues: defaults,
   });
+
+  // React Hook Form only reads defaultValues once. When the dialog is opened
+  // to edit a different target we have to reset the form manually; otherwise
+  // fields would show the previous user's values (or be empty on first open).
+  useEffect(() => {
+    if (open) reset(defaults);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, user?._id]);
 
   const mutation = useMutation({
     mutationFn: async (data: UserFormValues) => {
