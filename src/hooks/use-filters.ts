@@ -3,13 +3,17 @@
 import { useState, useCallback } from 'react';
 import type { FilterParams } from '@/types/api';
 import { getSessionUser } from '@/lib/session';
+import { extractId } from '@/lib/utils';
 
 interface UseFiltersOptions {
   initialFilters?: Record<string, unknown>;
   autoScopeByHierarchy?: boolean;
 }
 
-export function useFilters({ initialFilters = {}, autoScopeByHierarchy = true }: UseFiltersOptions = {}) {
+export function useFilters({
+  initialFilters = {},
+  autoScopeByHierarchy = true,
+}: UseFiltersOptions = {}) {
   const [filters, setFiltersState] = useState<Record<string, unknown>>(initialFilters);
 
   const setFilter = useCallback((key: string, value: unknown) => {
@@ -31,19 +35,18 @@ export function useFilters({ initialFilters = {}, autoScopeByHierarchy = true }:
         ...filters,
       };
 
-      // Auto-scope filters based on user hierarchy (legacy behavior)
+      // Auto-scope filters based on user hierarchy (mirrors legacy Common.getAccountId
+      // / getClientId / getSiteId). Handles both populated objects and bare IDs.
+      // UI filters already present on `params` always win.
       if (autoScopeByHierarchy) {
         const user = getSessionUser();
         if (user) {
-          if (user.account && typeof user.account === 'object' && !params.account) {
-            params.account = user.account._id;
-          }
-          if (user.client && typeof user.client === 'object' && !params.client) {
-            params.client = user.client._id;
-          }
-          if (user.site && typeof user.site === 'object' && !params.site) {
-            params.site = user.site._id;
-          }
+          const accountId = extractId(user.account);
+          const clientId = extractId(user.client);
+          const siteId = extractId(user.site);
+          if (accountId && !params.account) params.account = accountId;
+          if (clientId && !params.client) params.client = clientId;
+          if (siteId && !params.site) params.site = siteId;
         }
       }
 

@@ -13,6 +13,21 @@ export function formatEntityName(entity?: { name?: string } | null): string {
   return entity?.name ?? '—';
 }
 
+/**
+ * Pulls an `_id` out of either a string ID or a populated entity object.
+ * Used everywhere a user/company field can arrive in either shape depending
+ * on the endpoint.
+ */
+export function extractId(v: unknown): string | undefined {
+  if (!v) return undefined;
+  if (typeof v === 'string') return v;
+  if (typeof v === 'object' && v !== null && '_id' in v) {
+    const id = (v as { _id?: unknown })._id;
+    if (typeof id === 'string') return id;
+  }
+  return undefined;
+}
+
 export function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
   return path.split('.').reduce((acc: unknown, part) => {
     if (acc && typeof acc === 'object' && part in (acc as Record<string, unknown>)) {

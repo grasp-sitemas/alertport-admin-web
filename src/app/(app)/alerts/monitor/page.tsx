@@ -29,6 +29,7 @@ import {
 } from '@/features/alerts/use-occurrences';
 import { useAlertportRealtime } from '@/features/alerts/use-realtime';
 import { usePagination } from '@/hooks/use-pagination';
+import { useUserScope, applyUserScope } from '@/hooks/use-user-scope';
 import { alertsService } from '@/services/alerts.service';
 import type { EventType, PatrolAction } from '@/types/api';
 import { cn } from '@/lib/utils';
@@ -60,16 +61,28 @@ export default function AlertMonitorPage() {
     [],
   );
 
-  const patrolQuery = usePatrolActions({
-    skip: patrolPagination.paginationParams.skip,
-    limit: patrolPagination.paginationParams.limit,
-  });
+  const scope = useUserScope();
 
-  const timeQuery = useTimeEntries({
-    skip: timePagination.paginationParams.skip,
-    limit: timePagination.paginationParams.limit,
-    ...timeWindow,
-  });
+  const patrolQuery = usePatrolActions(
+    applyUserScope(
+      {
+        skip: patrolPagination.paginationParams.skip,
+        limit: patrolPagination.paginationParams.limit,
+      },
+      scope,
+    ),
+  );
+
+  const timeQuery = useTimeEntries(
+    applyUserScope(
+      {
+        skip: timePagination.paginationParams.skip,
+        limit: timePagination.paginationParams.limit,
+        ...timeWindow,
+      },
+      scope,
+    ),
+  );
 
   // Prefetch attendance types
   useAttendanceTypes();
