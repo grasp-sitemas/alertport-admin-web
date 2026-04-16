@@ -1,0 +1,119 @@
+// All endpoints mirror the existing shieldgo backend exactly.
+// Do NOT change paths, params, or contracts.
+
+import { env } from './env';
+
+function url(path: string): string {
+  return `${env.apiUrl}${path}`;
+}
+
+export const endpoints = {
+  // ─── Auth ────────────────────────────────────────────────
+  login: url('/api/users/system/login/v1/'),
+  me: url('/api/users/me/v1/'),
+  companyUserMe: url('/api/users/system/companyuser/me/v1'),
+  changeLanguage: url('/api/users/system/change/language/v1/'),
+  changePasswordOnline: url('/api/users/system/password/change/online/v1/'),
+  generatePasswordCode: url('/api/users/system/password/gencode/v1/'),
+  checkPasswordCode: url('/api/users/system/password/checkcode/v1/'),
+  resetPassword: url('/api/users/system/password/change/v1/'),
+
+  // ─── Users ───────────────────────────────────────────────
+  users: url('/api/users/v1/'),
+  userById: (id: string) => url(`/api/users/v1/${id}`),
+  userFormData: url('/api/users/formdata/v1/'),
+  usersByType: (type: string) => url(`/api/users/bytype/v1/${type}`),
+  deleteUser: url('/api/users/delete/v1/'),
+
+  // ─── Companies ───────────────────────────────────────────
+  companyFilter: url('/api/company/filter/v1/'),
+  companyFilterV2: url('/api/company/filter/v2/'),
+  companies: url('/api/company/v1/'),
+  companyById: (id: string) => url(`/api/company/v1/${id}`),
+  deleteCompany: url('/api/company/delete/v1/'),
+  companyFormData: url('/api/company/formdata/v1/'),
+
+  // ─── Company Settings ────────────────────────────────────
+  companySettingsMe: url('/api/company/settings/me/v1/'),
+  companySettingsFilter: url('/api/company/settings/filter/v1/'),
+  companySettingsById: (id: string) => url(`/api/company/settings/v1/${id}`),
+  companySettings: url('/api/company/settings/v1/'),
+
+  // ─── Sites ───────────────────────────────────────────────
+  sitesFilter: url('/api/company/sites/filter/v1/'),
+  siteById: (id: string) => url(`/api/company/sites/v1/${id}`),
+  sites: url('/api/company/sites/v1/'),
+  deleteSite: url('/api/company/sites/delete/v1/'),
+
+  // ─── Equipment ───────────────────────────────────────────
+  equipmentsFilter: url('/api/company/equipments/filter/v1/'),
+  equipmentById: (id: string) => url(`/api/company/equipments/v1/${id}`),
+  equipments: url('/api/company/equipments/v1/'),
+  deleteEquipment: url('/api/company/equipments/delete/v1/'),
+
+  // ─── Schedules ───────────────────────────────────────────
+  schedulesFilter: url('/api/schedules/filter/v1/'),
+  scheduleById: (id: string) => url(`/api/schedules/v1/${id}`),
+  schedules: url('/api/schedules/v1/'),
+  scheduleUpdate: (id: string) => url(`/api/schedules/update/v1/${id}`),
+  deleteSchedule: url('/api/schedules/delete/v1/'),
+
+  // AlertPort-specific schedule endpoints
+  alertportScheduleCreate: url('/api/schedules/alertport/v1/'),
+  alertportScheduleUpdate: url('/api/schedules/alertport/update/v1/'),
+
+  // ─── Alert Occurrences ───────────────────────────────────
+  occurrencesFilter: url('/api/schedules/occurences/filter/v1/'),
+
+  // ─── Time Entries ────────────────────────────────────────
+  timeEntriesFilter: url('/api/schedules/timeentries/filter/v1/'),
+
+  // ─── Appointments ────────────────────────────────────────
+  appointmentsFilter: url('/api/schedules/appointments/filter/v1/'),
+  appointmentsFilterV2: url('/api/schedules/appointments/filter/v2/'),
+  appointmentById: (id: string) => url(`/api/schedules/appointments/v1/${id}`),
+  appointments: url('/api/schedules/appointments/v1/'),
+  appointmentUpdate: (id: string) => url(`/api/schedules/appointments/update/v1/${id}`),
+  deleteAppointment: url('/api/schedules/appointments/delete/v1/'),
+
+  // ─── Events / Patrol Actions ─────────────────────────────
+  eventsFilter: url('/api/schedules/events/filter/v1/'),
+  eventById: (id: string) => url(`/api/schedules/events/v1/${id}`),
+  events: url('/api/schedules/events/v1/'),
+  patrolActionsFilter: url('/api/users/patrol/actions/filter/v1/'),
+  attendanceEvent: url('/api/users/patrol/actions/attendance/v1/'),
+
+  // ─── Attendances ─────────────────────────────────────────
+  attendancesFilter: url('/api/users/attendances/filter/v1/'),
+  attendanceById: (id: string) => url(`/api/users/attendances/v1/${id}`),
+  attendances: url('/api/users/attendances/v1/'),
+
+  // ─── Charts / Analytics ──────────────────────────────────
+  chartsEventsAnalysis: url('/api/reports/charts/analisys/events/v1/'),
+  chartsEventsPerDay: url('/api/reports/charts/analisys/events/perday/v1/'),
+  chartsEventsByType: url('/api/reports/charts/events/bytype/v1/'),
+  chartsEventsPerformance: url('/api/reports/charts/events/performance/v1/'),
+
+  // ─── Logs ────────────────────────────────────────────────
+  logsFilter: url('/api/logs/filter/v1/'),
+  integrationLogsFilter: url('/api/logs/integrations/filter/v1/'),
+
+  // ─── Helpers ─────────────────────────────────────────────
+  attendanceTypes: url('/api/helpers/data/events/attendances/types/v1/'),
+  monitorEventTypes: url('/api/helpers/data/monitor/events/types/v1/'),
+  equipmentBrands: url('/api/helpers/data/equipments/brands/v1/'),
+  equipmentTypes: url('/api/helpers/data/equipments/types/v1/'),
+  timezones: url('/api/helpers/data/timezones/v1/'),
+
+  // ─── Guard Groups ────────────────────────────────────────
+  guardGroupsFilter: url('/api/users/guardgroups/filter/v1/'),
+  guardGroupById: (id: string) => url(`/api/users/guardgroups/v1/${id}`),
+  guardGroups: url('/api/users/guardgroups/v1/'),
+  deleteGuardGroup: url('/api/users/guardgroups/delete/v1/'),
+
+  // ─── Addresses / Geolocation ─────────────────────────────
+  addressGeolocation: url('/api/address/geo/v1/'),
+
+  // ─── ViaCEP (external) ───────────────────────────────────
+  viaCep: (cep: string) => `https://viacep.com.br/ws/${cep}/json`,
+} as const;

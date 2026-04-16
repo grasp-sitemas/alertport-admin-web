@@ -1,0 +1,192 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   AlertPort Admin — Design Tokens (aligned to alertport.vercel.app)
+   ============================================================================ */
+
+@theme {
+  /* Brand colors */
+  --color-brand-50: #fef2f2;
+  --color-brand-100: #fee2e2;
+  --color-brand-200: #fecaca;
+  --color-brand-300: #fca5a5;
+  --color-brand-400: #f87171;
+  --color-brand-500: #B3261E;
+  --color-brand-600: #B3261E;
+  --color-brand-700: #8C1D18;
+  --color-brand-800: #6d1712;
+  --color-brand-900: #4d100c;
+
+  /* Background surfaces */
+  --color-bg-primary: #0a0e1a;
+  --color-bg-secondary: #111827;
+  --color-bg-tertiary: #1a2234;
+  --color-bg-elevated: #1e293b;
+
+  /* Text colors */
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+
+  /* Font families */
+  --font-heading: var(--font-sora), system-ui, sans-serif;
+  --font-body: var(--font-manrope), system-ui, sans-serif;
+
+  /* Radii */
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+}
+
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+
+/* ============================================================================
+   Global styles
+   ============================================================================ */
+
+* {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html, body {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Gradient background for app shell */
+.bg-app-gradient {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(179, 38, 30, 0.12), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(59, 130, 246, 0.08), transparent),
+    var(--color-bg-primary);
+}
+
+/* Grid background pattern */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.bg-grid-pattern-strong {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Glass card utility */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Red glow utility */
+.glow-red {
+  box-shadow: 0 0 60px rgba(179, 38, 30, 0.15);
+}
+
+.glow-red-strong {
+  box-shadow: 0 0 80px rgba(179, 38, 30, 0.25);
+}
+
+/* Animation utilities for Radix UI (data-state animations) */
+@keyframes fade-in-0 {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fade-out-0 {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes zoom-in-95 {
+  from { transform: scale(0.95); }
+  to { transform: scale(1); }
+}
+@keyframes zoom-out-95 {
+  from { transform: scale(1); }
+  to { transform: scale(0.95); }
+}
+@keyframes slide-in-from-top-2 {
+  from { transform: translateY(-8px); }
+  to { transform: translateY(0); }
+}
+@keyframes slide-in-from-bottom-2 {
+  from { transform: translateY(8px); }
+  to { transform: translateY(0); }
+}
+@keyframes slide-in-from-left-2 {
+  from { transform: translateX(-8px); }
+  to { transform: translateX(0); }
+}
+@keyframes slide-in-from-right-2 {
+  from { transform: translateX(8px); }
+  to { transform: translateX(0); }
+}
+
+.animate-in {
+  animation-duration: 150ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-fill-mode: forwards;
+}
+
+.animate-out {
+  animation-duration: 150ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-fill-mode: forwards;
+}
+
+.fade-in-0 { animation-name: fade-in-0; }
+.fade-out-0 { animation-name: fade-out-0; }
+.zoom-in-95 { animation-name: zoom-in-95; }
+.zoom-out-95 { animation-name: zoom-out-95; }
+.slide-in-from-top-2 { animation-name: slide-in-from-top-2; }
+.slide-in-from-bottom-2 { animation-name: slide-in-from-bottom-2; }
+.slide-in-from-left-2 { animation-name: slide-in-from-left-2; }
+.slide-in-from-right-2 { animation-name: slide-in-from-right-2; }
+
+/* Focus rings */
+:focus-visible {
+  outline: 2px solid rgba(179, 38, 30, 0.5);
+  outline-offset: 2px;
+}
+
+/* Input date/time override for dark mode */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  cursor: pointer;
+}
