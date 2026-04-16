@@ -139,7 +139,7 @@ export default function DashboardPage() {
                       {typeof occ.site === 'object' ? occ.site?.name : t('common.site')}
                     </p>
                     <p className="text-xs text-text-muted">
-                      {new Date(occ.scheduledAt).toLocaleString()}
+                      {safeDateString(occ.scheduledAt)}
                     </p>
                   </div>
                   <OccurrenceStatusBadge status={occ.status} />
@@ -156,10 +156,18 @@ export default function DashboardPage() {
   );
 }
 
+function safeDateString(value: unknown): string {
+  if (!value) return '—';
+  const d = new Date(value as string);
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString();
+}
+
 function groupByDay(occurrences: AlertOccurrence[]): Record<string, number> {
   const counts: Record<string, number> = {};
   for (const occ of occurrences) {
-    const day = new Date(occ.scheduledAt).toISOString().slice(0, 10);
+    const d = new Date(occ.scheduledAt);
+    if (Number.isNaN(d.getTime())) continue;
+    const day = d.toISOString().slice(0, 10);
     counts[day] = (counts[day] ?? 0) + 1;
   }
   // Ensure last 7 days are present
