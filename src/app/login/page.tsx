@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, LogIn, ShieldAlert } from 'lucide-react';
+import { Mail, Lock, LogIn } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -57,8 +57,8 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <div className="rounded-3xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)] backdrop-blur-xl p-8 sm:p-10 shadow-[0_0_80px_rgba(179,38,30,0.08)]">
             <div className="flex flex-col items-center text-center mb-8">
-              <div className="flex items-center justify-center h-14 w-14 rounded-2xl bg-brand-600/20 border border-brand-600/30 mb-4 shadow-[0_0_30px_rgba(179,38,30,0.35)]">
-                <ShieldAlert className="h-7 w-7 text-brand-500" strokeWidth={2.5} />
+              <div className="mb-4">
+                <Logo size="lg" showText={false} className="scale-125" />
               </div>
               <h1 className="font-heading text-2xl font-bold text-white mb-2">
                 {t('auth.loginTitle')}
