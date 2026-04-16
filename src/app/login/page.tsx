@@ -60,9 +60,6 @@ export default function LoginPage() {
               <div className="mb-4">
                 <Logo size="lg" showText={false} className="scale-125" />
               </div>
-              <h1 className="font-heading text-2xl font-bold text-white mb-2">
-                {t('auth.loginTitle')}
-              </h1>
               <p className="text-sm text-text-secondary">{t('auth.loginSubtitle')}</p>
             </div>
 
