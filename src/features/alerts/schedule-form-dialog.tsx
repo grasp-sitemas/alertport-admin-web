@@ -183,7 +183,6 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                           prevAccount = val;
                         }
                       }}
-                      disabled={isEdit}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t('common.selectOption')} />
@@ -217,7 +216,6 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                         prevClient = val;
                       }
                     }}
-                    disabled={isEdit}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={t('common.selectOption')} />
@@ -252,7 +250,6 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                         prevSite = val;
                       }
                     }}
-                    disabled={isEdit}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={t('common.selectOption')} />
@@ -304,7 +301,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2 sm:col-span-3">
               <Label>{t('alerts.scheduleName')}</Label>
-              <Input {...register('name')} disabled={isEdit} />
+              <Input {...register('name')} />
               {errors.name && (
                 <p className="text-xs text-red-400">{t(errors.name.message as string)}</p>
               )}
@@ -325,7 +322,6 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                       setValue('frequencyMonth', { day: '' });
                       setValue('frequencyYear', { month: '', day: '' });
                     }}
-                    disabled={isEdit}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -369,11 +365,11 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label>{t('alerts.beginDate')}</Label>
-              <Input type="date" {...register('beginDate')} disabled={isEdit} />
+              <Input type="date" {...register('beginDate')} />
             </div>
             <div className="space-y-2">
               <Label>{t('alerts.endDate')}</Label>
-              <Input type="date" {...register('endDate')} disabled={isEdit} />
+              <Input type="date" {...register('endDate')} />
             </div>
             <div className="space-y-2">
               <Label>{t('alerts.beginHour')}</Label>

@@ -7,7 +7,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { FilterPanel } from '@/components/shared/filter-panel';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
-import { StatusBadge } from '@/components/shared/status-badge';
 import { RoleGuard } from '@/components/shared/role-guard';
 import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { useAlertSchedules } from '@/features/alerts/use-occurrences';
@@ -15,7 +14,6 @@ import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import { ScheduleFormDialog } from '@/features/alerts/schedule-form-dialog';
 import type { AlertSchedule } from '@/types/api';
-import { formatEnumLabel } from '@/lib/enum-labels';
 
 export default function AlertSchedulingPage() {
   const t = useTranslations();
@@ -56,56 +54,21 @@ export default function AlertSchedulingPage() {
     setDialogOpen(true);
   };
 
-  const frequencyLabels: Record<string, string> = {
-    NOT_REPEAT: t('alerts.notRepeat'),
-    DAILY: t('alerts.daily'),
-    EVERY_OTHER_DAY: t('alerts.everyOtherDay'),
-    WEEKLY: t('alerts.weekly'),
-    MONTHLY: t('alerts.monthly'),
-    YEARLY: t('alerts.yearly'),
-  };
-
-  const alertTypeLabels: Record<string, string> = {
-    FIXED: t('alerts.fixed'),
-    RANDOM: t('alerts.random'),
-  };
-
   const columns: Column<AlertSchedule>[] = [
-    { key: 'name', headerKey: 'alerts.scheduleName' },
     {
-      key: 'client',
-      headerKey: 'common.client',
-      render: (item) => (typeof item.client === 'object' ? item.client?.name : '—'),
+      key: 'name',
+      headerKey: 'alerts.scheduleName',
+      render: (item) => <span className="font-medium text-white">{item.name || '—'}</span>,
     },
     {
-      key: 'site',
-      headerKey: 'common.site',
-      render: (item) => (typeof item.site === 'object' ? item.site?.name : '—'),
+      key: 'date',
+      headerKey: 'common.date',
+      render: (item) => formatDate(pickEventDateTime(item)),
     },
     {
-      key: 'equipment',
-      headerKey: 'alerts.equipment',
-      render: (item) => (typeof item.equipment === 'object' ? item.equipment?.name : '—'),
-    },
-    {
-      key: 'frequency',
-      headerKey: 'alerts.frequency',
-      render: (item) => formatEnumLabel(item.frequency, frequencyLabels),
-    },
-    {
-      key: 'alertType',
-      headerKey: 'alerts.alertType',
-      render: (item) => formatEnumLabel(item.alertConfig?.alertType, alertTypeLabels),
-    },
-    {
-      key: 'beginHour',
-      headerKey: 'alerts.beginHour',
-      render: (item) => `${item.beginHour?.trim() || '—'} – ${item.endHour?.trim() || '—'}`,
-    },
-    {
-      key: 'status',
-      headerKey: 'common.status',
-      render: (item) => <StatusBadge status={item.status} />,
+      key: 'time',
+      headerKey: 'common.time',
+      render: (item) => formatTime(pickEventDateTime(item), item.beginHour),
     },
     {
       key: 'actions',
@@ -191,4 +154,44 @@ export default function AlertSchedulingPage() {
       </div>
     </RoleGuard>
   );
+}
+
+/**
+ * Pulls a usable Date string out of the appointment / schedule row.
+ * Prefers the appointment-specific `startDate` / `start` fields the filter
+ * endpoint returns for rendered occurrences; falls back to the schedule's
+ * own `beginDate` for plain rows.
+ */
+function pickEventDateTime(item: AlertSchedule): string | undefined {
+  return (
+    item.startDate ??
+    item.start ??
+    item.appointment?.startDate ??
+    item.appointment?.start ??
+    item.beginDate ??
+    undefined
+  );
+}
+
+function formatDate(raw: string | undefined): string {
+  if (!raw) return '—';
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) {
+    // Backend sometimes returns a plain YYYY-MM-DD — display as-is (dd/mm/yyyy).
+    const [y, m, day] = raw.split('-');
+    if (y && m && day) return `${day}/${m}/${y}`;
+    return '—';
+  }
+  return d.toLocaleDateString();
+}
+
+function formatTime(raw: string | undefined, fallback?: string): string {
+  if (raw) {
+    const d = new Date(raw);
+    if (!Number.isNaN(d.getTime())) {
+      return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    }
+  }
+  // Legacy may return the hour separately (HH:mm)
+  return (fallback?.trim()) || '—';
 }

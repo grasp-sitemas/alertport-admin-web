@@ -276,6 +276,13 @@ export interface AlertSchedule {
   alertConfig: AlertConfig;
   createdDate?: string;
   updatedDate?: string;
+  // Appointment-shape fields returned by /api/schedules/appointments/filter/v2/
+  start?: string;
+  end?: string;
+  startDate?: string;
+  startHour?: string;
+  id?: string;
+  appointment?: { _id?: string; startDate?: string; start?: string };
 }
 
 export interface AlertScheduleFormData {
