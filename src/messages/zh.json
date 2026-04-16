@@ -1,4 +1,31 @@
 {
+  "str": {
+    "helpers": {
+      "equipments": {
+        "brands": {
+          "ALERTPORT": "ALERTPORT",
+          "JWM": "JWM",
+          "OTHER": "其他",
+          "ZOOY": "ZOOY"
+        },
+        "types": {
+          "DEVICE-OTHER": "其他",
+          "DEVICE-PHONE": "电话",
+          "DEVICE-READER": "读取器",
+          "EQUIPMENT-SENSOR": "传感器"
+        }
+      }
+    },
+    "event": {
+      "filter": {
+        "all": "全部",
+        "sos_alert": "SOS警报",
+        "incident": "事件",
+        "cancel_patrol": "取消巡逻",
+        "failure_patrol": "巡逻失败"
+      }
+    }
+  },
   "common": {
     "appName": "AlertPort",
     "loading": "加载中...",

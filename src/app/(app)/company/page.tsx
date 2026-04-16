@@ -174,35 +174,35 @@ export default function CompanyPage() {
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>CEP</Label>
+                <Label>{t('sites.cep')}</Label>
                 <Input {...register('address.cep')} />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label>{t('common.address')}</Label>
+                <Label>{t('sites.street')}</Label>
                 <Input {...register('address.address')} />
               </div>
               <div className="space-y-2">
-                <Label>Nº</Label>
+                <Label>{t('sites.number')}</Label>
                 <Input {...register('address.number')} />
               </div>
               <div className="space-y-2">
-                <Label>Complemento</Label>
+                <Label>{t('sites.complement')}</Label>
                 <Input {...register('address.complement')} />
               </div>
               <div className="space-y-2">
-                <Label>Bairro</Label>
+                <Label>{t('sites.neighborhood')}</Label>
                 <Input {...register('address.neighborhood')} />
               </div>
               <div className="space-y-2">
-                <Label>Cidade</Label>
+                <Label>{t('sites.city')}</Label>
                 <Input {...register('address.city')} />
               </div>
               <div className="space-y-2">
-                <Label>UF</Label>
+                <Label>{t('sites.state')}</Label>
                 <Input {...register('address.state')} />
               </div>
               <div className="space-y-2">
-                <Label>País</Label>
+                <Label>{t('sites.country')}</Label>
                 <Input {...register('address.country')} />
               </div>
             </CardContent>

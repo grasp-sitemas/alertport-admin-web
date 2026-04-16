@@ -1,4 +1,31 @@
 {
+  "str": {
+    "helpers": {
+      "equipments": {
+        "brands": {
+          "ALERTPORT": "ALERTPORT",
+          "JWM": "JWM",
+          "OTHER": "Other",
+          "ZOOY": "ZOOY"
+        },
+        "types": {
+          "DEVICE-OTHER": "Other",
+          "DEVICE-PHONE": "Phone",
+          "DEVICE-READER": "Reader",
+          "EQUIPMENT-SENSOR": "Sensor"
+        }
+      }
+    },
+    "event": {
+      "filter": {
+        "all": "All",
+        "sos_alert": "SOS Alert",
+        "incident": "Incident",
+        "cancel_patrol": "Cancelled patrol",
+        "failure_patrol": "Patrol failure"
+      }
+    }
+  },
   "common": {
     "appName": "AlertPort",
     "loading": "Loading...",

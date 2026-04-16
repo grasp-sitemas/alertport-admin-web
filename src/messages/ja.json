@@ -1,4 +1,31 @@
 {
+  "str": {
+    "helpers": {
+      "equipments": {
+        "brands": {
+          "ALERTPORT": "ALERTPORT",
+          "JWM": "JWM",
+          "OTHER": "その他",
+          "ZOOY": "ZOOY"
+        },
+        "types": {
+          "DEVICE-OTHER": "その他",
+          "DEVICE-PHONE": "電話",
+          "DEVICE-READER": "リーダー",
+          "EQUIPMENT-SENSOR": "センサー"
+        }
+      }
+    },
+    "event": {
+      "filter": {
+        "all": "すべて",
+        "sos_alert": "SOSアラート",
+        "incident": "インシデント",
+        "cancel_patrol": "パトロールキャンセル",
+        "failure_patrol": "パトロール失敗"
+      }
+    }
+  },
   "common": {
     "appName": "AlertPort",
     "loading": "読み込み中...",

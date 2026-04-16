@@ -38,7 +38,16 @@ export function IntlProvider({ children }: { children: React.ReactNode }) {
   const locale = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messagesMap[locale]}>
+    <NextIntlClientProvider
+      locale={locale}
+      messages={messagesMap[locale]}
+      // Be tolerant with dynamic keys that come from backend (str.helpers.*):
+      // return the key itself as fallback instead of throwing.
+      onError={() => {}}
+      getMessageFallback={({ key, namespace }) =>
+        namespace ? `${namespace}.${key}` : key
+      }
+    >
       {children}
     </NextIntlClientProvider>
   );
