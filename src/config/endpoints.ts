@@ -43,6 +43,7 @@ export const endpoints = {
   companyById: (id: string) => url(`/api/company/v1/${id}`),
   deleteCompany: url('/api/company/delete/v1/'),
   companyFormData: url('/api/company/formdata/v1/'),
+  companyFormDataById: (id: string) => url(`/api/company/formdata/v1/${id}`),
 
   // ─── Company Settings ────────────────────────────────────
   companySettingsMe: url('/api/company/settings/me/v1/'),

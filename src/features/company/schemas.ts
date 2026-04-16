@@ -8,7 +8,11 @@ export const companyFormSchema = z.object({
   document: z.string().optional(),
   email: z.string().email({ message: 'validation.email' }).optional().or(z.literal('')),
   primaryPhone: z.string().optional(),
+  secondaryPhone: z.string().optional(),
+  timezone: z.string().optional(),
+  logoURL: z.string().optional(),
   status: z.enum(['ACTIVE', 'ARCHIVED']),
+  type: z.enum(['ACCOUNT', 'CLIENT', 'SITE']).optional(),
   address: z
     .object({
       cep: z.string().optional(),
@@ -19,6 +23,9 @@ export const companyFormSchema = z.object({
       city: z.string().optional(),
       state: z.string().optional(),
       country: z.string().optional(),
+      ibge: z.string().optional(),
+      gia: z.string().optional(),
+      name: z.string().optional(),
     })
     .optional(),
 });

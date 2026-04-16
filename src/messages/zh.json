@@ -284,7 +284,8 @@
     "legal": "法人",
     "updateSuccess": "公司信息更新成功",
     "settings": "设置",
-    "timezone": "时区"
+    "timezone": "时区",
+    "secondaryPhone": "副电话"
   },
   "roles": {
     "superAdminMaster": "超级管理员",

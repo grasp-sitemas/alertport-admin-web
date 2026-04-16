@@ -181,6 +181,8 @@ export interface CompanyFormData {
   document?: string;
   email?: string;
   primaryPhone?: string;
+  secondaryPhone?: string;
+  timezone?: string;
   status: EntityStatus;
   type?: CompanyType;
   account?: string;

@@ -7,7 +7,16 @@ import type {
   Company,
   CompanyFormData,
   FilterParams,
+  User,
 } from '@/types/api';
+
+function toFormData(payload: unknown, file?: File | null): FormData {
+  const fd = new FormData();
+  if (file) fd.append('file', file);
+  else fd.append('file', new Blob([]));
+  fd.append('jsonData', JSON.stringify(payload));
+  return fd;
+}
 
 export const companyService = {
   async filter(params: FilterParams): Promise<NormalizedPage<Company>> {
@@ -23,10 +32,27 @@ export const companyService = {
     return data;
   },
 
-  async create(companyData: CompanyFormData): Promise<ApiSingleResponse<Company>> {
+  /**
+   * Loads the logged-in user's full profile. The response includes the
+   * company / account / client / site populated objects, so the Register Data
+   * page can pick the right one based on the user's role. Mirrors the legacy
+   * `/api/users/system/companyuser/me/v1` flow.
+   */
+  async getMe(): Promise<ApiSingleResponse<User>> {
+    const { data } = await apiClient.get<ApiSingleResponse<User>>(endpoints.companyUserMe);
+    return data;
+  },
+
+  async create(
+    companyData: CompanyFormData,
+    file?: File | null,
+  ): Promise<ApiSingleResponse<Company>> {
+    // Legacy uses POST /api/company/formdata/v1/ with multipart FormData
+    const fd = toFormData(companyData, file);
     const { data } = await apiClient.post<ApiSingleResponse<Company>>(
-      endpoints.companies,
-      companyData,
+      endpoints.companyFormData,
+      fd,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
     );
     return data;
   },
@@ -34,16 +60,20 @@ export const companyService = {
   async update(
     id: string,
     companyData: Partial<CompanyFormData>,
+    file?: File | null,
   ): Promise<ApiSingleResponse<Company>> {
+    // Legacy uses PUT /api/company/formdata/v1/{id} with multipart FormData
+    const fd = toFormData(companyData, file);
     const { data } = await apiClient.put<ApiSingleResponse<Company>>(
-      endpoints.companyById(id),
-      companyData,
+      endpoints.companyFormDataById(id),
+      fd,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
     );
     return data;
   },
 
   async delete(id: string): Promise<void> {
-    // Legacy uses DELETE /api/company/v1/{id} with body. Some envs also support /delete/v1
+    // Legacy uses DELETE /api/company/v1/{id} with body
     await apiClient.delete(endpoints.companyById(id), { data: { _id: id } });
   },
 

@@ -284,7 +284,8 @@
     "legal": "Company",
     "updateSuccess": "Company updated successfully",
     "settings": "Settings",
-    "timezone": "Timezone"
+    "timezone": "Timezone",
+    "secondaryPhone": "Secondary Phone"
   },
   "roles": {
     "superAdminMaster": "Super Admin",

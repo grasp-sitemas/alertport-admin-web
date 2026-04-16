@@ -284,7 +284,8 @@
     "legal": "Jurídica",
     "updateSuccess": "Empresa atualizada com sucesso",
     "settings": "Configurações",
-    "timezone": "Fuso Horário"
+    "timezone": "Fuso Horário",
+    "secondaryPhone": "Telefone Secundário"
   },
   "roles": {
     "superAdminMaster": "Super Admin",

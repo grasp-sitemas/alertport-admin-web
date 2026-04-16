@@ -28,6 +28,7 @@ import { siteFormSchema, type SiteFormValues, DEFAULT_SITE_VALUES } from './sche
 import { companyService } from '@/services/company.service';
 import { helpersService } from '@/services/helpers.service';
 import { useClientsLookup } from './use-clients-lookup';
+import { useCepLookup } from '@/hooks/use-cep-lookup';
 import type { Company } from '@/types/api';
 
 interface Props {
@@ -75,22 +76,7 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
   const accountWatched = useWatch({ control, name: 'account' });
   const clientsLookup = useClientsLookup(accountWatched || undefined);
 
-  const lookupCepMutation = useMutation({
-    mutationFn: (cep: string) => helpersService.lookupCep(cep),
-    onSuccess: (data) => {
-      if (data.erro) {
-        toast.error(t('sites.cepInvalid'));
-        return;
-      }
-      if (data.logradouro) setValue('address.address', data.logradouro);
-      if (data.bairro) setValue('address.neighborhood', data.bairro);
-      if (data.localidade) setValue('address.city', data.localidade);
-      if (data.uf) setValue('address.state', data.uf);
-      if (data.ibge) setValue('address.ibge', data.ibge);
-      if (data.gia) setValue('address.gia', data.gia);
-    },
-    onError: () => toast.error(t('sites.cepInvalid')),
-  });
+  const cep = useCepLookup(setValue, 'address');
 
   const saveMutation = useMutation({
     mutationFn: async (data: SiteFormValues) => {
@@ -224,7 +210,21 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
             <div className="space-y-2">
               <Label>{t('sites.cep')}</Label>
               <div className="flex gap-2">
-                <Input {...register('address.cep')} placeholder="00000-000" />
+                <Controller
+                  control={control}
+                  name="address.cep"
+                  render={({ field }) => (
+                    <Input
+                      value={field.value ?? ''}
+                      placeholder="00000-000"
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        cep.lookupIfComplete(e.target.value);
+                      }}
+                      onBlur={(e) => cep.lookupIfComplete(e.target.value)}
+                    />
+                  )}
+                />
                 <Controller
                   control={control}
                   name="address.cep"
@@ -233,8 +233,8 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
                       type="button"
                       variant="secondary"
                       size="icon"
-                      onClick={() => field.value && lookupCepMutation.mutate(field.value)}
-                      disabled={!field.value || lookupCepMutation.isPending}
+                      onClick={() => field.value && cep.lookup(field.value)}
+                      disabled={!field.value || cep.isLoading}
                       aria-label={t('common.search')}
                     >
                       <Search className="h-4 w-4" />

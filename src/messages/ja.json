@@ -284,7 +284,8 @@
     "legal": "法人",
     "updateSuccess": "会社情報が正常に更新されました",
     "settings": "設定",
-    "timezone": "タイムゾーン"
+    "timezone": "タイムゾーン",
+    "secondaryPhone": "副電話"
   },
   "roles": {
     "superAdminMaster": "スーパー管理者",

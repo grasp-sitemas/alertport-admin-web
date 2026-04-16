@@ -38,6 +38,8 @@ import {
 } from '@/features/shared/use-hierarchy-lookups';
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
+import { useCepLookup } from '@/hooks/use-cep-lookup';
+import { Search } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -123,6 +125,7 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
 
   const accountWatched = useWatch({ control, name: 'account' });
   const clientWatched = useWatch({ control, name: 'client' });
+  const cep = useCepLookup(setValue, 'address');
 
   const accountsLookup = useAccountsLookup();
   const clientsLookup = useClientsLookup(accountWatched || undefined);
@@ -391,7 +394,39 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>{t('sites.cep')}</Label>
-              <Input {...register('address.cep')} placeholder="00000-000" />
+              <div className="flex gap-2">
+                <Controller
+                  control={control}
+                  name="address.cep"
+                  render={({ field }) => (
+                    <Input
+                      value={field.value ?? ''}
+                      placeholder="00000-000"
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        cep.lookupIfComplete(e.target.value);
+                      }}
+                      onBlur={(e) => cep.lookupIfComplete(e.target.value)}
+                    />
+                  )}
+                />
+                <Controller
+                  control={control}
+                  name="address.cep"
+                  render={({ field }) => (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon"
+                      onClick={() => field.value && cep.lookup(field.value)}
+                      disabled={!field.value || cep.isLoading}
+                      aria-label={t('common.search')}
+                    >
+                      <Search className="h-4 w-4" />
+                    </Button>
+                  )}
+                />
+              </div>
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label>{t('sites.street')}</Label>
