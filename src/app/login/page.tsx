@@ -2,10 +2,10 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -15,12 +15,14 @@ import { Logo } from '@/components/layout/logo';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import { loginSchema, type LoginFormValues } from '@/features/auth/schemas';
 import { useLogin } from '@/features/auth/use-login';
+import { RecoveryPasswordDialog } from '@/features/auth/recovery-password-dialog';
 import { isSessionValid } from '@/lib/session';
 
 export default function LoginPage() {
   const t = useTranslations();
   const router = useRouter();
   const login = useLogin();
+  const [recoveryOpen, setRecoveryOpen] = useState(false);
 
   useEffect(() => {
     if (isSessionValid()) {
@@ -30,11 +32,15 @@ export default function LoginPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
   });
+
+  const currentEmail = useWatch({ control, name: 'email' });
 
   const onSubmit = (data: LoginFormValues) => {
     login.mutate({ email: data.email, login: data.email, password: data.password });
@@ -83,7 +89,16 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">{t('auth.password')}</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">{t('auth.password')}</Label>
+                  <button
+                    type="button"
+                    onClick={() => setRecoveryOpen(true)}
+                    className="text-xs text-text-muted hover:text-white transition-colors underline-offset-2 hover:underline"
+                  >
+                    {t('auth.forgotPassword')}
+                  </button>
+                </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
                   <Input
@@ -123,6 +138,12 @@ export default function LoginPage() {
           </p>
         </div>
       </main>
+
+      <RecoveryPasswordDialog
+        open={recoveryOpen}
+        onOpenChange={setRecoveryOpen}
+        defaultEmail={currentEmail}
+      />
     </div>
   );
 }

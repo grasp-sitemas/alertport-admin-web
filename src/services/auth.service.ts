@@ -1,6 +1,10 @@
 import { apiClient } from '@/lib/api-client';
 import { endpoints } from '@/config/endpoints';
-import type { ApiLoginResponse, LoginRequest } from '@/types/api';
+import type { ApiLoginResponse, ApiSingleResponse, LoginRequest } from '@/types/api';
+
+export interface GeneratePasswordCodeResult {
+  systemUser: string;
+}
 
 export const authService = {
   async login(credentials: LoginRequest): Promise<ApiLoginResponse> {
@@ -28,8 +32,18 @@ export const authService = {
     return data;
   },
 
-  async generatePasswordCode(email: string) {
-    const { data } = await apiClient.post(endpoints.generatePasswordCode, { email });
+  /**
+   * Step 1 of recovery flow — generates an email code and returns the
+   * opaque `systemUser` identifier that must be sent back on step 2.
+   * Mirrors legacy `Endpoints.systemUsers.gencode` from shieldgo-admin-web.
+   */
+  async generatePasswordCode(
+    email: string,
+  ): Promise<ApiSingleResponse<GeneratePasswordCodeResult>> {
+    const { data } = await apiClient.post<ApiSingleResponse<GeneratePasswordCodeResult>>(
+      endpoints.generatePasswordCode,
+      { email },
+    );
     return data;
   },
 
@@ -38,7 +52,15 @@ export const authService = {
     return data;
   },
 
-  async resetPassword(params: { email: string; code: string; password: string }) {
+  /**
+   * Step 2 of recovery flow — validates the code and sets the new password.
+   * Legacy payload is `{ code, systemUser, password }` (NOT the email).
+   */
+  async resetPassword(params: {
+    code: string;
+    systemUser: string;
+    password: string;
+  }) {
     const { data } = await apiClient.post(endpoints.resetPassword, params);
     return data;
   },
