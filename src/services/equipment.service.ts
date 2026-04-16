@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/api-client';
 import { endpoints } from '@/config/endpoints';
+import { normalizePage, type NormalizedPage } from '@/lib/pagination';
 import type {
   ApiPaginatedResponse,
   ApiSingleResponse,
@@ -9,12 +10,12 @@ import type {
 } from '@/types/api';
 
 export const equipmentService = {
-  async filter(params: FilterParams): Promise<ApiPaginatedResponse<Equipment>> {
+  async filter(params: FilterParams): Promise<NormalizedPage<Equipment>> {
     const { data } = await apiClient.post<ApiPaginatedResponse<Equipment>>(
       endpoints.equipmentsFilter,
       params,
     );
-    return data;
+    return normalizePage(data);
   },
 
   async getById(id: string): Promise<ApiSingleResponse<Equipment>> {
@@ -43,17 +44,22 @@ export const equipmentService = {
     return data;
   },
 
-  async delete(id: string): Promise<void> {
-    await apiClient.post(endpoints.deleteEquipment, { _id: id });
+  async archive(equipment: Equipment): Promise<void> {
+    // Legacy contract: DELETE /api/company/equipments/v1/{id} with full body
+    await apiClient.delete(endpoints.equipmentById(equipment._id), { data: equipment });
   },
 
-  async getBrands() {
-    const { data } = await apiClient.get(endpoints.equipmentBrands);
-    return data;
+  async getBrands(): Promise<Array<{ _id: string; name: string }>> {
+    const { data } = await apiClient.get<ApiPaginatedResponse<{ _id: string; name: string }>>(
+      endpoints.equipmentBrands,
+    );
+    return data?.results ?? [];
   },
 
-  async getTypes() {
-    const { data } = await apiClient.get(endpoints.equipmentTypes);
-    return data;
+  async getTypes(): Promise<Array<{ _id: string; name: string }>> {
+    const { data } = await apiClient.get<ApiPaginatedResponse<{ _id: string; name: string }>>(
+      endpoints.equipmentTypes,
+    );
+    return data?.results ?? [];
   },
 };

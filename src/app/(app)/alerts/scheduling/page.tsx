@@ -13,6 +13,7 @@ import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import { ScheduleFormDialog } from '@/features/alerts/schedule-form-dialog';
 import type { AlertSchedule } from '@/types/api';
+import { formatEnumLabel } from '@/lib/enum-labels';
 
 export default function AlertSchedulingPage() {
   const t = useTranslations();
@@ -44,6 +45,19 @@ export default function AlertSchedulingPage() {
     setDialogOpen(true);
   };
 
+  const frequencyLabels: Record<string, string> = {
+    DAILY: t('alerts.daily'),
+    WEEKLY: t('alerts.weekly'),
+    MONTHLY: t('alerts.monthly'),
+    YEARLY: t('alerts.yearly'),
+    ONCE: t('alerts.once'),
+  };
+
+  const alertTypeLabels: Record<string, string> = {
+    FIXED: t('alerts.fixed'),
+    RANDOM: t('alerts.random'),
+  };
+
   const columns: Column<AlertSchedule>[] = [
     { key: 'name', headerKey: 'alerts.scheduleName' },
     {
@@ -59,17 +73,17 @@ export default function AlertSchedulingPage() {
     {
       key: 'frequency',
       headerKey: 'alerts.frequency',
-      render: (item) => t(`alerts.${item.frequency.toLowerCase()}`),
+      render: (item) => formatEnumLabel(item.frequency, frequencyLabels),
     },
     {
       key: 'alertType',
       headerKey: 'alerts.alertType',
-      render: (item) => t(`alerts.${item.alertConfig.alertType.toLowerCase()}`),
+      render: (item) => formatEnumLabel(item.alertConfig?.alertType, alertTypeLabels),
     },
     {
       key: 'beginHour',
       headerKey: 'alerts.beginHour',
-      render: (item) => `${item.beginHour} – ${item.endHour}`,
+      render: (item) => `${item.beginHour?.trim() || '—'} – ${item.endHour?.trim() || '—'}`,
     },
     {
       key: 'status',

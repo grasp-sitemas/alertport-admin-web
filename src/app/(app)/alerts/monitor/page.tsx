@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   AlertTriangle,
@@ -31,8 +32,8 @@ import { usePagination } from '@/hooks/use-pagination';
 import { alertsService } from '@/services/alerts.service';
 import type { EventType, PatrolAction } from '@/types/api';
 import { cn } from '@/lib/utils';
-import { useCall } from '@/features/calls/use-call';
-import { CallDialog, ChatConnectionBadge } from '@/features/calls/call-dialog';
+import { useCallContext } from '@/features/calls/call-context';
+import { ChatConnectionBadge } from '@/features/calls/call-dialog';
 
 const EVENT_META: Record<
   EventType,
@@ -51,6 +52,13 @@ export default function AlertMonitorPage() {
   const queryClient = useQueryClient();
   const patrolPagination = usePagination({ initialPageSize: 50 });
   const timePagination = usePagination({ initialPageSize: 50 });
+  const timeWindow = useMemo(
+    () => ({
+      startDate: last7DaysISO(),
+      endDate: nowISO(),
+    }),
+    [],
+  );
 
   const patrolQuery = usePatrolActions({
     skip: patrolPagination.paginationParams.skip,
@@ -60,8 +68,7 @@ export default function AlertMonitorPage() {
   const timeQuery = useTimeEntries({
     skip: timePagination.paginationParams.skip,
     limit: timePagination.paginationParams.limit,
-    startDate: last7DaysISO(),
-    endDate: new Date().toISOString(),
+    ...timeWindow,
   });
 
   // Prefetch attendance types
@@ -82,8 +89,8 @@ export default function AlertMonitorPage() {
     },
   });
 
-  // Call state (socket, WebRTC, ringing, etc.)
-  const call = useCall();
+  // Global call state (socket, WebRTC, ringing, etc.) — from CallProvider in AppShell
+  const call = useCallContext();
 
   const events = patrolQuery.data?.results || [];
   const timeEntries = timeQuery.data?.results || [];
@@ -114,7 +121,7 @@ export default function AlertMonitorPage() {
         <PageHeader
           title={t('alerts.monitor')}
           description={t('sidebar.monitoring')}
-          action={<ChatConnectionBadge connected={call.socketConnected} />}
+          action={<ChatConnectionBadge connected={call?.socketConnected ?? false} />}
         />
 
         {/* KPIs */}
@@ -180,6 +187,10 @@ export default function AlertMonitorPage() {
                       })
                     }
                     onCall={(mode) => {
+                      if (!call) {
+                        toast.error(t('calls.chatDisconnected'));
+                        return;
+                      }
                       const userId =
                         (event.user?._id as string | undefined) ||
                         (typeof event.equipment === 'object'
@@ -198,17 +209,17 @@ export default function AlertMonitorPage() {
                       call.startCall({ to: userId, toLabel: label, callMode: mode });
                     }}
                     isLoading={attendanceMutation.isPending}
-                    callInProgress={call.status !== 'idle' && call.status !== 'ended'}
-                    socketConnected={call.socketConnected}
+                    callInProgress={
+                      !!call && call.status !== 'idle' && call.status !== 'ended'
+                    }
+                    socketConnected={call?.socketConnected ?? false}
                   />
                 ))}
               </div>
             )}
           </CardContent>
         </Card>
-
-        {/* Call dialog (incoming / outgoing / connected) */}
-        <CallDialog {...call} />
+        {/* Global <CallDialog /> is rendered by <CallProvider> in AppShell */}
       </div>
     </RoleGuard>
   );
@@ -239,7 +250,7 @@ function EventCard({
   return (
     <div
       className={cn(
-        'rounded-xl border border-white/[0.08] p-4 transition-all',
+        'rounded-xl border border-white/8 p-4 transition-all',
         meta.accent === 'danger' && 'bg-red-500/5 border-red-500/20',
         meta.accent === 'warning' && 'bg-amber-500/5 border-amber-500/20',
       )}
@@ -323,7 +334,11 @@ function EventCard({
 function last7DaysISO(): string {
   const d = new Date();
   d.setDate(d.getDate() - 7);
-  return d.toISOString();
+  return d.toISOString().slice(0, 10);
+}
+
+function nowISO(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function playAlarmSound() {

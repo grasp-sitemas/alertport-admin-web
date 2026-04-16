@@ -48,13 +48,36 @@ describe('userFormSchema', () => {
 });
 
 describe('equipmentFormSchema', () => {
-  it('accepts minimal equipment', () => {
-    const parsed = equipmentFormSchema.safeParse({ name: 'Radio', status: 'ACTIVE' });
+  it('accepts a valid equipment with hierarchy', () => {
+    const parsed = equipmentFormSchema.safeParse({
+      account: 'acc1',
+      client: 'cli1',
+      site: 'site1',
+      code: 'RADIO-001',
+      status: 'ACTIVE',
+    });
     expect(parsed.success).toBe(true);
   });
 
-  it('requires name', () => {
-    const parsed = equipmentFormSchema.safeParse({ name: '', status: 'ACTIVE' });
+  it('requires code', () => {
+    const parsed = equipmentFormSchema.safeParse({
+      account: 'acc1',
+      client: 'cli1',
+      site: 'site1',
+      code: '',
+      status: 'ACTIVE',
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('requires account/client/site', () => {
+    const parsed = equipmentFormSchema.safeParse({
+      account: '',
+      client: '',
+      site: '',
+      code: 'A',
+      status: 'ACTIVE',
+    });
     expect(parsed.success).toBe(false);
   });
 });
@@ -63,9 +86,13 @@ describe('alertScheduleSchema', () => {
   it('validates a fixed interval schedule', () => {
     const parsed = alertScheduleSchema.safeParse({
       name: 'Morning check',
+      client: 'cli1',
+      site: 'site1',
+      equipment: 'eq1',
       frequency: 'DAILY',
       category: 'ALERT_CHECK',
       beginDate: '2026-01-01',
+      endDate: '2026-12-31',
       beginHour: '08:00',
       endHour: '12:00',
       status: 'ACTIVE',
@@ -77,13 +104,35 @@ describe('alertScheduleSchema', () => {
   it('rejects a random schedule without min/max', () => {
     const parsed = alertScheduleSchema.safeParse({
       name: 'Random',
+      client: 'cli1',
+      site: 'site1',
+      equipment: 'eq1',
       frequency: 'DAILY',
       category: 'ALERT_CHECK',
       beginDate: '2026-01-01',
+      endDate: '2026-12-31',
       beginHour: '08:00',
       endHour: '12:00',
       status: 'ACTIVE',
       alertConfig: { alertType: 'RANDOM' },
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('rejects schedule without equipment/client/site', () => {
+    const parsed = alertScheduleSchema.safeParse({
+      name: 'Morning check',
+      client: '',
+      site: '',
+      equipment: '',
+      frequency: 'DAILY',
+      category: 'ALERT_CHECK',
+      beginDate: '2026-01-01',
+      endDate: '2026-12-31',
+      beginHour: '08:00',
+      endHour: '12:00',
+      status: 'ACTIVE',
+      alertConfig: { alertType: 'FIXED', fixedInterval: 30 },
     });
     expect(parsed.success).toBe(false);
   });

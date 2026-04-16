@@ -16,6 +16,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { getInitials } from '@/lib/utils';
 import { RoleBadge } from '@/components/shared/status-badge';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
+import { ChatConnectionBadge } from '@/features/calls/call-dialog';
+import { useCallContext } from '@/features/calls/call-context';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -24,6 +26,7 @@ interface HeaderProps {
 export function Header({ onMenuClick }: HeaderProps) {
   const t = useTranslations();
   const { user, logout } = useAuth();
+  const call = useCallContext();
 
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-white/[0.06] bg-bg-primary/80 backdrop-blur-xl">
@@ -43,6 +46,11 @@ export function Header({ onMenuClick }: HeaderProps) {
 
         {/* Right: actions */}
         <div className="flex items-center gap-2">
+          {call && (
+            <div className="hidden sm:block">
+              <ChatConnectionBadge connected={call.socketConnected} />
+            </div>
+          )}
           <LocaleSwitcher />
 
           <DropdownMenu>

@@ -29,7 +29,11 @@ export default function CompanyPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const companyId =
-    user?.companyUser?.company && typeof user.account === 'object' ? user.account._id : undefined;
+    typeof user?.account === 'object'
+      ? user.account._id
+      : typeof user?.account === 'string'
+        ? user.account
+        : undefined;
 
   const { data, isLoading } = useQuery({
     queryKey: ['company', companyId],
@@ -119,7 +123,7 @@ export default function CompanyPage() {
                   control={control}
                   name="personType"
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -149,7 +153,7 @@ export default function CompanyPage() {
                   control={control}
                   name="status"
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>

@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/api-client';
 import { endpoints } from '@/config/endpoints';
+import { normalizePage, type NormalizedPage } from '@/lib/pagination';
 import type {
   ApiPaginatedResponse,
   ApiSingleResponse,
@@ -9,12 +10,12 @@ import type {
 } from '@/types/api';
 
 export const companyService = {
-  async filter(params: FilterParams): Promise<ApiPaginatedResponse<Company>> {
+  async filter(params: FilterParams): Promise<NormalizedPage<Company>> {
     const { data } = await apiClient.post<ApiPaginatedResponse<Company>>(
       endpoints.companyFilter,
       params,
     );
-    return data;
+    return normalizePage(data);
   },
 
   async getById(id: string): Promise<ApiSingleResponse<Company>> {
@@ -30,7 +31,10 @@ export const companyService = {
     return data;
   },
 
-  async update(id: string, companyData: Partial<CompanyFormData>): Promise<ApiSingleResponse<Company>> {
+  async update(
+    id: string,
+    companyData: Partial<CompanyFormData>,
+  ): Promise<ApiSingleResponse<Company>> {
     const { data } = await apiClient.put<ApiSingleResponse<Company>>(
       endpoints.companyById(id),
       companyData,
@@ -39,7 +43,8 @@ export const companyService = {
   },
 
   async delete(id: string): Promise<void> {
-    await apiClient.post(endpoints.deleteCompany, { _id: id });
+    // Legacy uses DELETE /api/company/v1/{id} with body. Some envs also support /delete/v1
+    await apiClient.delete(endpoints.companyById(id), { data: { _id: id } });
   },
 
   async getFormData() {
@@ -57,29 +62,27 @@ export const companyService = {
     return data;
   },
 
-  async filterSites(params: FilterParams): Promise<ApiPaginatedResponse<Company>> {
-    // Legacy uses /api/company/filter/v1/ with { type: 'SITE' }
+  async filterSites(params: FilterParams): Promise<NormalizedPage<Company>> {
     const { data } = await apiClient.post<ApiPaginatedResponse<Company>>(endpoints.companyFilter, {
       ...params,
       type: 'SITE',
     });
-    return data;
+    return normalizePage(data);
   },
 
-  async filterClients(params: FilterParams): Promise<ApiPaginatedResponse<Company>> {
+  async filterClients(params: FilterParams): Promise<NormalizedPage<Company>> {
     const { data } = await apiClient.post<ApiPaginatedResponse<Company>>(endpoints.companyFilter, {
       ...params,
       type: 'CLIENT',
     });
-    return data;
+    return normalizePage(data);
   },
 
-  async filterAccounts(params: FilterParams): Promise<ApiPaginatedResponse<Company>> {
+  async filterAccounts(params: FilterParams): Promise<NormalizedPage<Company>> {
     const { data } = await apiClient.post<ApiPaginatedResponse<Company>>(endpoints.companyFilter, {
       ...params,
       type: 'ACCOUNT',
     });
-    return data;
+    return normalizePage(data);
   },
 };
-

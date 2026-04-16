@@ -89,10 +89,20 @@ export interface Address {
   lng?: number | string;
 }
 
+export type CustomerUserSubtype = 'VIGILANT' | 'SUPERVISOR';
+
+export interface CustomerUser {
+  _id?: string;
+  subtype: CustomerUserSubtype;
+  status: EntityStatus;
+  employeeCode?: string;
+}
+
 export interface User {
   _id: string;
   firstName: string;
   lastName: string;
+  fullName?: string;
   email: string;
   username?: string;
   primaryPhone?: string;
@@ -100,13 +110,19 @@ export interface User {
   language?: 'pt' | 'en' | 'es' | 'ja' | 'zh';
   darkMode?: boolean;
   status: EntityStatus;
-  companyUser: CompanyUser;
+  // System user (admin) flavor
+  companyUser?: CompanyUser;
+  // Customer user (collaborator / vigilant) flavor — only present for USER-CUSTOMER records
+  customerUser?: CustomerUser;
   account?: Company;
   client?: Company;
   site?: Company;
   accountTimezone?: string;
   address?: Address;
-  createdDate?: string;
+  type?: 'USER-COMPANY' | 'USER-CUSTOMER';
+  createDate?: string;
+  updateDate?: string;
+  createdDate?: string; // legacy alias some endpoints use
   updatedDate?: string;
 }
 
@@ -181,35 +197,51 @@ export interface CompanyFormData {
 
 export interface Equipment {
   _id: string;
-  name: string;
-  brand?: string;
-  model?: string;
-  serialNumber?: string;
+  code: string;
   type?: string;
+  brand?: string;
   status: EntityStatus;
   account?: string | Company;
   client?: string | Company;
   site?: string | Company;
+  user?: string | null;
+  hasImport?: boolean;
+  companyLegacyParentId?: string;
+  legacyId?: string;
+  createDate?: string;
+  updateDate?: string;
+  // legacy aliases still present in some responses
+  name?: string;
+  model?: string;
+  serialNumber?: string;
   createdDate?: string;
   updatedDate?: string;
 }
 
 export interface EquipmentFormData {
   _id?: string;
-  name: string;
-  brand?: string;
-  model?: string;
-  serialNumber?: string;
+  legacyId?: string;
+  code: string;
   type?: string;
+  brand?: string;
+  account: string;
+  client: string;
+  site: string;
+  user?: string;
+  hasImport?: boolean;
   status: EntityStatus;
-  account?: string;
-  client?: string;
-  site?: string;
+  companyLegacyParentId?: string;
 }
 
 // ─── Schedule / Alert Occurrence ───────────────────────────────
 
-export type ScheduleFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'ONCE';
+export type ScheduleFrequency =
+  | 'NOT_REPEAT'
+  | 'DAILY'
+  | 'EVERY_OTHER_DAY'
+  | 'WEEKLY'
+  | 'MONTHLY'
+  | 'YEARLY';
 export type AlertType = 'FIXED' | 'RANDOM';
 export type OccurrenceStatus = 'PENDING' | 'RESPONDED' | 'MISSED';
 
@@ -231,8 +263,8 @@ export interface AlertSchedule {
   equipment?: string | Equipment;
   frequency: ScheduleFrequency;
   category: 'ALERT_CHECK';
-  frequencyMonth?: { day: string };
-  frequencyYear?: { month: string; day: string };
+  frequencyMonth?: { day?: string | number };
+  frequencyYear?: { month?: string | number; day?: string | number };
   weeklyDays?: number[];
   beginDate: string;
   endDate?: string | null;
@@ -253,8 +285,8 @@ export interface AlertScheduleFormData {
   equipment?: string;
   frequency: ScheduleFrequency;
   category: 'ALERT_CHECK';
-  frequencyMonth?: { day: string };
-  frequencyYear?: { month: string; day: string };
+  frequencyMonth?: { day?: string | number };
+  frequencyYear?: { month?: string | number; day?: string | number };
   weeklyDays?: number[];
   beginDate: string;
   endDate?: string | null;

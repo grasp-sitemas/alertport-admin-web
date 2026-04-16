@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import type { EntityStatus, OccurrenceStatus, TimeEntryType } from '@/types/api';
+import { formatEnumLabel } from '@/lib/enum-labels';
 
 export function StatusBadge({ status }: { status: EntityStatus }) {
   const t = useTranslations();
@@ -25,7 +26,7 @@ export function OccurrenceStatusBadge({ status }: { status: OccurrenceStatus }) 
     RESPONDED: 'alerts.responded',
     MISSED: 'alerts.missed',
   };
-  return <Badge variant={variants[status]}>{t(keys[status])}</Badge>;
+  return <Badge variant={variants[status] ?? 'muted'}>{keys[status] ? t(keys[status]) : status}</Badge>;
 }
 
 export function TimeEntryBadge({ type }: { type: TimeEntryType }) {
@@ -42,18 +43,19 @@ export function TimeEntryBadge({ type }: { type: TimeEntryType }) {
     BREAK_START: 'attendance.breakStart',
     BREAK_END: 'attendance.breakEnd',
   };
-  return <Badge variant={variants[type]}>{t(keys[type])}</Badge>;
+  return <Badge variant={variants[type] ?? 'muted'}>{keys[type] ? t(keys[type]) : type}</Badge>;
 }
 
-export function RoleBadge({ role }: { role: string }) {
+export function RoleBadge({ role }: { role?: string | null }) {
   const t = useTranslations();
-  const roleKeys: Record<string, string> = {
-    SUPER_ADMIN_MASTER: 'roles.superAdminMaster',
-    ADMIN_MASTER: 'roles.adminMaster',
-    ADMIN: 'roles.admin',
-    MANAGER: 'roles.manager',
-    OPERATOR: 'roles.operator',
-    AUDITOR: 'roles.auditor',
+  const translatedRoleLabels: Record<string, string> = {
+    SUPER_ADMIN_MASTER: t('roles.superAdminMaster'),
+    ADMIN_MASTER: t('roles.adminMaster'),
+    ADMIN: t('roles.admin'),
+    MANAGER: t('roles.manager'),
+    OPERATOR: t('roles.operator'),
+    AUDITOR: t('roles.auditor'),
   };
-  return <Badge variant="brand">{t(roleKeys[role] || role)}</Badge>;
+
+  return <Badge variant="brand">{formatEnumLabel(role, translatedRoleLabels)}</Badge>;
 }

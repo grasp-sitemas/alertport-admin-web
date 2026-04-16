@@ -232,6 +232,9 @@ export function useCall(): CallState & CallActions {
     const socket = getSocket();
 
     const register = () => {
+      const role = user.companyUser?.subtype;
+      if (!role) return;
+
       const accountId =
         typeof user.account === 'object' && user.account
           ? user.account._id
@@ -242,7 +245,7 @@ export function useCall(): CallState & CallActions {
         {
           userId: user._id,
           accountId,
-          role: user.companyUser?.subtype,
+          role,
           clientType: 'ADMIN_MONITOR',
           displayName: `${user.firstName} ${user.lastName}`.trim(),
         },

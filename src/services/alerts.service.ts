@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/api-client';
 import { endpoints } from '@/config/endpoints';
+import { normalizePage, type NormalizedPage } from '@/lib/pagination';
 import type {
   AlertOccurrence,
   AlertSchedule,
@@ -16,12 +17,12 @@ import type {
 export const alertsService = {
   // ─── Alert Schedules ──────────────────────────────────────
 
-  async filterSchedules(params: FilterParams): Promise<ApiPaginatedResponse<AlertSchedule>> {
+  async filterSchedules(params: FilterParams): Promise<NormalizedPage<AlertSchedule>> {
     const { data } = await apiClient.post<ApiPaginatedResponse<AlertSchedule>>(
       endpoints.appointmentsFilterV2,
       { ...params, category: 'ALERT_CHECK' },
     );
-    return data;
+    return normalizePage(data);
   },
 
   async createSchedule(
@@ -46,32 +47,32 @@ export const alertsService = {
 
   // ─── Alert Occurrences ────────────────────────────────────
 
-  async filterOccurrences(params: FilterParams): Promise<ApiPaginatedResponse<AlertOccurrence>> {
+  async filterOccurrences(params: FilterParams): Promise<NormalizedPage<AlertOccurrence>> {
     const { data } = await apiClient.post<ApiPaginatedResponse<AlertOccurrence>>(
       endpoints.occurrencesFilter,
       params,
     );
-    return data;
+    return normalizePage(data);
   },
 
   // ─── Time Entries ─────────────────────────────────────────
 
-  async filterTimeEntries(params: FilterParams): Promise<ApiPaginatedResponse<TimeEntry>> {
+  async filterTimeEntries(params: FilterParams): Promise<NormalizedPage<TimeEntry>> {
     const { data } = await apiClient.post<ApiPaginatedResponse<TimeEntry>>(
       endpoints.timeEntriesFilter,
       params,
     );
-    return data;
+    return normalizePage(data);
   },
 
   // ─── Patrol Actions (Events) ──────────────────────────────
 
-  async filterPatrolActions(params: FilterParams): Promise<ApiPaginatedResponse<PatrolAction>> {
+  async filterPatrolActions(params: FilterParams): Promise<NormalizedPage<PatrolAction>> {
     const { data } = await apiClient.post<ApiPaginatedResponse<PatrolAction>>(
       endpoints.patrolActionsFilter,
       { ...params, sources: ['ALERTPORT'] },
     );
-    return data;
+    return normalizePage(data);
   },
 
   // ─── Event Attendance ─────────────────────────────────────
@@ -88,12 +89,12 @@ export const alertsService = {
     return data;
   },
 
-  async filterAttendances(params: FilterParams): Promise<ApiPaginatedResponse<EventAttendance>> {
+  async filterAttendances(params: FilterParams): Promise<NormalizedPage<EventAttendance>> {
     const { data } = await apiClient.post<ApiPaginatedResponse<EventAttendance>>(
       endpoints.attendancesFilter,
       params,
     );
-    return data;
+    return normalizePage(data);
   },
 
   // ─── Helpers ──────────────────────────────────────────────

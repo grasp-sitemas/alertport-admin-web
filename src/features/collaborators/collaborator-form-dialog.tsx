@@ -1,6 +1,7 @@
 'use client';
 
-import { useForm, Controller } from 'react-hook-form';
+import { useEffect } from 'react';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -29,7 +30,14 @@ import {
   DEFAULT_COLLABORATOR_VALUES,
 } from './schemas';
 import { usersService } from '@/services/users.service';
-import type { User, UserFormData } from '@/types/api';
+import type { User } from '@/types/api';
+import {
+  useAccountsLookup,
+  useClientsLookup,
+  useSitesLookup,
+} from '@/features/shared/use-hierarchy-lookups';
+import { isSuperAdminMaster } from '@/config/roles';
+import { useAuth } from '@/hooks/use-auth';
 
 interface Props {
   open: boolean;
@@ -37,95 +45,190 @@ interface Props {
   collaborator?: User;
 }
 
+function getIdOrEmpty(v: unknown): string {
+  if (!v) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'object' && v !== null && '_id' in v) {
+    const id = (v as { _id?: unknown })._id;
+    return typeof id === 'string' ? id : '';
+  }
+  return '';
+}
+
 export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Props) {
   const t = useTranslations();
   const queryClient = useQueryClient();
+  const { userSubtype, user: sessionUser } = useAuth();
   const isEdit = !!collaborator;
+  const canSelectAccount = isSuperAdminMaster(userSubtype);
+
+  const sessionAccountId =
+    typeof sessionUser?.account === 'object' ? sessionUser.account?._id : undefined;
+
+  const defaults: CollaboratorFormValues = collaborator
+    ? {
+        _id: collaborator._id,
+        firstName: collaborator.firstName,
+        lastName: collaborator.lastName,
+        email: collaborator.email || '',
+        oldEmail: collaborator.email || '',
+        username: collaborator.username || '',
+        oldUsername: collaborator.username || '',
+        primaryPhone: collaborator.primaryPhone || '',
+        photoURL: collaborator.photoURL || '',
+        password: '',
+        account: getIdOrEmpty(collaborator.account),
+        client: getIdOrEmpty(collaborator.client),
+        site: getIdOrEmpty(collaborator.site),
+        customerUser: {
+          subtype: (collaborator.customerUser?.subtype ?? 'VIGILANT') as 'VIGILANT' | 'SUPERVISOR',
+          status: collaborator.customerUser?.status ?? collaborator.status ?? 'ACTIVE',
+          employeeCode: collaborator.customerUser?.employeeCode,
+        },
+        address: {
+          cep: collaborator.address?.cep || '',
+          address: collaborator.address?.address || '',
+          number: collaborator.address?.number || '',
+          complement: collaborator.address?.complement || '',
+          neighborhood: collaborator.address?.neighborhood || '',
+          city: collaborator.address?.city || '',
+          state: collaborator.address?.state || '',
+          name: collaborator.address?.name || 'MAIN',
+        },
+        type: 'USER-CUSTOMER',
+        status: collaborator.status || 'ACTIVE',
+      }
+    : {
+        ...DEFAULT_COLLABORATOR_VALUES,
+        account: canSelectAccount ? '' : sessionAccountId || '',
+      };
 
   const {
     register,
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CollaboratorFormValues>({
     resolver: zodResolver(collaboratorFormSchema),
-    defaultValues: collaborator
-      ? {
-          _id: collaborator._id,
-          firstName: collaborator.firstName,
-          lastName: collaborator.lastName,
-          email: collaborator.email || '',
-          username: collaborator.username,
-          primaryPhone: collaborator.primaryPhone,
-          status: collaborator.status,
-        }
-      : DEFAULT_COLLABORATOR_VALUES,
+    defaultValues: defaults,
   });
+
+  // When the dialog opens for a new/edit target, reset to those values
+  useEffect(() => {
+    if (open) reset(defaults);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, collaborator?._id]);
+
+  const accountWatched = useWatch({ control, name: 'account' });
+  const clientWatched = useWatch({ control, name: 'client' });
+
+  const accountsLookup = useAccountsLookup();
+  const clientsLookup = useClientsLookup(accountWatched || undefined);
+  const sitesLookup = useSitesLookup(clientWatched || undefined);
+
+  // Cascade resets when parent changes
+  const previousAccountRef = { current: defaults.account };
+  const previousClientRef = { current: defaults.client };
+
+  // Using simple onChange handlers in the Controllers below to clear children.
 
   const mutation = useMutation({
     mutationFn: async (data: CollaboratorFormValues) => {
+      // Server-side uniqueness checks (legacy behavior)
+      const resEmail = await usersService.checkEmailExists(data.email);
+      if (
+        resEmail.alreadyExist &&
+        (!data._id || (data._id && resEmail._id && resEmail._id !== data._id))
+      ) {
+        throw new Error('email');
+      }
+      const resUsername = await usersService.checkUsernameExists(data.username);
+      if (
+        resUsername.alreadyExist &&
+        (!data._id || (data._id && resUsername._id && resUsername._id !== data._id))
+      ) {
+        throw new Error('username');
+      }
+
       const payload = {
         ...data,
-        companyUser: {
-          subtype: 'VIGILANT' as unknown as 'OPERATOR',
-          status: data.status,
-        },
-      } as unknown as UserFormData;
-      if (isEdit && collaborator) {
-        return usersService.update(collaborator._id, payload);
+        type: 'USER-CUSTOMER' as const,
+        oldEmail: data.oldEmail ?? (isEdit ? data.email : undefined),
+        oldUsername: data.oldUsername ?? (isEdit ? data.username : undefined),
+      };
+      // On edit, don't send empty password (legacy ignores it too)
+      if (isEdit && !payload.password) {
+        delete payload.password;
       }
-      return usersService.create(payload);
+      if (isEdit && collaborator) {
+        return usersService.updateCollaborator(collaborator._id, payload);
+      }
+      return usersService.createCollaborator(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['collaborators'] });
       toast.success(isEdit ? t('collaborators.updateSuccess') : t('collaborators.createSuccess'));
       onOpenChange(false);
-      reset();
+      reset(DEFAULT_COLLABORATOR_VALUES);
     },
-    onError: () => toast.error(t('notifications.errorOccurred')),
+    onError: (err: Error) => {
+      if (err.message === 'email') toast.error(t('collaborators.emailInUse'));
+      else if (err.message === 'username') toast.error(t('collaborators.usernameInUse'));
+      else toast.error(t('notifications.errorOccurred'));
+    },
   });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isEdit ? t('collaborators.editCollaborator') : t('collaborators.createCollaborator')}
           </DialogTitle>
           <DialogDescription>{t('collaborators.collaboratorDetails')}</DialogDescription>
         </DialogHeader>
+
         <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Subtype */}
             <div className="space-y-2">
-              <Label>{t('users.firstName')}</Label>
-              <Input {...register('firstName')} />
-              {errors.firstName && (
-                <p className="text-xs text-red-400">{t(errors.firstName.message as string)}</p>
-              )}
+              <Label>{t('collaborators.type')}</Label>
+              <Controller
+                control={control}
+                name="customerUser.subtype"
+                render={({ field }) => (
+                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('common.selectOption')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="VIGILANT">{t('collaborators.vigilant')}</SelectItem>
+                      <SelectItem value="SUPERVISOR">{t('collaborators.supervisor')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
+
+            {/* Status */}
             <div className="space-y-2">
-              <Label>{t('users.lastName')}</Label>
-              <Input {...register('lastName')} />
-              {errors.lastName && (
-                <p className="text-xs text-red-400">{t(errors.lastName.message as string)}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>{t('common.email')}</Label>
-              <Input type="email" {...register('email')} />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('common.phone')}</Label>
-              <Input {...register('primaryPhone')} />
-            </div>
-            <div className="space-y-2 sm:col-span-2">
               <Label>{t('common.status')}</Label>
               <Controller
                 control={control}
                 name="status"
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value ?? 'ACTIVE'}
+                    onValueChange={(val) => {
+                      field.onChange(val);
+                      setValue(
+                        'customerUser.status',
+                        val as 'ACTIVE' | 'ARCHIVED',
+                      );
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -137,7 +240,185 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
                 )}
               />
             </div>
+
+            {canSelectAccount && (
+              <div className="space-y-2 sm:col-span-2">
+                <Label>{t('common.account')}</Label>
+                <Controller
+                  control={control}
+                  name="account"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value ?? ''}
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        if (val !== previousAccountRef.current) {
+                          setValue('client', '');
+                          setValue('site', '');
+                          previousAccountRef.current = val;
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('common.selectOption')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(accountsLookup.data?.results ?? []).map((a) => (
+                          <SelectItem key={a._id} value={a._id}>
+                            {a.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.account && (
+                  <p className="text-xs text-red-400">{t(errors.account.message as string)}</p>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label>{t('common.client')}</Label>
+              <Controller
+                control={control}
+                name="client"
+                render={({ field }) => (
+                  <Select
+                    value={field.value ?? ''}
+                    onValueChange={(val) => {
+                      field.onChange(val);
+                      if (val !== previousClientRef.current) {
+                        setValue('site', '');
+                        previousClientRef.current = val;
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('common.selectOption')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(clientsLookup.data?.results ?? []).map((c) => (
+                        <SelectItem key={c._id} value={c._id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.client && (
+                <p className="text-xs text-red-400">{t(errors.client.message as string)}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('common.site')}</Label>
+              <Controller
+                control={control}
+                name="site"
+                render={({ field }) => (
+                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('common.selectOption')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(sitesLookup.data?.results ?? []).map((s) => (
+                        <SelectItem key={s._id} value={s._id}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.site && (
+                <p className="text-xs text-red-400">{t(errors.site.message as string)}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('users.firstName')}</Label>
+              <Input {...register('firstName')} />
+              {errors.firstName && (
+                <p className="text-xs text-red-400">{t(errors.firstName.message as string)}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('users.lastName')}</Label>
+              <Input {...register('lastName')} />
+              {errors.lastName && (
+                <p className="text-xs text-red-400">{t(errors.lastName.message as string)}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('common.phone')}</Label>
+              <Input {...register('primaryPhone')} />
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('collaborators.username')}</Label>
+              <Input {...register('username')} />
+              {errors.username && (
+                <p className="text-xs text-red-400">{t(errors.username.message as string)}</p>
+              )}
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label>{t('common.email')}</Label>
+              <Input type="email" {...register('email')} />
+              {errors.email && (
+                <p className="text-xs text-red-400">{t(errors.email.message as string)}</p>
+              )}
+            </div>
+
+            {!isEdit && (
+              <div className="space-y-2 sm:col-span-2">
+                <Label>{t('auth.password')}</Label>
+                <Input type="password" autoComplete="new-password" {...register('password')} />
+                {errors.password && (
+                  <p className="text-xs text-red-400">{t(errors.password.message as string)}</p>
+                )}
+              </div>
+            )}
           </div>
+
+          <div className="h-px bg-white/10 my-2" />
+          <h4 className="text-sm font-semibold text-white">{t('common.address')}</h4>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>CEP</Label>
+              <Input {...register('address.cep')} placeholder="00000-000" />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label>{t('common.address')}</Label>
+              <Input {...register('address.address')} />
+            </div>
+            <div className="space-y-2">
+              <Label>Nº</Label>
+              <Input {...register('address.number')} />
+            </div>
+            <div className="space-y-2">
+              <Label>Complemento</Label>
+              <Input {...register('address.complement')} />
+            </div>
+            <div className="space-y-2">
+              <Label>Bairro</Label>
+              <Input {...register('address.neighborhood')} />
+            </div>
+            <div className="space-y-2">
+              <Label>Cidade</Label>
+              <Input {...register('address.city')} />
+            </div>
+            <div className="space-y-2">
+              <Label>UF</Label>
+              <Input {...register('address.state')} />
+            </div>
+          </div>
+
           <DialogFooter>
             <Button
               type="button"

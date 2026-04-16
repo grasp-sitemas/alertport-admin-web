@@ -6,6 +6,7 @@ import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { useAuth } from '@/hooks/use-auth';
 import { Spinner } from '@/components/ui/spinner';
+import { CallProvider } from '@/features/calls/call-context';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -33,16 +34,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-app-gradient">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <CallProvider>
+      <div className="flex min-h-screen bg-app-gradient">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex flex-1 flex-col lg:ml-0 min-w-0">
-        <Header onMenuClick={() => setSidebarOpen(true)} />
+        <div className="flex flex-1 flex-col lg:ml-0 min-w-0">
+          <Header onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">{children}</div>
-        </main>
+          <main className="flex-1 overflow-y-auto">
+            <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">{children}</div>
+          </main>
+        </div>
       </div>
-    </div>
+    </CallProvider>
   );
 }

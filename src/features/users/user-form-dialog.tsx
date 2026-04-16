@@ -24,9 +24,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { userFormSchema, type UserFormValues, DEFAULT_USER_VALUES } from './schemas';
-import { usersService } from '@/services/users.service';
+import { usersService, type AdminUserFormData } from '@/services/users.service';
 import { ROLES } from '@/config/roles';
-import type { User, UserFormData } from '@/types/api';
+import type { User } from '@/types/api';
 
 interface UserFormDialogProps {
   open: boolean;
@@ -66,12 +66,16 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
 
   const mutation = useMutation({
     mutationFn: async (data: UserFormValues) => {
-      const payload: Partial<UserFormData> = { ...data };
-      delete payload.confirmPassword;
+      const { confirmPassword, ...rest } = data;
+      void confirmPassword;
+      const payload = {
+        ...rest,
+        type: 'USER-COMPANY' as const,
+      } satisfies Partial<AdminUserFormData>;
       if (isEdit && user) {
         return usersService.update(user._id, payload);
       }
-      return usersService.create(payload as UserFormData);
+      return usersService.create(payload as AdminUserFormData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });

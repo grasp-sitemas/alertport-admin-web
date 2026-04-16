@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { FilterPanel } from '@/components/shared/filter-panel';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { RoleGuard } from '@/components/shared/role-guard';
@@ -18,12 +19,17 @@ import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import type { User } from '@/types/api';
 
+const SUBTYPE_LABELS: Record<string, string> = {
+  VIGILANT: 'collaborators.vigilant',
+  SUPERVISOR: 'collaborators.supervisor',
+};
+
 export default function CollaboratorsPage() {
   const t = useTranslations();
   const queryClient = useQueryClient();
   const pagination = usePagination({ initialPageSize: 20 });
   const { filters, setFilter, clearFilters, buildFilterParams } = useFilters({
-    initialFilters: { name: '', status: '' },
+    initialFilters: { name: '', status: 'ACTIVE', subtype: '' },
   });
   const [activeFilters, setActiveFilters] = useState(filters);
   const [formOpen, setFormOpen] = useState(false);
@@ -40,12 +46,13 @@ export default function CollaboratorsPage() {
     queryFn: () => usersService.filterCollaborators(queryParams),
   });
 
-  const results = data?.results || [];
-  const totalCount = data?.totalCount || 0;
+  const results = data?.results ?? [];
+  const totalCount = data?.totalCount ?? 0;
   if (totalCount !== pagination.totalCount) pagination.setTotalCount(totalCount);
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => usersService.delete(id),
+    mutationFn: (user: User) =>
+      usersService.deleteCollaborator(user.email, user as unknown as Record<string, unknown>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['collaborators'] });
       toast.success(t('collaborators.deleteSuccess'));
@@ -56,16 +63,47 @@ export default function CollaboratorsPage() {
 
   const columns: Column<User>[] = [
     {
-      key: 'name',
+      key: 'fullName',
       headerKey: 'common.name',
-      render: (item) => (
-        <p className="font-medium text-white">
-          {item.firstName} {item.lastName}
-        </p>
-      ),
+      render: (item) => {
+        const name =
+          item.fullName ?? `${item.firstName ?? ''} ${item.lastName ?? ''}`.trim();
+        return <p className="font-medium text-white">{name || '—'}</p>;
+      },
+    },
+    {
+      key: 'employeeCode',
+      headerKey: 'collaborators.employeeCode',
+      render: (item) => item.customerUser?.employeeCode || '—',
+    },
+    {
+      key: 'subtype',
+      headerKey: 'collaborators.type',
+      render: (item) => {
+        const k = item.customerUser?.subtype;
+        return k ? (
+          <Badge variant="brand">{t(SUBTYPE_LABELS[k] ?? 'common.info')}</Badge>
+        ) : (
+          '—'
+        );
+      },
+    },
+    {
+      key: 'client',
+      headerKey: 'common.client',
+      render: (item) => (typeof item.client === 'object' ? item.client?.name : '—'),
+    },
+    {
+      key: 'site',
+      headerKey: 'common.site',
+      render: (item) => (typeof item.site === 'object' ? item.site?.name : '—'),
     },
     { key: 'email', headerKey: 'common.email', render: (item) => item.email || '—' },
-    { key: 'primaryPhone', headerKey: 'common.phone', render: (item) => item.primaryPhone || '—' },
+    {
+      key: 'primaryPhone',
+      headerKey: 'common.phone',
+      render: (item) => item.primaryPhone || '—',
+    },
     {
       key: 'status',
       headerKey: 'common.status',
@@ -126,6 +164,15 @@ export default function CollaboratorsPage() {
           fields={[
             { key: 'name', labelKey: 'common.name', type: 'text' },
             {
+              key: 'subtype',
+              labelKey: 'collaborators.type',
+              type: 'select',
+              options: [
+                { value: 'VIGILANT', label: t('collaborators.vigilant') },
+                { value: 'SUPERVISOR', label: t('collaborators.supervisor') },
+              ],
+            },
+            {
               key: 'status',
               labelKey: 'common.status',
               type: 'select',
@@ -143,7 +190,7 @@ export default function CollaboratorsPage() {
           }}
           onClear={() => {
             clearFilters();
-            setActiveFilters({});
+            setActiveFilters({ name: '', status: 'ACTIVE', subtype: '' });
             pagination.setPage(1);
           }}
         />
@@ -170,8 +217,12 @@ export default function CollaboratorsPage() {
           open={!!deleteTarget}
           onOpenChange={(open) => !open && setDeleteTarget(undefined)}
           title={t('collaborators.deleteConfirm')}
-          description={`${deleteTarget?.firstName} ${deleteTarget?.lastName}`}
-          onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget._id)}
+          description={
+            deleteTarget
+              ? `${deleteTarget.firstName ?? ''} ${deleteTarget.lastName ?? ''}`.trim()
+              : ''
+          }
+          onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
           isLoading={deleteMutation.isPending}
         />
       </div>

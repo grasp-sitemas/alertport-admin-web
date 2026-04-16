@@ -21,9 +21,20 @@ export const endpoints = {
   // ─── Users ───────────────────────────────────────────────
   users: url('/api/users/v1/'),
   userById: (id: string) => url(`/api/users/v1/${id}`),
+  userByEmail: (email: string) => url(`/api/users/v1/${encodeURIComponent(email)}`),
   userFormData: url('/api/users/formdata/v1/'),
+  userFormDataById: (id: string) => url(`/api/users/formdata/v1/${id}`),
   usersByType: (type: string) => url(`/api/users/bytype/v1/${type}`),
   deleteUser: url('/api/users/delete/v1/'),
+
+  // ─── System Users (customer users a.k.a. collaborators / vigilants) ─
+  // Mirrors shieldgo Endpoints.vue: systemUsers.customerUser.search
+  customerUserSearch: url('/api/users/system/search/customeruser/v1/'),
+  // Admin company-user search (the one ListUser.vue uses)
+  companyUserSearch: url('/api/users/system/search/companyuser/v1/'),
+  checkEmailExists: (email: string) => url(`/api/users/check/email/v1/${encodeURIComponent(email)}`),
+  checkUsernameExists: (username: string) =>
+    url(`/api/users/check/username/v1/${encodeURIComponent(username)}`),
 
   // ─── Companies ───────────────────────────────────────────
   companyFilter: url('/api/company/filter/v1/'),
