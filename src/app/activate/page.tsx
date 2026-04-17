@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,6 +23,15 @@ import {
 } from '@/features/auth/signup-schemas';
 
 export default function ActivatePage() {
+  // Next's CSR bailout requires useSearchParams to sit inside a Suspense boundary.
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-app-gradient" />}>
+      <ActivatePageContent />
+    </Suspense>
+  );
+}
+
+function ActivatePageContent() {
   const t = useTranslations();
   const router = useRouter();
   const params = useSearchParams();
