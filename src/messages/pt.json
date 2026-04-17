@@ -148,7 +148,8 @@
     "or": "Ou",
     "noAccountYet": "Ainda não tem conta?",
     "signupCta": "Criar conta grátis",
-    "signupBenefit": "14 dias de teste gratuito · sem cartão de crédito"
+    "signupBenefit": "14 dias de teste gratuito · sem cartão de crédito",
+    "alreadyHaveAccount": "Já tem uma conta?"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -477,7 +478,9 @@
       "documentInvalid": "Documento inválido",
       "email": "E-mail corporativo",
       "phone": "Telefone comercial",
-      "timezone": "Fuso horário"
+      "timezone": "Fuso horário",
+      "timezoneDetected": "detectado",
+      "timezoneHint": "Escolha um fuso horário da lista ou selecione uma sugestão abaixo."
     },
     "user": {
       "title": "Seu acesso de administrador",

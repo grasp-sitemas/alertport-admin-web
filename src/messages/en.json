@@ -148,7 +148,8 @@
     "or": "Or",
     "noAccountYet": "Don't have an account yet?",
     "signupCta": "Create a free account",
-    "signupBenefit": "14-day free trial · no credit card required"
+    "signupBenefit": "14-day free trial · no credit card required",
+    "alreadyHaveAccount": "Already have an account?"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -477,7 +478,9 @@
       "documentInvalid": "Invalid document",
       "email": "Business email",
       "phone": "Business phone",
-      "timezone": "Timezone"
+      "timezone": "Timezone",
+      "timezoneDetected": "detected",
+      "timezoneHint": "Pick a timezone from the list or choose a suggestion below."
     },
     "user": {
       "title": "Your admin access",
