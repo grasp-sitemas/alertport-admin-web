@@ -144,7 +144,11 @@
       "backToLogin": "返回登录",
       "emailNotFound": "邮箱不存在",
       "genericError": "操作失败，请重试。"
-    }
+    },
+    "or": "或",
+    "noAccountYet": "还没有账户？",
+    "signupCta": "免费创建账户",
+    "signupBenefit": "14 天免费试用 · 无需信用卡"
   },
   "sidebar": {
     "dashboard": "仪表板",
@@ -459,6 +463,72 @@
       "incidents": "事件",
       "integrations": "集成",
       "reportsPerMonth": "报表 / 月"
+    }
+  },
+  "signup": {
+    "company": {
+      "title": "创建您的公司",
+      "subtitle": "不到 2 分钟即可开始使用 AlertPort。",
+      "legalName": "公司全称",
+      "legalNamePlaceholder": "公司名称",
+      "fantasyName": "商号",
+      "fantasyNamePlaceholder": "常用名称",
+      "document": "税号",
+      "documentInvalid": "无效的证件",
+      "email": "企业邮箱",
+      "phone": "企业电话",
+      "timezone": "时区"
+    },
+    "user": {
+      "title": "您的管理员账户",
+      "subtitle": "您将成为该账户的首位管理员。",
+      "firstName": "名字",
+      "firstNamePlaceholder": "小明",
+      "lastName": "姓氏",
+      "lastNamePlaceholder": "张",
+      "email": "个人邮箱",
+      "phone": "电话",
+      "password": "密码",
+      "passwordConfirm": "确认密码",
+      "passwordMinLength": "密码至少需要 8 个字符",
+      "termsHtml": "我已阅读并接受<a class=\"underline\" href=\"/terms\" target=\"_blank\">使用条款</a>和<a class=\"underline\" href=\"/privacy-policy\" target=\"_blank\">隐私政策</a>。",
+      "termsRequired": "请先同意条款",
+      "submit": "免费创建账户"
+    },
+    "success": {
+      "title": "全部完成！",
+      "subtitle": "我们已发送激活码到您的邮箱。",
+      "emailSent": "请确认您的邮箱",
+      "checkInbox": "我们已将激活码发送到 {email}。可能需要几分钟 — 也请检查垃圾邮件。",
+      "nextSteps": "下一步",
+      "step1": "打开我们发送的邮件",
+      "step2": "复制激活码",
+      "step3": "激活账户并登录",
+      "activateCta": "打开激活页面"
+    },
+    "activation": {
+      "title": "激活您的账户",
+      "subtitle": "请输入邮箱和我们发送的激活码。",
+      "codeLabel": "激活码",
+      "codeInvalid": "激活码必须为 6 个字符",
+      "confirmCta": "激活账户",
+      "resendCta": "重新发送",
+      "backToLogin": "返回登录",
+      "doneTitle": "账户已激活！",
+      "doneSubtitle": "您的访问权限已就绪。",
+      "doneDescription": "使用邮箱和密码登录。您的免费试用已开始。",
+      "successToast": "账户激活成功",
+      "resentToast": "新的激活码已发送",
+      "expired": "激活码已过期。请重新申请。",
+      "invalid": "激活码无效。请检查后重试。",
+      "userNotFound": "未找到该邮箱对应的账户。",
+      "generic": "无法激活,请重试。",
+      "notVerifiedToast": "请先确认邮箱再登录"
+    },
+    "errors": {
+      "emailAlreadyExists": "该邮箱已被使用",
+      "companyCreateFailed": "无法创建公司",
+      "generic": "无法完成注册"
     }
   }
 }

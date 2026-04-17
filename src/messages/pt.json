@@ -144,7 +144,11 @@
       "backToLogin": "Voltar para o login",
       "emailNotFound": "E-mail não encontrado",
       "genericError": "Não foi possível concluir a operação. Tente novamente."
-    }
+    },
+    "or": "Ou",
+    "noAccountYet": "Ainda não tem conta?",
+    "signupCta": "Criar conta grátis",
+    "signupBenefit": "14 dias de teste gratuito · sem cartão de crédito"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -459,6 +463,72 @@
       "incidents": "Incidentes",
       "integrations": "Integrações",
       "reportsPerMonth": "Relatórios / mês"
+    }
+  },
+  "signup": {
+    "company": {
+      "title": "Crie sua empresa",
+      "subtitle": "Em menos de 2 minutos você ativa sua conta na AlertPort.",
+      "legalName": "Razão social",
+      "legalNamePlaceholder": "Nome da sua empresa",
+      "fantasyName": "Nome fantasia",
+      "fantasyNamePlaceholder": "Como seu negócio é conhecido",
+      "document": "CNPJ ou CPF",
+      "documentInvalid": "Documento inválido",
+      "email": "E-mail corporativo",
+      "phone": "Telefone comercial",
+      "timezone": "Fuso horário"
+    },
+    "user": {
+      "title": "Seu acesso de administrador",
+      "subtitle": "Você será o primeiro administrador desta conta.",
+      "firstName": "Nome",
+      "firstNamePlaceholder": "Maria",
+      "lastName": "Sobrenome",
+      "lastNamePlaceholder": "Silva",
+      "email": "E-mail pessoal",
+      "phone": "Telefone",
+      "password": "Senha",
+      "passwordConfirm": "Confirmar senha",
+      "passwordMinLength": "A senha deve ter ao menos 8 caracteres",
+      "termsHtml": "Li e aceito os <a class=\"underline\" href=\"/terms\" target=\"_blank\">termos de uso</a> e a <a class=\"underline\" href=\"/privacy-policy\" target=\"_blank\">política de privacidade</a>.",
+      "termsRequired": "Aceite os termos para continuar",
+      "submit": "Criar conta grátis"
+    },
+    "success": {
+      "title": "Tudo pronto!",
+      "subtitle": "Enviamos um e-mail com o código de ativação.",
+      "emailSent": "Confirme seu e-mail",
+      "checkInbox": "Enviamos o código para {email}. O e-mail pode levar alguns minutos — verifique também a caixa de spam.",
+      "nextSteps": "Próximos passos",
+      "step1": "Abra o e-mail que enviamos",
+      "step2": "Copie o código de ativação",
+      "step3": "Ative a conta e faça login",
+      "activateCta": "Abrir tela de ativação"
+    },
+    "activation": {
+      "title": "Ative sua conta",
+      "subtitle": "Informe o e-mail e o código que enviamos.",
+      "codeLabel": "Código de ativação",
+      "codeInvalid": "O código deve ter 6 caracteres",
+      "confirmCta": "Ativar conta",
+      "resendCta": "Reenviar código",
+      "backToLogin": "Voltar para o login",
+      "doneTitle": "Conta ativada!",
+      "doneSubtitle": "Seu acesso está liberado.",
+      "doneDescription": "Use seu e-mail e senha para entrar. Seu período de teste gratuito começou.",
+      "successToast": "Conta ativada com sucesso",
+      "resentToast": "Novo código enviado para seu e-mail",
+      "expired": "Código expirado. Envie um novo.",
+      "invalid": "Código inválido. Verifique e tente novamente.",
+      "userNotFound": "Não encontramos uma conta com esse e-mail.",
+      "generic": "Não foi possível ativar. Tente novamente.",
+      "notVerifiedToast": "Confirme seu e-mail antes de entrar"
+    },
+    "errors": {
+      "emailAlreadyExists": "Este e-mail já está em uso",
+      "companyCreateFailed": "Não foi possível criar a empresa",
+      "generic": "Não foi possível concluir o cadastro"
     }
   }
 }

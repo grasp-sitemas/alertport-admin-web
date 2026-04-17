@@ -144,7 +144,11 @@
       "backToLogin": "ログインに戻る",
       "emailNotFound": "メールが見つかりません",
       "genericError": "操作を完了できませんでした。もう一度お試しください。"
-    }
+    },
+    "or": "または",
+    "noAccountYet": "アカウントをお持ちでないですか？",
+    "signupCta": "無料アカウント作成",
+    "signupBenefit": "14日間の無料トライアル · クレジットカード不要"
   },
   "sidebar": {
     "dashboard": "ダッシュボード",
@@ -459,6 +463,72 @@
       "incidents": "インシデント",
       "integrations": "統合",
       "reportsPerMonth": "レポート / 月"
+    }
+  },
+  "signup": {
+    "company": {
+      "title": "会社情報を登録",
+      "subtitle": "2分以内でAlertPortを始められます。",
+      "legalName": "法人名",
+      "legalNamePlaceholder": "会社名を入力",
+      "fantasyName": "通称名",
+      "fantasyNamePlaceholder": "ビジネスの通称",
+      "document": "税務ID",
+      "documentInvalid": "無効な書類",
+      "email": "ビジネスメール",
+      "phone": "ビジネス電話",
+      "timezone": "タイムゾーン"
+    },
+    "user": {
+      "title": "管理者アカウント",
+      "subtitle": "あなたがこのアカウントの最初の管理者になります。",
+      "firstName": "名",
+      "firstNamePlaceholder": "太郎",
+      "lastName": "姓",
+      "lastNamePlaceholder": "山田",
+      "email": "個人メール",
+      "phone": "電話",
+      "password": "パスワード",
+      "passwordConfirm": "パスワード確認",
+      "passwordMinLength": "パスワードは8文字以上で入力してください",
+      "termsHtml": "<a class=\"underline\" href=\"/terms\" target=\"_blank\">利用規約</a>と<a class=\"underline\" href=\"/privacy-policy\" target=\"_blank\">プライバシーポリシー</a>に同意します。",
+      "termsRequired": "続行するには規約に同意してください",
+      "submit": "無料アカウントを作成"
+    },
+    "success": {
+      "title": "完了！",
+      "subtitle": "アクティベーションコードをメールで送信しました。",
+      "emailSent": "メールを確認してください",
+      "checkInbox": "{email}にコードを送信しました。数分かかることがあります — 迷惑メールもご確認ください。",
+      "nextSteps": "次のステップ",
+      "step1": "送信されたメールを開く",
+      "step2": "アクティベーションコードをコピー",
+      "step3": "アカウントをアクティブ化してログイン",
+      "activateCta": "アクティベーション画面を開く"
+    },
+    "activation": {
+      "title": "アカウントを有効化",
+      "subtitle": "送信したメールとコードを入力してください。",
+      "codeLabel": "アクティベーションコード",
+      "codeInvalid": "コードは6文字です",
+      "confirmCta": "アカウントを有効化",
+      "resendCta": "コードを再送信",
+      "backToLogin": "ログインに戻る",
+      "doneTitle": "アカウントが有効化されました！",
+      "doneSubtitle": "アクセスの準備ができました。",
+      "doneDescription": "メールとパスワードでログインできます。無料トライアルが始まりました。",
+      "successToast": "アカウントが有効化されました",
+      "resentToast": "新しいコードを送信しました",
+      "expired": "コードの有効期限が切れました。新しいコードを請求してください。",
+      "invalid": "コードが無効です。ご確認のうえ再入力してください。",
+      "userNotFound": "このメールのアカウントが見つかりません。",
+      "generic": "有効化できませんでした。もう一度お試しください。",
+      "notVerifiedToast": "ログインの前にメールを確認してください"
+    },
+    "errors": {
+      "emailAlreadyExists": "このメールは既に使用されています",
+      "companyCreateFailed": "会社を作成できませんでした",
+      "generic": "登録を完了できませんでした"
     }
   }
 }

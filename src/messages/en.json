@@ -144,7 +144,11 @@
       "backToLogin": "Back to login",
       "emailNotFound": "Email not found",
       "genericError": "Could not complete the operation. Please try again."
-    }
+    },
+    "or": "Or",
+    "noAccountYet": "Don't have an account yet?",
+    "signupCta": "Create a free account",
+    "signupBenefit": "14-day free trial · no credit card required"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -459,6 +463,72 @@
       "incidents": "Incidents",
       "integrations": "Integrations",
       "reportsPerMonth": "Reports / month"
+    }
+  },
+  "signup": {
+    "company": {
+      "title": "Set up your company",
+      "subtitle": "Get started on AlertPort in under 2 minutes.",
+      "legalName": "Legal name",
+      "legalNamePlaceholder": "Your company name",
+      "fantasyName": "Trade name",
+      "fantasyNamePlaceholder": "How your business is known",
+      "document": "Tax ID (CNPJ/CPF)",
+      "documentInvalid": "Invalid document",
+      "email": "Business email",
+      "phone": "Business phone",
+      "timezone": "Timezone"
+    },
+    "user": {
+      "title": "Your admin access",
+      "subtitle": "You will be the first admin of this account.",
+      "firstName": "First name",
+      "firstNamePlaceholder": "Mary",
+      "lastName": "Last name",
+      "lastNamePlaceholder": "Smith",
+      "email": "Personal email",
+      "phone": "Phone",
+      "password": "Password",
+      "passwordConfirm": "Confirm password",
+      "passwordMinLength": "Password must be at least 8 characters",
+      "termsHtml": "I have read and accept the <a class=\"underline\" href=\"/terms\" target=\"_blank\">terms of use</a> and <a class=\"underline\" href=\"/privacy-policy\" target=\"_blank\">privacy policy</a>.",
+      "termsRequired": "Please accept the terms to continue",
+      "submit": "Create free account"
+    },
+    "success": {
+      "title": "All set!",
+      "subtitle": "We sent you an email with an activation code.",
+      "emailSent": "Confirm your email",
+      "checkInbox": "We sent the code to {email}. It may take a couple of minutes — check your spam folder too.",
+      "nextSteps": "Next steps",
+      "step1": "Open the email we just sent",
+      "step2": "Copy the activation code",
+      "step3": "Activate your account and sign in",
+      "activateCta": "Open activation screen"
+    },
+    "activation": {
+      "title": "Activate your account",
+      "subtitle": "Enter the email and code we sent you.",
+      "codeLabel": "Activation code",
+      "codeInvalid": "The code must be 6 characters long",
+      "confirmCta": "Activate account",
+      "resendCta": "Resend code",
+      "backToLogin": "Back to login",
+      "doneTitle": "Account activated!",
+      "doneSubtitle": "Your access is ready.",
+      "doneDescription": "Use your email and password to sign in. Your free trial has started.",
+      "successToast": "Account successfully activated",
+      "resentToast": "New code sent to your email",
+      "expired": "Code expired. Request a new one.",
+      "invalid": "Invalid code. Double-check and try again.",
+      "userNotFound": "No account found for this email.",
+      "generic": "Could not activate. Please try again.",
+      "notVerifiedToast": "Please confirm your email before signing in"
+    },
+    "errors": {
+      "emailAlreadyExists": "This email is already in use",
+      "companyCreateFailed": "Could not create the company",
+      "generic": "Sign-up could not be completed"
     }
   }
 }
