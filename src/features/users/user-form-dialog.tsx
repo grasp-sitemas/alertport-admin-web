@@ -32,6 +32,9 @@ import { ROLES, isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
 import { useCepLookup } from '@/hooks/use-cep-lookup';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
+import { sanitizeFormPayload } from '@/lib/sanitize-payload';
+import { maskPhoneBR } from '@/lib/br-masks';
+import { PasswordField } from '@/components/shared/password-field';
 import {
   useAccountsLookup,
   useClientsLookup,
@@ -110,6 +113,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -139,20 +143,24 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
     mutationFn: async (data: UserFormValues) => {
       const { confirmPassword: _c, ...rest } = data;
       void _c;
-      const payload = {
+      const payload: Record<string, unknown> = {
         ...rest,
         oldEmail: rest.oldEmail ?? (isEdit ? rest.email : undefined),
         oldUsername: rest.oldUsername ?? (isEdit ? rest.username : undefined),
-        type: 'USER-COMPANY' as const,
+        type: 'USER-COMPANY',
       };
       // Don't send password on edit if it was left empty
       if (isEdit && !payload.password) {
         delete payload.password;
       }
+      // Strip empty strings / nulls so Mongoose doesn't try to cast "" into
+      // ObjectId refs (site/client/account), email validators, etc. Also
+      // normalizes primaryPhone / cep / document down to digits-only.
+      const sanitized = sanitizeFormPayload(payload) as unknown;
       if (isEdit && user) {
-        return usersService.update(user._id, payload as Partial<AdminUserFormData>);
+        return usersService.update(user._id, sanitized as Partial<AdminUserFormData>);
       }
-      return usersService.create(payload as AdminUserFormData);
+      return usersService.create(sanitized as AdminUserFormData);
     },
     onSuccess: () => {
       invalidateHierarchyAfter(queryClient, 'user');
@@ -361,7 +369,18 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
             </div>
             <div className="space-y-2">
               <Label>{t('common.phone')}</Label>
-              <Input {...register('primaryPhone')} />
+              <Input
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="(11) 99999-9999"
+                maxLength={16}
+                value={maskPhoneBR(watch('primaryPhone') ?? '')}
+                onChange={(e) =>
+                  setValue('primaryPhone', e.target.value.replace(/\D/g, ''), {
+                    shouldValidate: false,
+                  })
+                }
+              />
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label>{t('common.email')}</Label>
@@ -371,32 +390,35 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label>
-                {t('auth.password')}
-                {isEdit ? ` (${t('common.optional')})` : ''}
-              </Label>
-              <Input
-                type="password"
-                autoComplete="new-password"
-                {...register('password')}
+            <div className="sm:col-span-2">
+              <PasswordField
+                label={`${t('auth.password')}${isEdit ? ` (${t('common.optional')})` : ''}`}
+                value={watch('password') ?? ''}
+                onChange={(e) =>
+                  setValue('password', e.target.value, { shouldValidate: false })
+                }
                 placeholder={isEdit ? '••••••••' : undefined}
+                showPolicy={!isEdit || !!(watch('password') ?? '').length}
+                error={
+                  errors.password
+                    ? t(errors.password.message as string)
+                    : undefined
+                }
               />
             </div>
-            <div className="space-y-2">
-              <Label>
-                {t('auth.password')} ({t('common.confirm')})
-              </Label>
-              <Input
-                type="password"
-                autoComplete="new-password"
-                {...register('confirmPassword')}
+            <div className="sm:col-span-2">
+              <PasswordField
+                label={`${t('auth.password')} (${t('common.confirm')})`}
+                value={watch('confirmPassword') ?? ''}
+                onChange={(e) =>
+                  setValue('confirmPassword', e.target.value, { shouldValidate: false })
+                }
+                error={
+                  errors.confirmPassword
+                    ? t(errors.confirmPassword.message as string)
+                    : undefined
+                }
               />
-              {errors.confirmPassword && (
-                <p className="text-xs text-red-400">
-                  {t(errors.confirmPassword.message as string)}
-                </p>
-              )}
             </div>
           </div>
 

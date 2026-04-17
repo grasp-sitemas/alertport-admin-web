@@ -21,6 +21,7 @@ import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import type { User } from '@/types/api';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
+import { maskPhoneBR } from '@/lib/br-masks';
 
 const SUBTYPE_LABELS: Record<string, string> = {
   VIGILANT: 'collaborators.vigilant',
@@ -110,7 +111,7 @@ export default function CollaboratorsPage() {
     {
       key: 'primaryPhone',
       headerKey: 'common.phone',
-      render: (item) => item.primaryPhone || '—',
+      render: (item) => (item.primaryPhone ? maskPhoneBR(item.primaryPhone) : '—'),
     },
     {
       key: 'status',

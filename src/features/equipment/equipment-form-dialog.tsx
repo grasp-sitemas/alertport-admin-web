@@ -38,6 +38,7 @@ import {
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
+import { sanitizeFormPayload } from '@/lib/sanitize-payload';
 import type { Equipment } from '@/types/api';
 import { translateDynamicLabel } from '@/lib/i18n-labels';
 
@@ -123,9 +124,11 @@ export function EquipmentFormDialog({ open, onOpenChange, equipment }: Props) {
 
   const saveMutation = useMutation({
     mutationFn: async (data: EquipmentFormValues) => {
-      const payload = { ...data };
-      if (isEdit && equipment) return equipmentService.update(equipment._id, payload);
-      return equipmentService.create(payload);
+      // Strip empty-string ObjectId refs (account/client/site/user) before
+      // POST so Mongoose doesn't throw on cast.
+      const sanitized = sanitizeFormPayload({ ...data } as Record<string, unknown>) as EquipmentFormValues;
+      if (isEdit && equipment) return equipmentService.update(equipment._id, sanitized);
+      return equipmentService.create(sanitized);
     },
     onSuccess: () => {
       invalidateHierarchyAfter(queryClient, 'equipment');

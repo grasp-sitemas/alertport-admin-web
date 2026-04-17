@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { passesPasswordPolicy } from './password-policy';
 
 export const loginSchema = z.object({
   email: z
@@ -32,7 +33,13 @@ export const recoveryResetSchema = z
       .min(1, { message: 'validation.required' })
       .transform((v) => v.toUpperCase())
       .refine((v) => v.length === 8, { message: 'auth.recovery.codeInvalid' }),
-    password: z.string().min(6, { message: 'auth.recovery.passwordMinLength' }),
+    // New password must meet the app-wide policy (8+, uppercase, special char, no seq digits).
+    password: z
+      .string()
+      .min(8, { message: 'signup.user.passwordMinLength' })
+      .refine((v) => passesPasswordPolicy(v), {
+        message: 'signup.password.failsPolicy',
+      }),
     passwordConfirm: z.string().min(1, { message: 'validation.required' }),
   })
   .refine((data) => data.password === data.passwordConfirm, {

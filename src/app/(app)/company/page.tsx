@@ -26,6 +26,8 @@ import { companyFormSchema, type CompanyFormValues } from '@/features/company/sc
 import { useCepLookup } from '@/hooks/use-cep-lookup';
 import type { Company, User } from '@/types/api';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
+import { sanitizeFormPayload } from '@/lib/sanitize-payload';
+import { maskPhoneBR } from '@/lib/br-masks';
 
 /**
  * Picks the right entity off the `/me` response based on the user's role,
@@ -73,6 +75,7 @@ export default function CompanyPage() {
     handleSubmit,
     setValue,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CompanyFormValues>({
     resolver: zodResolver(companyFormSchema),
@@ -140,7 +143,9 @@ export default function CompanyPage() {
   const mutation = useMutation({
     mutationFn: (values: CompanyFormValues) => {
       if (!company) throw new Error('No company loaded');
-      return companyService.update(company._id, values);
+      // Strip empty-string ObjectId refs + normalize masked phone/document fields.
+      const sanitized = sanitizeFormPayload(values as unknown as Record<string, unknown>);
+      return companyService.update(company._id, sanitized as never);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['me'] });
@@ -223,11 +228,33 @@ export default function CompanyPage() {
               </div>
               <div className="space-y-2">
                 <Label>{t('common.phone')}</Label>
-                <Input {...register('primaryPhone')} />
+                <Input
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="(11) 99999-9999"
+                  maxLength={16}
+                  value={maskPhoneBR(watch('primaryPhone') ?? '')}
+                  onChange={(e) =>
+                    setValue('primaryPhone', e.target.value.replace(/\D/g, ''), {
+                      shouldValidate: false,
+                    })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t('company.secondaryPhone')}</Label>
-                <Input {...register('secondaryPhone')} />
+                <Input
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="(11) 99999-9999"
+                  maxLength={16}
+                  value={maskPhoneBR(watch('secondaryPhone') ?? '')}
+                  onChange={(e) =>
+                    setValue('secondaryPhone', e.target.value.replace(/\D/g, ''), {
+                      shouldValidate: false,
+                    })
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t('common.status')}</Label>
