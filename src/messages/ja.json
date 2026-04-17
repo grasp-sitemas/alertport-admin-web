@@ -114,6 +114,7 @@
     "fileNone": "ファイル未選択",
     "fileTooLarge": "ファイルが {size} を超えています",
     "fileTypeInvalid": "許可されていないファイル形式",
+    "fileEmpty": "空のファイルです。有効な画像を選択してください。",
     "photoUploadHint": "最大 {size} の画像。JPG、PNG など。"
   },
   "auth": {

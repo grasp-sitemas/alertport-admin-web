@@ -114,6 +114,7 @@
     "fileNone": "Nenhum arquivo selecionado",
     "fileTooLarge": "Arquivo maior que {size}",
     "fileTypeInvalid": "Tipo de arquivo não permitido",
+    "fileEmpty": "Arquivo vazio. Selecione uma imagem válida.",
     "photoUploadHint": "Imagens até {size}. JPG, PNG ou similar."
   },
   "auth": {

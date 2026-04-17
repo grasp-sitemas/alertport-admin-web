@@ -101,6 +101,14 @@ export function PhotoUpload({
       onChange(null);
       return;
     }
+    // Reject empty files — some mobile browsers/emulators return a File
+    // with metadata but zero bytes, which the backend then tries to persist
+    // as a 0-byte image and blows up.
+    if (file.size === 0) {
+      setError(t('common.fileEmpty'));
+      onChange(null);
+      return;
+    }
     if (file.size > maxBytes) {
       setError(
         t('common.fileTooLarge', {

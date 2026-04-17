@@ -16,7 +16,10 @@
  */
 export function toMultipartFormData(payload: unknown, file?: File | null): FormData {
   const fd = new FormData();
-  if (file) fd.append('file', file);
+  // Only append when we have a real, non-empty File. Some mobile browsers
+  // surface Files with size=0 from canceled camera prompts — multer would
+  // persist those as empty uploads and crash with ENOENT on ephemeral dirs.
+  if (file && file.size > 0) fd.append('file', file);
   fd.append('jsonData', JSON.stringify(payload));
   return fd;
 }

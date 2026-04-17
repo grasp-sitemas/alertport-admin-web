@@ -114,6 +114,7 @@
     "fileNone": "未选择文件",
     "fileTooLarge": "文件超过 {size}",
     "fileTypeInvalid": "不支持的文件类型",
+    "fileEmpty": "空文件。请选择有效的图片。",
     "photoUploadHint": "最大 {size} 的图片 (JPG, PNG 等)"
   },
   "auth": {
