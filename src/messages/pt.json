@@ -264,7 +264,31 @@
     "lowVoltage": "Baixa Voltagem",
     "cancelPatrol": "Patrulha Cancelada",
     "failurePatrol": "Falha na Patrulha",
-    "maxDateRange": "O intervalo máximo de datas é de 30 dias"
+    "maxDateRange": "O intervalo máximo de datas é de 30 dias",
+    "attendance": {
+      "openAttendance": "Abrir atendimento",
+      "continueAttendance": "Continuar atendimento",
+      "closeAttendance": "Fechar atendimento",
+      "dialogTitle": "Atendimento do evento",
+      "dialogSubtitle": "Registre as ocorrências e encerre quando estiver tudo resolvido.",
+      "addRecord": "Registrar ocorrência",
+      "recordType": "Tipo de atendimento",
+      "typePlaceholder": "Selecione o tipo",
+      "recordNotes": "Observações",
+      "notesPlaceholder": "Descreva o que foi feito...",
+      "saveRecord": "Adicionar registro",
+      "recordsTitle": "Registros de atendimento",
+      "noRecordsHint": "Nenhuma ocorrência registrada ainda. Adicione pelo menos uma antes de fechar.",
+      "mustAddRecord": "Registre pelo menos uma ocorrência antes de fechar o atendimento.",
+      "statusInProgress": "Atendimento em andamento",
+      "statusNotStarted": "Atendimento não iniciado",
+      "statusClosedBadge": "Atendimento encerrado",
+      "openedAt": "aberto em",
+      "openedToast": "Atendimento aberto",
+      "recordAddedToast": "Ocorrência registrada",
+      "closedToast": "Atendimento encerrado com sucesso",
+      "typeRequired": "Selecione o tipo de atendimento"
+    }
   },
   "attendance": {
     "title": "Controle de Presença",

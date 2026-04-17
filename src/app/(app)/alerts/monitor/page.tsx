@@ -7,12 +7,10 @@ import {
   Bell,
   Clock,
   MapPin,
-  PlayCircle,
-  CheckCircle2,
   Phone,
   Radio,
+  ShieldCheck,
 } from 'lucide-react';
-import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +20,10 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import { RoleGuard } from '@/components/shared/role-guard';
 import { FilterPanel } from '@/components/shared/filter-panel';
-import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
+import {
+  HierarchyFilters,
+  type HierarchyFiltersValue,
+} from '@/components/shared/hierarchy-filters';
 import { KpiCard } from '@/features/dashboard/kpi-card';
 import {
   usePatrolActions,
@@ -32,11 +33,12 @@ import {
 import { useAlertportRealtime } from '@/features/alerts/use-realtime';
 import { usePagination } from '@/hooks/use-pagination';
 import { useUserScope, applyUserScope } from '@/hooks/use-user-scope';
-import { alertsService } from '@/services/alerts.service';
 import type { EventType, PatrolAction } from '@/types/api';
 import { cn } from '@/lib/utils';
 import { useCallContext } from '@/features/calls/call-context';
 import { ChatConnectionBadge } from '@/features/calls/call-dialog';
+import { formatDeviceLabel, resolveCallTargetId } from '@/features/alerts/device-label';
+import { AttendanceDialog } from '@/features/alerts/attendance-dialog';
 
 const EVENT_META: Record<
   EventType,
@@ -52,7 +54,6 @@ const EVENT_META: Record<
 
 export default function AlertMonitorPage() {
   const t = useTranslations();
-  const queryClient = useQueryClient();
   const patrolPagination = usePagination({ initialPageSize: 50 });
   const timePagination = usePagination({ initialPageSize: 50 });
   const timeWindow = useMemo(
@@ -66,6 +67,7 @@ export default function AlertMonitorPage() {
   const scope = useUserScope();
   const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
   const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
+  const [attendanceEvent, setAttendanceEvent] = useState<PatrolAction | null>(null);
 
   const patrolQuery = usePatrolActions({
     ...applyUserScope(
@@ -94,17 +96,16 @@ export default function AlertMonitorPage() {
     ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
   });
 
-  // Prefetch attendance types
+  // Prefetch attendance types catalog — speeds up the first AttendanceDialog open.
   useAttendanceTypes();
 
-  // Real-time Firestore subscriptions (SOS, media, attendance updates)
+  // Real-time Firestore subscriptions (SOS, media, attendance updates).
   useAlertportRealtime({
     onEvent: (evt) => {
       if (evt.kind === 'notification') {
         const data = evt.data;
         const label = data.type || 'ALERT';
         toast.info(`${label}`, { description: t('alerts.eventDetails') });
-        // Optional: play alarm sound for SOS
         if (data.type === 'SOS_ALERT') {
           playAlarmSound();
         }
@@ -112,31 +113,12 @@ export default function AlertMonitorPage() {
     },
   });
 
-  // Global call state (socket, WebRTC, ringing, etc.) — from CallProvider in AppShell
+  // Global call state (socket, WebRTC, ringing, etc.) — from CallProvider in AppShell.
   const call = useCallContext();
 
   const events = patrolQuery.data?.results || [];
   const timeEntries = timeQuery.data?.results || [];
   const sosCount = events.filter((e) => e.type === 'SOS_ALERT').length;
-
-  const attendanceMutation = useMutation({
-    mutationFn: async ({
-      patrolActionId,
-      attendance,
-    }: {
-      patrolActionId: string;
-      attendance: {
-        status: 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-        attendanceType?: string;
-        notes?: string;
-      };
-    }) => alertsService.createAttendance(patrolActionId, attendance),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patrol-actions'] });
-      toast.success(t('notifications.savedSuccessfully'));
-    },
-    onError: () => toast.error(t('notifications.errorOccurred')),
-  });
 
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}>
@@ -209,41 +191,23 @@ export default function AlertMonitorPage() {
                   <EventCard
                     key={event._id}
                     event={event}
-                    onStartAttendance={() =>
-                      attendanceMutation.mutate({
-                        patrolActionId: event._id,
-                        attendance: { status: 'IN_PROGRESS' },
-                      })
-                    }
-                    onCloseAttendance={() =>
-                      attendanceMutation.mutate({
-                        patrolActionId: event._id,
-                        attendance: { status: 'COMPLETED' },
-                      })
-                    }
+                    onAttend={() => setAttendanceEvent(event)}
                     onCall={(mode) => {
                       if (!call) {
                         toast.error(t('calls.chatDisconnected'));
                         return;
                       }
-                      const userId =
-                        (event.user?._id as string | undefined) ||
-                        (typeof event.equipment === 'object'
-                          ? event.equipment?._id
-                          : event.equipment);
-                      if (!userId) {
+                      const targetId = resolveCallTargetId(event);
+                      if (!targetId) {
                         toast.error(t('calls.noTarget'));
                         return;
                       }
-                      const label =
-                        (event.user
-                          ? `${event.user.firstName} ${event.user.lastName}`
-                          : typeof event.equipment === 'object'
-                          ? event.equipment?.name
-                          : '') || undefined;
-                      call.startCall({ to: userId, toLabel: label, callMode: mode });
+                      call.startCall({
+                        to: targetId,
+                        toLabel: formatDeviceLabel(event),
+                        callMode: mode,
+                      });
                     }}
-                    isLoading={attendanceMutation.isPending}
                     callInProgress={
                       !!call && call.status !== 'idle' && call.status !== 'ended'
                     }
@@ -254,33 +218,42 @@ export default function AlertMonitorPage() {
             )}
           </CardContent>
         </Card>
-        {/* Global <CallDialog /> is rendered by <CallProvider> in AppShell */}
+
+        <AttendanceDialog
+          open={!!attendanceEvent}
+          onOpenChange={(v) => !v && setAttendanceEvent(null)}
+          event={attendanceEvent}
+          onChanged={() => patrolQuery.refetch()}
+        />
       </div>
     </RoleGuard>
   );
 }
 
-function EventCard({
-  event,
-  onStartAttendance,
-  onCloseAttendance,
-  onCall,
-  isLoading,
-  callInProgress,
-  socketConnected,
-}: {
+interface EventCardProps {
   event: PatrolAction;
-  onStartAttendance: () => void;
-  onCloseAttendance: () => void;
+  onAttend: () => void;
   onCall: (mode: 'NORMAL' | 'SILENT_LISTEN') => void;
-  isLoading: boolean;
   callInProgress: boolean;
   socketConnected: boolean;
-}) {
+}
+
+function EventCard({
+  event,
+  onAttend,
+  onCall,
+  callInProgress,
+  socketConnected,
+}: EventCardProps) {
   const t = useTranslations();
   const meta = EVENT_META[event.type] ?? { labelKey: 'common.info', accent: 'info' as const };
-  const inProgress = event.attendance?.status === 'IN_PROGRESS';
-  const canCall = !callInProgress && socketConnected;
+  const hasCallTarget = !!resolveCallTargetId(event);
+  const canCall = !callInProgress && socketConnected && hasCallTarget;
+  const attendanceStatus = event.attendance?.status;
+  const attendanceClosed = attendanceStatus === 'CLOSED';
+  const attendanceInProgress =
+    attendanceStatus === 'IN_PROGRESS' || !!event.attendance?.isAttendance;
+  const deviceLabel = formatDeviceLabel(event);
 
   return (
     <div
@@ -306,13 +279,17 @@ function EventCard({
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant={meta.accent}>{t(meta.labelKey)}</Badge>
-              {inProgress && <Badge variant="warning">{t('alerts.startAttendance')}</Badge>}
+              {attendanceClosed && (
+                <Badge variant="success">{t('alerts.attendance.statusClosedBadge')}</Badge>
+              )}
+              {!attendanceClosed && attendanceInProgress && (
+                <Badge variant="warning">{t('alerts.attendance.statusInProgress')}</Badge>
+              )}
             </div>
-            <p className="text-sm font-medium text-white mt-1 truncate">
-              {typeof event.site === 'object' ? event.site?.name : t('common.site')}
-            </p>
+            <p className="text-sm font-medium text-white mt-1 truncate">{deviceLabel}</p>
             <p className="text-xs text-text-muted mt-0.5">
-              {event.createdDate && new Date(event.createdDate).toLocaleString()}
+              {(event.date || event.createdDate) &&
+                new Date(event.date || event.createdDate!).toLocaleString()}
               {event.location && (
                 <>
                   {' · '}
@@ -327,24 +304,30 @@ function EventCard({
         </div>
 
         <div className="flex gap-2 flex-wrap">
-          {!inProgress ? (
-            <Button size="sm" onClick={onStartAttendance} disabled={isLoading}>
-              <PlayCircle className="h-4 w-4" />
-              {t('alerts.startAttendance')}
-            </Button>
-          ) : (
-            <Button size="sm" variant="secondary" onClick={onCloseAttendance} disabled={isLoading}>
-              <CheckCircle2 className="h-4 w-4" />
-              {t('alerts.closeAttendance')}
-            </Button>
-          )}
+          <Button
+            size="sm"
+            onClick={onAttend}
+            disabled={attendanceClosed}
+            title={attendanceClosed ? t('alerts.attendance.statusClosedBadge') : undefined}
+          >
+            <ShieldCheck className="h-4 w-4" />
+            {attendanceInProgress
+              ? t('alerts.attendance.continueAttendance')
+              : t('alerts.attendance.openAttendance')}
+          </Button>
 
           <Button
             size="sm"
             variant="secondary"
             onClick={() => onCall('NORMAL')}
             disabled={!canCall}
-            title={!socketConnected ? t('calls.chatDisconnected') : undefined}
+            title={
+              !socketConnected
+                ? t('calls.chatDisconnected')
+                : !hasCallTarget
+                  ? t('calls.noTarget')
+                  : undefined
+            }
           >
             <Phone className="h-4 w-4" />
             {t('calls.callNormal')}
@@ -355,6 +338,7 @@ function EventCard({
               variant="secondary"
               onClick={() => onCall('SILENT_LISTEN')}
               disabled={!canCall}
+              title={!hasCallTarget ? t('calls.noTarget') : undefined}
             >
               <Radio className="h-4 w-4" />
               {t('calls.silentListen')}
@@ -378,7 +362,6 @@ function nowISO(): string {
 
 function playAlarmSound() {
   try {
-    // Simple beep using Web Audio API (avoids shipping a binary asset)
     const AudioContextCtor =
       window.AudioContext ||
       (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;

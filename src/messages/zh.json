@@ -264,7 +264,31 @@
     "lowVoltage": "低电压",
     "cancelPatrol": "取消巡逻",
     "failurePatrol": "巡逻失败",
-    "maxDateRange": "最大日期范围为30天"
+    "maxDateRange": "最大日期范围为30天",
+    "attendance": {
+      "openAttendance": "开始处理",
+      "continueAttendance": "继续处理",
+      "closeAttendance": "结束处理",
+      "dialogTitle": "事件处理",
+      "dialogSubtitle": "记录事件,处理完毕后结束。",
+      "addRecord": "添加记录",
+      "recordType": "处理类型",
+      "typePlaceholder": "选择类型",
+      "recordNotes": "备注",
+      "notesPlaceholder": "描述已执行的操作...",
+      "saveRecord": "添加记录",
+      "recordsTitle": "处理记录",
+      "noRecordsHint": "还没有记录。结束前请至少添加一条。",
+      "mustAddRecord": "结束前请至少添加一条记录。",
+      "statusInProgress": "处理进行中",
+      "statusNotStarted": "处理未开始",
+      "statusClosedBadge": "处理已结束",
+      "openedAt": "开始时间",
+      "openedToast": "处理已开始",
+      "recordAddedToast": "记录已添加",
+      "closedToast": "处理已成功结束",
+      "typeRequired": "请选择处理类型"
+    }
   },
   "attendance": {
     "title": "考勤管理",

@@ -350,7 +350,32 @@ export type EventType =
   | 'CANCEL_PATROL'
   | 'FAILURE_PATROL';
 
-export type AttendanceStatus = 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+// Attendance flag lifecycle as stored on the patrol-action itself (legacy contract).
+export type AttendanceFlagStatus = 'IN_PROGRESS' | 'CLOSED';
+
+// Status of an individual attendance record (created via POST /attendances/v1/).
+export type AttendanceRecordStatus = 'ACTIVE' | 'ARCHIVED';
+
+/**
+ * Kept for backward compatibility with older call sites that still reference
+ * the legacy union. New code should use AttendanceFlagStatus.
+ */
+export type AttendanceStatus = AttendanceFlagStatus | 'COMPLETED' | 'CANCELLED';
+
+/**
+ * `deviceInfo` on a PatrolAction identifies the AlertPort device that fired the
+ * event. The `deviceId` here is the value the device registered with on the
+ * socket (`user:register.userId`) — so it is the correct target for a WebRTC
+ * call via `call:start.to`. Other ids on the event (user / equipment) do NOT
+ * necessarily map to an online socket.
+ */
+export interface PatrolActionDeviceInfo {
+  deviceId?: string;
+  name?: string;
+  model?: string;
+  version?: string;
+  geolocation?: { latitude?: number | string; longitude?: number | string };
+}
 
 export interface PatrolAction {
   _id: string;
@@ -361,21 +386,54 @@ export interface PatrolAction {
   site?: string | Company;
   equipment?: string | Equipment;
   user?: User;
+  vigilant?: User;
+  event?: string | { _id: string };
+  deviceInfo?: PatrolActionDeviceInfo;
   location?: { lat: number; lng: number };
+  geolocation?: { latitude?: number | string; longitude?: number | string };
   notes?: string;
   attendance?: EventAttendance;
   createdDate?: string;
+  date?: string;
 }
 
+/**
+ * The `attendance` flag embedded on a PatrolAction (NOT an individual attendance
+ * record — for that see `AttendanceRecord`). Mirrors shieldgo-admin-web's
+ * contract exactly: `isAttendance`, `openedDate`, `closedDate`, `status`.
+ */
 export interface EventAttendance {
+  isAttendance?: boolean;
+  openedDate?: string;
+  closedDate?: string;
+  operator?: string | User;
+  status?: AttendanceFlagStatus;
+  // Legacy aliases some callers still read
   _id?: string;
   patrolAction?: string;
-  operator?: User;
   attendanceType?: string;
-  status: AttendanceStatus;
   notes?: string;
   startedAt?: string;
   closedAt?: string;
+}
+
+/**
+ * One logged attendance entry created by the operator during the incident
+ * (type + notes). Multiple records can exist per patrol-action.
+ */
+export interface AttendanceRecord {
+  _id: string;
+  account?: string;
+  client?: string;
+  site?: string;
+  event?: string;
+  patrolAction: string;
+  type: string; // AttendanceType id (or canonical label)
+  notes?: string;
+  operator?: string | User;
+  siteGroup?: string;
+  createDate?: string;
+  status: AttendanceRecordStatus;
 }
 
 export interface AttendanceType {
