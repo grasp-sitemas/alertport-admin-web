@@ -264,7 +264,31 @@
     "lowVoltage": "低電圧",
     "cancelPatrol": "パトロールキャンセル",
     "failurePatrol": "パトロール失敗",
-    "maxDateRange": "最大日付範囲は30日間です"
+    "maxDateRange": "最大日付範囲は30日間です",
+    "attendance": {
+      "openAttendance": "対応を開始",
+      "continueAttendance": "対応を続ける",
+      "closeAttendance": "対応を終了",
+      "dialogTitle": "イベント対応",
+      "dialogSubtitle": "内容を記録し、完了したら終了してください。",
+      "addRecord": "記録を追加",
+      "recordType": "対応種別",
+      "typePlaceholder": "種別を選択",
+      "recordNotes": "メモ",
+      "notesPlaceholder": "実施した内容を記入...",
+      "saveRecord": "記録を追加",
+      "recordsTitle": "対応記録",
+      "noRecordsHint": "まだ記録がありません。終了前に少なくとも1件追加してください。",
+      "mustAddRecord": "対応を終了する前に少なくとも1件の記録を追加してください。",
+      "statusInProgress": "対応中",
+      "statusNotStarted": "対応未開始",
+      "statusClosedBadge": "対応終了",
+      "openedAt": "開始日時",
+      "openedToast": "対応を開始しました",
+      "recordAddedToast": "記録を追加しました",
+      "closedToast": "対応を正常に終了しました",
+      "typeRequired": "対応種別を選択してください"
+    }
   },
   "attendance": {
     "title": "勤怠管理",

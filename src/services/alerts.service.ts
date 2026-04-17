@@ -7,11 +7,12 @@ import type {
   AlertScheduleFormData,
   ApiPaginatedResponse,
   ApiSingleResponse,
+  AttendanceRecord,
+  AttendanceType,
   EventAttendance,
   FilterParams,
   PatrolAction,
   TimeEntry,
-  AttendanceType,
 } from '@/types/api';
 
 export const alertsService = {
@@ -75,22 +76,92 @@ export const alertsService = {
     return normalizePage(data);
   },
 
-  // ─── Event Attendance ─────────────────────────────────────
+  // ─── Patrol-Action Attendance flag (open / close) ─────────
+  //
+  // Mirrors shieldgo-admin-web: `POST /api/users/patrol/actions/attendance/v1/`
+  // with `{ patrolActionId, attendance: { isAttendance, openedDate, closedDate,
+  // operator, status }, siteGroup }`.
 
+  async openAttendance(params: {
+    patrolActionId: string;
+    operator: string;
+    siteGroup?: string;
+  }): Promise<ApiSingleResponse<{ attendance: EventAttendance }>> {
+    const { patrolActionId, operator, siteGroup } = params;
+    const attendance: EventAttendance = {
+      isAttendance: true,
+      openedDate: new Date().toISOString(),
+      operator,
+      status: 'IN_PROGRESS',
+    };
+    const { data } = await apiClient.post<
+      ApiSingleResponse<{ attendance: EventAttendance }>
+    >(endpoints.attendanceEvent, { patrolActionId, attendance, siteGroup });
+    return data;
+  },
+
+  async closeAttendance(params: {
+    patrolActionId: string;
+    operator: string;
+    openedDate?: string;
+    siteGroup?: string;
+  }): Promise<ApiSingleResponse<{ attendance: EventAttendance }>> {
+    const { patrolActionId, operator, openedDate, siteGroup } = params;
+    const attendance: EventAttendance = {
+      isAttendance: true,
+      openedDate,
+      closedDate: new Date().toISOString(),
+      operator,
+      status: 'CLOSED',
+    };
+    const { data } = await apiClient.post<
+      ApiSingleResponse<{ attendance: EventAttendance }>
+    >(endpoints.attendanceEvent, { patrolActionId, attendance, siteGroup });
+    return data;
+  },
+
+  /**
+   * @deprecated Use `openAttendance` / `closeAttendance` / `createAttendanceRecord`.
+   * Kept as a passthrough to avoid breaking any external caller that still
+   * relied on the old shape.
+   */
   async createAttendance(
     patrolActionId: string,
     attendance: Partial<EventAttendance>,
     siteGroup?: string,
-  ): Promise<ApiSingleResponse<EventAttendance>> {
-    const { data } = await apiClient.post<ApiSingleResponse<EventAttendance>>(
-      endpoints.attendanceEvent,
-      { patrolActionId, attendance, siteGroup },
+  ): Promise<ApiSingleResponse<{ attendance: EventAttendance }>> {
+    const { data } = await apiClient.post<
+      ApiSingleResponse<{ attendance: EventAttendance }>
+    >(endpoints.attendanceEvent, { patrolActionId, attendance, siteGroup });
+    return data;
+  },
+
+  // ─── Individual Attendance Records ────────────────────────
+  //
+  // `POST /api/users/attendances/v1/` creates one record (type + notes) for a
+  // patrol action. Multiple records per patrol-action are allowed.
+  // `POST /api/users/attendances/filter/v1/` lists them.
+
+  async createAttendanceRecord(
+    payload: Omit<AttendanceRecord, '_id' | 'createDate' | 'status'> & {
+      createDate?: string;
+      status?: AttendanceRecord['status'];
+    },
+  ): Promise<ApiSingleResponse<AttendanceRecord>> {
+    const body = {
+      createDate: new Date().toISOString(),
+      status: 'ACTIVE' as const,
+      ...payload,
+    };
+    const { data } = await apiClient.post<ApiSingleResponse<AttendanceRecord>>(
+      endpoints.attendances,
+      body,
     );
     return data;
   },
 
-  async filterAttendances(params: FilterParams): Promise<NormalizedPage<EventAttendance>> {
-    const { data } = await apiClient.post<ApiPaginatedResponse<EventAttendance>>(
+  async filterAttendances(params: FilterParams): Promise<NormalizedPage<AttendanceRecord>> {
+    const { data } = await apiClient.post<ApiPaginatedResponse<AttendanceRecord>>(
       endpoints.attendancesFilter,
       params,
     );

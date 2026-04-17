@@ -264,7 +264,31 @@
     "lowVoltage": "Low Voltage",
     "cancelPatrol": "Cancelled Patrol",
     "failurePatrol": "Patrol Failure",
-    "maxDateRange": "Maximum date range is 30 days"
+    "maxDateRange": "Maximum date range is 30 days",
+    "attendance": {
+      "openAttendance": "Open attendance",
+      "continueAttendance": "Continue attendance",
+      "closeAttendance": "Close attendance",
+      "dialogTitle": "Event attendance",
+      "dialogSubtitle": "Log incidents and close when everything is resolved.",
+      "addRecord": "Log incident",
+      "recordType": "Attendance type",
+      "typePlaceholder": "Select a type",
+      "recordNotes": "Notes",
+      "notesPlaceholder": "Describe what was done...",
+      "saveRecord": "Add record",
+      "recordsTitle": "Attendance records",
+      "noRecordsHint": "No incidents logged yet. Add at least one before closing.",
+      "mustAddRecord": "Log at least one incident before closing the attendance.",
+      "statusInProgress": "Attendance in progress",
+      "statusNotStarted": "Attendance not started",
+      "statusClosedBadge": "Attendance closed",
+      "openedAt": "opened at",
+      "openedToast": "Attendance opened",
+      "recordAddedToast": "Record added",
+      "closedToast": "Attendance closed successfully",
+      "typeRequired": "Select an attendance type"
+    }
   },
   "attendance": {
     "title": "Attendance Control",

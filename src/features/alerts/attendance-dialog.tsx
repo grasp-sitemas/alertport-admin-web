@@ -1,0 +1,395 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
+import {
+  AlertCircle,
+  CheckCircle2,
+  ClipboardList,
+  Loader2,
+  Plus,
+  ShieldCheck,
+  X,
+} from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
+import { Badge } from '@/components/ui/badge';
+import { alertsService } from '@/services/alerts.service';
+import { useAuth } from '@/hooks/use-auth';
+import type { PatrolAction } from '@/types/api';
+import { cn } from '@/lib/utils';
+
+interface AttendanceDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  event: PatrolAction | null;
+  /**
+   * Called after attendance is closed (or one of the mutations toggles the
+   * patrol-action state) so the parent list can refetch.
+   */
+  onChanged?: () => void;
+}
+
+/**
+ * AttendanceDialog — mirrors shieldgo-admin-web's attendance flow:
+ *   1. Opens the patrol-action attendance (status: IN_PROGRESS) if not yet.
+ *   2. Operator logs one or more attendance records (type + notes).
+ *   3. "Fechar atendimento" is enabled only once at least one record exists
+ *      (either pre-existing or added in this session).
+ *
+ * The backend endpoints used are the same ones shieldgo-admin-web calls, so no
+ * backend changes are required.
+ */
+export function AttendanceDialog({
+  open,
+  onOpenChange,
+  event,
+  onChanged,
+}: AttendanceDialogProps) {
+  const t = useTranslations();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const operatorId = user?._id ?? '';
+
+  // siteGroup on the session user object may be a populated ref `{ _id }` or a
+  // plain id string depending on how the server hydrated the login payload.
+  // It's typed as `unknown` here because the canonical User type doesn't
+  // currently declare it.
+  const rawSiteGroup = (user as unknown as { siteGroup?: unknown })?.siteGroup;
+  const siteGroup =
+    rawSiteGroup && typeof rawSiteGroup === 'object' && rawSiteGroup !== null
+      ? (rawSiteGroup as { _id?: string })._id
+      : typeof rawSiteGroup === 'string'
+        ? rawSiteGroup
+        : undefined;
+
+  const eventId = event?._id ?? null;
+
+  // Shape helper: resolves id from either a populated object or raw string.
+  const resolveId = (value: unknown): string | undefined => {
+    if (!value) return undefined;
+    if (typeof value === 'string') return value;
+    if (typeof value === 'object' && '_id' in (value as object)) {
+      return (value as { _id?: string })._id;
+    }
+    return undefined;
+  };
+
+  // ─── Load attendance types catalog + existing records ──────────
+  const typesQuery = useQuery({
+    queryKey: ['attendance-types'],
+    queryFn: () => alertsService.getAttendanceTypes(),
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const recordsQuery = useQuery({
+    queryKey: ['attendance-records', eventId],
+    queryFn: () =>
+      alertsService.filterAttendances({
+        skip: 1,
+        limit: 50,
+        patrolAction: eventId ?? undefined,
+        status: 'ACTIVE',
+      }),
+    enabled: !!open && !!eventId,
+  });
+
+  const attendanceTypes = typesQuery.data?.result ?? [];
+  const records = recordsQuery.data?.results ?? [];
+  const attendanceIsOpen =
+    event?.attendance?.status === 'IN_PROGRESS' || !!event?.attendance?.isAttendance;
+
+  // ─── Form state (add new record) ───────────────────────────────
+  const [type, setType] = useState<string>('');
+  const [notes, setNotes] = useState<string>('');
+
+  useEffect(() => {
+    if (open) {
+      // Reset the form each time the dialog reopens for a different event.
+      setType('');
+      setNotes('');
+    }
+  }, [open, eventId]);
+
+  // ─── Mutations ─────────────────────────────────────────────────
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ['patrol-actions'] });
+    queryClient.invalidateQueries({ queryKey: ['attendance-records', eventId] });
+    onChanged?.();
+  };
+
+  const openMutation = useMutation({
+    mutationFn: () => {
+      if (!eventId || !operatorId) throw new Error('missing.context');
+      return alertsService.openAttendance({
+        patrolActionId: eventId,
+        operator: operatorId,
+        siteGroup,
+      });
+    },
+    onSuccess: () => {
+      toast.success(t('alerts.attendance.openedToast'));
+      invalidate();
+    },
+    onError: () => toast.error(t('notifications.errorOccurred')),
+  });
+
+  const addRecordMutation = useMutation({
+    mutationFn: () => {
+      if (!eventId || !operatorId || !event) throw new Error('missing.context');
+      if (!type) throw new Error('missing.type');
+      return alertsService.createAttendanceRecord({
+        account: resolveId(event.account),
+        client: resolveId(event.client),
+        site: resolveId(event.site),
+        event: resolveId(event.event) ?? eventId,
+        patrolAction: eventId,
+        type,
+        notes: notes.trim() || undefined,
+        operator: operatorId,
+        siteGroup,
+      });
+    },
+    onSuccess: () => {
+      setType('');
+      setNotes('');
+      toast.success(t('alerts.attendance.recordAddedToast'));
+      invalidate();
+    },
+    onError: (err) => {
+      if ((err as Error).message === 'missing.type') {
+        toast.error(t('alerts.attendance.typeRequired'));
+        return;
+      }
+      toast.error(t('notifications.errorOccurred'));
+    },
+  });
+
+  const closeMutation = useMutation({
+    mutationFn: () => {
+      if (!eventId || !operatorId) throw new Error('missing.context');
+      return alertsService.closeAttendance({
+        patrolActionId: eventId,
+        operator: operatorId,
+        openedDate: event?.attendance?.openedDate,
+        siteGroup,
+      });
+    },
+    onSuccess: () => {
+      toast.success(t('alerts.attendance.closedToast'));
+      invalidate();
+      onOpenChange(false);
+    },
+    onError: () => toast.error(t('notifications.errorOccurred')),
+  });
+
+  // Auto-open the attendance flag when the dialog first appears for an event
+  // that doesn't have it yet — saves the operator one click.
+  useEffect(() => {
+    if (!open || !event || !operatorId) return;
+    if (attendanceIsOpen) return;
+    if (openMutation.isPending || openMutation.isSuccess) return;
+    openMutation.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, eventId]);
+
+  const canClose = records.length > 0 && attendanceIsOpen && !closeMutation.isPending;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl p-0 overflow-hidden border border-white/10 bg-gradient-to-b from-bg-secondary to-bg-primary sm:rounded-2xl">
+        <DialogHeader className="px-6 pt-6 pb-4 sm:px-8">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-brand-500/10 ring-1 ring-brand-500/20">
+              <ShieldCheck className="h-5 w-5 text-brand-400" />
+            </div>
+            <div>
+              <DialogTitle className="text-lg font-semibold text-white">
+                {t('alerts.attendance.dialogTitle')}
+              </DialogTitle>
+              <DialogDescription className="text-sm text-text-secondary">
+                {t('alerts.attendance.dialogSubtitle')}
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="px-6 pb-6 sm:px-8 space-y-5">
+          {/* Status pill */}
+          <div className="flex items-center gap-2 text-xs">
+            <Badge variant={attendanceIsOpen ? 'warning' : 'brand'}>
+              {attendanceIsOpen
+                ? t('alerts.attendance.statusInProgress')
+                : openMutation.isPending
+                  ? t('common.loading')
+                  : t('alerts.attendance.statusNotStarted')}
+            </Badge>
+            {event?.attendance?.openedDate && (
+              <span className="text-text-muted">
+                · {t('alerts.attendance.openedAt')}{' '}
+                {new Date(event.attendance.openedDate).toLocaleString()}
+              </span>
+            )}
+          </div>
+
+          {/* Form: add a new record */}
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-white">
+              <Plus className="h-4 w-4 text-brand-400" />
+              {t('alerts.attendance.addRecord')}
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('alerts.attendance.recordType')}</Label>
+              <Select value={type} onValueChange={setType}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('alerts.attendance.typePlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {typesQuery.isLoading && (
+                    <SelectItem value="__loading" disabled>
+                      {t('common.loading')}
+                    </SelectItem>
+                  )}
+                  {!typesQuery.isLoading && attendanceTypes.length === 0 && (
+                    <SelectItem value="__empty" disabled>
+                      {t('common.noData')}
+                    </SelectItem>
+                  )}
+                  {attendanceTypes.map((opt) => (
+                    <SelectItem key={opt._id} value={opt._id}>
+                      {opt.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('alerts.attendance.recordNotes')}</Label>
+              <textarea
+                className="w-full rounded-md border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white placeholder:text-text-muted focus:border-brand-500/60 focus:outline-none"
+                rows={3}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder={t('alerts.attendance.notesPlaceholder')}
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => addRecordMutation.mutate()}
+                disabled={!type || addRecordMutation.isPending || !attendanceIsOpen}
+              >
+                {addRecordMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
+                {t('alerts.attendance.saveRecord')}
+              </Button>
+            </div>
+          </div>
+
+          {/* List: existing records */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-white">
+              <ClipboardList className="h-4 w-4 text-text-secondary" />
+              {t('alerts.attendance.recordsTitle')}
+              <span className="ml-auto text-xs font-normal text-text-muted">
+                {records.length}
+              </span>
+            </div>
+
+            {recordsQuery.isLoading ? (
+              <div className="py-4 flex justify-center">
+                <Spinner />
+              </div>
+            ) : records.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-4 py-6 text-center text-xs text-text-muted">
+                {t('alerts.attendance.noRecordsHint')}
+              </div>
+            ) : (
+              <ul className="space-y-2">
+                {records.map((r) => {
+                  const typeName =
+                    attendanceTypes.find((it) => it._id === r.type)?.name ?? r.type;
+                  return (
+                    <li
+                      key={r._id}
+                      className={cn(
+                        'rounded-xl border border-white/[0.06] bg-white/[0.03] p-3 text-sm',
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <Badge variant="info">{typeName}</Badge>
+                        <span className="text-xs text-text-muted">
+                          {r.createDate
+                            ? new Date(r.createDate).toLocaleString()
+                            : ''}
+                        </span>
+                      </div>
+                      {r.notes && (
+                        <p className="mt-1.5 text-xs text-text-secondary whitespace-pre-wrap">
+                          {r.notes}
+                        </p>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          {/* Close attendance hint */}
+          {!canClose && attendanceIsOpen && records.length === 0 && (
+            <div className="flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <span>{t('alerts.attendance.mustAddRecord')}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-3 border-t border-white/[0.06] bg-white/[0.02] px-6 py-4 sm:px-8">
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+            <X className="h-4 w-4" />
+            {t('common.close')}
+          </Button>
+          <Button
+            type="button"
+            onClick={() => closeMutation.mutate()}
+            disabled={!canClose}
+            title={!canClose && records.length === 0 ? t('alerts.attendance.mustAddRecord') : undefined}
+          >
+            {closeMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-4 w-4" />
+            )}
+            {t('alerts.attendance.closeAttendance')}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
