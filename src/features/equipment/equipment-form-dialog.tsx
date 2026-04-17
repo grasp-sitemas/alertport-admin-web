@@ -37,6 +37,7 @@ import {
 } from '@/features/shared/use-hierarchy-lookups';
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
+import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 import type { Equipment } from '@/types/api';
 import { translateDynamicLabel } from '@/lib/i18n-labels';
 
@@ -127,7 +128,7 @@ export function EquipmentFormDialog({ open, onOpenChange, equipment }: Props) {
       return equipmentService.create(payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['equipment'] });
+      invalidateHierarchyAfter(queryClient, 'equipment');
       toast.success(isEdit ? t('equipment.updateSuccess') : t('equipment.createSuccess'));
       onOpenChange(false);
       reset(DEFAULT_EQUIPMENT_VALUES);

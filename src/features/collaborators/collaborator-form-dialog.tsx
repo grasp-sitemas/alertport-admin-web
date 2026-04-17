@@ -38,6 +38,7 @@ import {
 } from '@/features/shared/use-hierarchy-lookups';
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
+import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 import { useCepLookup } from '@/hooks/use-cep-lookup';
 import { Search } from 'lucide-react';
 
@@ -171,7 +172,7 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
       return usersService.createCollaborator(payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['collaborators'] });
+      invalidateHierarchyAfter(queryClient, 'user');
       toast.success(isEdit ? t('collaborators.updateSuccess') : t('collaborators.createSuccess'));
       onOpenChange(false);
       reset(DEFAULT_COLLABORATOR_VALUES);

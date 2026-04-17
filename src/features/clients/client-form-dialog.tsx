@@ -31,6 +31,7 @@ import { useAccountsLookup } from '@/features/shared/use-hierarchy-lookups';
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
 import { maskPhoneBR } from '@/lib/br-masks';
+import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 import type { Company } from '@/types/api';
 
 interface Props {
@@ -121,7 +122,7 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
       return companyService.create(sanitized as never);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      invalidateHierarchyAfter(queryClient, 'client');
       toast.success(isEdit ? t('clients.updateSuccess') : t('clients.createSuccess'));
       onOpenChange(false);
       reset();

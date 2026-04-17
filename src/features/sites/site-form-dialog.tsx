@@ -33,6 +33,7 @@ import { useAccountsLookup } from '@/features/shared/use-hierarchy-lookups';
 import { useCepLookup } from '@/hooks/use-cep-lookup';
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
+import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 import type { Company } from '@/types/api';
 
 interface Props {
@@ -144,7 +145,7 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
       return companyService.create(payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sites'] });
+      invalidateHierarchyAfter(queryClient, 'site');
       toast.success(isEdit ? t('sites.updateSuccess') : t('sites.createSuccess'));
       onOpenChange(false);
       reset();
