@@ -494,9 +494,11 @@
       "password": "密码",
       "passwordConfirm": "确认密码",
       "passwordMinLength": "密码至少需要 8 个字符",
-      "termsHtml": "我已阅读并接受<a class=\"underline\" href=\"/terms\" target=\"_blank\">使用条款</a>和<a class=\"underline\" href=\"/privacy-policy\" target=\"_blank\">隐私政策</a>。",
       "termsRequired": "请先同意条款",
-      "submit": "免费创建账户"
+      "submit": "免费创建账户",
+      "termsPrefix": "我已阅读并接受",
+      "termsAnd": "和",
+      "termsSuffix": "。"
     },
     "success": {
       "title": "全部完成！",
@@ -532,6 +534,21 @@
       "emailAlreadyExists": "该邮箱已被使用",
       "companyCreateFailed": "无法创建公司",
       "generic": "无法完成注册"
+    }
+  },
+  "legal": {
+    "lastUpdated": "最近更新: {date}",
+    "footerNote": "继续即表示您已阅读本文档。",
+    "acceptCta": "已阅读并同意",
+    "terms": {
+      "title": "使用条款",
+      "subtitle": "管理 AlertPort 使用的条款。",
+      "link": "使用条款"
+    },
+    "privacy": {
+      "title": "隐私政策",
+      "subtitle": "我们如何处理您的个人数据。",
+      "link": "隐私政策"
     }
   }
 }
