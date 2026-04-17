@@ -528,7 +528,8 @@
       "invalid": "コードが無効です。ご確認のうえ再入力してください。",
       "userNotFound": "このメールのアカウントが見つかりません。",
       "generic": "有効化できませんでした。もう一度お試しください。",
-      "notVerifiedToast": "ログインの前にメールを確認してください"
+      "notVerifiedToast": "ログインの前にメールを確認してください",
+      "missingAutoResend": "コードの有効期限が切れていたため、新しいコードを送信しました。"
     },
     "errors": {
       "emailAlreadyExists": "このメールは既に使用されています",

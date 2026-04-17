@@ -528,7 +528,8 @@
       "invalid": "Código inválido. Verifica e intenta de nuevo.",
       "userNotFound": "No encontramos una cuenta con ese correo.",
       "generic": "No se pudo activar. Intenta de nuevo.",
-      "notVerifiedToast": "Confirma tu correo antes de iniciar sesión"
+      "notVerifiedToast": "Confirma tu correo antes de iniciar sesión",
+      "missingAutoResend": "Tu código expiró. Enviamos uno nuevo a tu correo."
     },
     "errors": {
       "emailAlreadyExists": "Este correo ya está en uso",

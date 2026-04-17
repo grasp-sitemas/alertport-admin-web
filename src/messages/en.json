@@ -528,7 +528,8 @@
       "invalid": "Invalid code. Double-check and try again.",
       "userNotFound": "No account found for this email.",
       "generic": "Could not activate. Please try again.",
-      "notVerifiedToast": "Please confirm your email before signing in"
+      "notVerifiedToast": "Please confirm your email before signing in",
+      "missingAutoResend": "Your code had expired. We sent a new one to your email."
     },
     "errors": {
       "emailAlreadyExists": "This email is already in use",
