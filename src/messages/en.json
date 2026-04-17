@@ -504,7 +504,8 @@
       "phone": "Business phone",
       "timezone": "Timezone",
       "timezoneDetected": "detected",
-      "timezoneHint": "Pick a timezone from the list or choose a suggestion below."
+      "timezoneHint": "Pick a timezone from the list or choose a suggestion below.",
+      "documentChecksumInvalid": "CPF/CNPJ checksum is invalid"
     },
     "user": {
       "title": "Your admin access",

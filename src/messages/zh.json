@@ -504,7 +504,8 @@
       "phone": "企业电话",
       "timezone": "时区",
       "timezoneDetected": "已检测",
-      "timezoneHint": "从列表中选择时区,或使用下方建议。"
+      "timezoneHint": "从列表中选择时区,或使用下方建议。",
+      "documentChecksumInvalid": "CPF/CNPJ 校验位无效"
     },
     "user": {
       "title": "您的管理员账户",

@@ -504,7 +504,8 @@
       "phone": "Teléfono comercial",
       "timezone": "Zona horaria",
       "timezoneDetected": "detectado",
-      "timezoneHint": "Elige una zona horaria de la lista o selecciona una sugerencia abajo."
+      "timezoneHint": "Elige una zona horaria de la lista o selecciona una sugerencia abajo.",
+      "documentChecksumInvalid": "CPF/CNPJ con dígito verificador inválido"
     },
     "user": {
       "title": "Tu acceso de administrador",

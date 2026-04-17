@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { passesPasswordPolicy } from './password-policy';
+import { isValidBrDocument } from '@/lib/br-documents';
 
 // Company (step 1)
 export const signupCompanySchema = z.object({
@@ -9,7 +10,13 @@ export const signupCompanySchema = z.object({
     .string()
     .trim()
     .min(11, { message: 'signup.company.documentInvalid' })
-    .transform((v) => v.replace(/[^\d]/g, '')),
+    .transform((v) => v.replace(/[^\d]/g, ''))
+    .refine((v) => v.length === 11 || v.length === 14, {
+      message: 'signup.company.documentInvalid',
+    })
+    .refine((v) => isValidBrDocument(v), {
+      message: 'signup.company.documentChecksumInvalid',
+    }),
   email: z
     .string()
     .trim()
