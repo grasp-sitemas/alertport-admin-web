@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Controller } from 'react-hook-form';
 import { useAppForm } from '@/hooks/use-app-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,7 +32,6 @@ import { useAccountsLookup } from '@/features/shared/use-hierarchy-lookups';
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
 import { maskPhoneBR } from '@/lib/br-masks';
-import { PhotoUpload } from '@/components/shared/photo-upload';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 import type { Company } from '@/types/api';
 
@@ -97,13 +96,9 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
     defaultValues: defaults,
   });
 
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const currentLogo = (client as unknown as { logoURL?: string } | undefined)?.logoURL;
-
   useEffect(() => {
     if (open) {
       reset(defaults);
-      setLogoFile(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, client?._id]);
@@ -125,9 +120,9 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
       if (data.owner && data.owner.trim()) sanitized.owner = data.owner.trim();
 
       if (isEdit && client) {
-        return companyService.update(client._id, sanitized, logoFile);
+        return companyService.update(client._id, sanitized);
       }
-      return companyService.create(sanitized as never, logoFile);
+      return companyService.create(sanitized as never);
     },
     onSuccess: () => {
       invalidateHierarchyAfter(queryClient, 'client');
@@ -160,14 +155,6 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
-          <PhotoUpload
-            value={logoFile}
-            previewUrl={currentLogo}
-            onChange={setLogoFile}
-            label={t('common.logo')}
-            shape="rect"
-          />
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {canSelectAccount && (
               <div className="space-y-2 sm:col-span-2">
