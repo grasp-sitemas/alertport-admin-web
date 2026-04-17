@@ -24,9 +24,17 @@ export const signupService = {
   },
 
   async confirm(payload: ActivationConfirmRequest): Promise<ActivationConfirmSuccess> {
+    // Some backends with legacy short-code support upper-case the `code`
+    // field, which corrupts base64url tokens. Always prefer the `token`
+    // field when present.
+    const body: ActivationConfirmRequest = {
+      email: payload.email,
+      ...(payload.token ? { token: payload.token } : {}),
+      ...(payload.code && !payload.token ? { code: payload.code } : {}),
+    };
     const { data } = await apiClient.post<ApiSingle<ActivationConfirmSuccess>>(
       endpoints.activationConfirm,
-      payload,
+      body,
     );
     return data.result;
   },

@@ -53,7 +53,7 @@ function ActivatePageContent() {
 
   const confirm = useMutation({
     mutationFn: (args: { email: string; token: string }) =>
-      signupService.confirm({ email: args.email, code: args.token }),
+      signupService.confirm({ email: args.email, token: args.token }),
     onMutate: () => setStatus('verifying'),
     onSuccess: () => {
       setStatus('success');
