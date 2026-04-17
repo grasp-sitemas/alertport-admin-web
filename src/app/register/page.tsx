@@ -56,19 +56,12 @@ function detectTimezone(): string {
   }
 }
 
-function formatDocument(digits: string): string {
-  const d = digits.replace(/\D/g, '').slice(0, 14);
-  if (d.length <= 11) {
-    return d
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-  }
-  return d
-    .replace(/^(\d{2})(\d)/, '$1.$2')
-    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-    .replace(/\.(\d{3})(\d)/, '.$1/$2')
-    .replace(/(\d{4})(\d)/, '$1-$2');
+// Thin wrapper over the shared mask. Kept for call-site compatibility.
+import { maskBrDocument } from '@/lib/br-masks';
+import { normalizeBrDocument as normalizeDoc } from '@/lib/br-documents';
+
+function formatDocument(value: string): string {
+  return maskBrDocument(value);
 }
 
 function formatPhone(digits: string): string {
@@ -228,14 +221,22 @@ export default function RegisterPage() {
                     t={t}
                   >
                     <Input
-                      placeholder="00.000.000/0000-00"
+                      placeholder="00.000.000/0000-00 ou 00.ABC.000/00DE-00"
                       value={formatDocument(companyForm.watch('document'))}
+                      maxLength={18}
+                      inputMode="text"
+                      autoCapitalize="characters"
+                      autoComplete="off"
+                      spellCheck={false}
+                      // Accepts CNPJ Alfanumérico (IN RFB 2.229/2024): digits
+                      // and uppercase A-Z in positions 1-12. Anything else is
+                      // stripped by `normalizeDoc`. Validation still requires
+                      // the last two chars to be digits (handled in the zod
+                      // refine / isValidCNPJ).
                       onChange={(e) =>
-                        companyForm.setValue(
-                          'document',
-                          e.target.value.replace(/\D/g, ''),
-                          { shouldValidate: false },
-                        )
+                        companyForm.setValue('document', normalizeDoc(e.target.value), {
+                          shouldValidate: false,
+                        })
                       }
                       onBlur={() => companyForm.trigger('document')}
                     />

@@ -31,19 +31,34 @@ export function maskPhoneBR(value: string | number | null | undefined): string {
 }
 
 /**
- * CPF (11) / CNPJ (14). Shape is detected from the digit length.
+ * Uppercases the input and strips anything that isn't [0-9A-Z]. Mirrors the
+ * `normalizeBrDocument` helper in br-documents.ts.
+ */
+function onlyAlnum(value: string | number | null | undefined): string {
+  return (value ?? '').toString().toUpperCase().replace(/[^0-9A-Z]/g, '');
+}
+
+/**
+ * CPF (11 digits) or CNPJ (14 alphanumeric). The mask is driven by the
+ * length of the normalized input:
+ *   - ≤ 11 chars: CPF shape "000.000.000-00" (digits only; letters are
+ *     tolerated during typing but `isValidCPF` will reject them)
+ *   - 12–14 chars: CNPJ shape "00.ABC.000/00DE-00", supporting the new
+ *     alphanumeric format (IN RFB 2.229/2024). Positions 13–14 remain
+ *     purely numeric (the two check digits) — any letter in those slots
+ *     will be stripped on the raw-value side by the form handler.
  */
 export function maskBrDocument(value: string | number | null | undefined): string {
-  const d = onlyDigits(value).slice(0, 14);
-  if (d.length <= 11) {
-    return d
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  const s = onlyAlnum(value).slice(0, 14);
+  if (s.length <= 11) {
+    return s
+      .replace(/^(\w{3})(\w)/, '$1.$2')
+      .replace(/^(\w{3})\.(\w{3})(\w)/, '$1.$2.$3')
+      .replace(/(\w{3})(\w{1,2})$/, '$1-$2');
   }
-  return d
-    .replace(/^(\d{2})(\d)/, '$1.$2')
-    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-    .replace(/\.(\d{3})(\d)/, '.$1/$2')
-    .replace(/(\d{4})(\d)/, '$1-$2');
+  return s
+    .replace(/^(\w{2})(\w)/, '$1.$2')
+    .replace(/^(\w{2})\.(\w{3})(\w)/, '$1.$2.$3')
+    .replace(/\.(\w{3})(\w)/, '.$1/$2')
+    .replace(/(\w{4})(\w)/, '$1-$2');
 }
