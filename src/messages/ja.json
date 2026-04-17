@@ -287,7 +287,8 @@
       "openedToast": "対応を開始しました",
       "recordAddedToast": "記録を追加しました",
       "closedToast": "対応を正常に終了しました",
-      "typeRequired": "対応種別を選択してください"
+      "typeRequired": "対応種別を選択してください",
+      "operatorOnly": "対応の開始と終了はオペレーターのみが行えます。他のロールでは記録は読み取り専用です。"
     }
   },
   "attendance": {
@@ -602,5 +603,16 @@
       "subtitle": "個人データの取扱について。",
       "link": "プライバシーポリシー"
     }
-  }
+  },
+  "CALL_CLIENT": "クライアントに電話する",
+  "CALL_VIGILANT": "警備員に電話する",
+  "CALL_SUPERVISOR": "クライアント責任スーパーバイザーに電話",
+  "CALL_POLICE": "警察に電話 (190)",
+  "CALL_FIREMEN": "消防に電話 (193)",
+  "REPORT_ACCIDENTAL_SOS": "偶発的な非常ボタン作動を報告",
+  "REPORT_UNDUE_SOS": "不適切な非常ボタン作動を報告",
+  "REPORT_TEST_BY_CUSTOMER": "お客様によるテスト実施を報告",
+  "REPORT_TEST_BY_THIRD_PARTIES": "第三者によるテスト実施を報告",
+  "REPORT_FAILURE_TO_CONTACT_PRIORITY_PHONES": "優先電話の連絡失敗を報告",
+  "OTHERS": "その他"
 }

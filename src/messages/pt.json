@@ -287,7 +287,8 @@
       "openedToast": "Atendimento aberto",
       "recordAddedToast": "Ocorrência registrada",
       "closedToast": "Atendimento encerrado com sucesso",
-      "typeRequired": "Selecione o tipo de atendimento"
+      "typeRequired": "Selecione o tipo de atendimento",
+      "operatorOnly": "Apenas usuários com perfil OPERADOR podem abrir e fechar atendimentos. Os registros abaixo são somente leitura no seu perfil atual."
     }
   },
   "attendance": {
@@ -602,5 +603,16 @@
       "subtitle": "Como tratamos seus dados pessoais.",
       "link": "Política de Privacidade"
     }
-  }
+  },
+  "CALL_CLIENT": "Ligar para o telefone do cliente",
+  "CALL_VIGILANT": "Ligar para o telefone do vigilante",
+  "CALL_SUPERVISOR": "Ligar para o supervisor responsável pelo cliente",
+  "CALL_POLICE": "Ligar para a Polícia (190)",
+  "CALL_FIREMEN": "Ligar para o Corpo de Bombeiros (193)",
+  "REPORT_ACCIDENTAL_SOS": "Relatar acionamento acidental de pânico",
+  "REPORT_UNDUE_SOS": "Relatar acionamento indevido de pânico",
+  "REPORT_TEST_BY_CUSTOMER": "Relatar teste realizado pelo cliente",
+  "REPORT_TEST_BY_THIRD_PARTIES": "Relatar teste realizado por terceiros",
+  "REPORT_FAILURE_TO_CONTACT_PRIORITY_PHONES": "Relatar falha no contato com telefones prioritários",
+  "OTHERS": "Outros"
 }
