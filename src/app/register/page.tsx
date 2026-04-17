@@ -94,6 +94,9 @@ export default function RegisterPage() {
 
   const companyForm = useForm<SignupCompanyValues>({
     resolver: zodResolver(signupCompanySchema),
+    // Validate on blur so typing CPF/CNPJ doesn't flash an error on every keystroke.
+    mode: 'onBlur',
+    reValidateMode: 'onBlur',
     defaultValues: {
       name: '',
       fantasyName: '',
@@ -228,10 +231,13 @@ export default function RegisterPage() {
                       placeholder="00.000.000/0000-00"
                       value={formatDocument(companyForm.watch('document'))}
                       onChange={(e) =>
-                        companyForm.setValue('document', e.target.value.replace(/\D/g, ''), {
-                          shouldValidate: true,
-                        })
+                        companyForm.setValue(
+                          'document',
+                          e.target.value.replace(/\D/g, ''),
+                          { shouldValidate: false },
+                        )
                       }
+                      onBlur={() => companyForm.trigger('document')}
                     />
                   </Field>
 

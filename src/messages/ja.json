@@ -504,7 +504,8 @@
       "phone": "ビジネス電話",
       "timezone": "タイムゾーン",
       "timezoneDetected": "検出済み",
-      "timezoneHint": "リストから選択するか、下の候補を使用してください。"
+      "timezoneHint": "リストから選択するか、下の候補を使用してください。",
+      "documentChecksumInvalid": "CPF/CNPJ のチェックデジットが無効です"
     },
     "user": {
       "title": "管理者アカウント",
