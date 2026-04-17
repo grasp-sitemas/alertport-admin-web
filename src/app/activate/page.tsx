@@ -61,6 +61,12 @@ function ActivatePageContent() {
     if (c) setValue('code', c.toUpperCase());
   }, [params, setValue]);
 
+  const resend = useMutation({
+    mutationFn: () => signupService.resend(getValues('email')),
+    onSuccess: () => toast.success(t('signup.activation.resentToast')),
+    onError: () => toast.error(t('signup.activation.generic')),
+  });
+
   const confirm = useMutation({
     mutationFn: (values: ActivationConfirmValues) =>
       signupService.confirm({ email: values.email, code: values.code }),
@@ -72,20 +78,27 @@ function ActivatePageContent() {
       const code = err.response?.data?.code;
       if (code === 'ACTIVATION_CODE_EXPIRED') {
         toast.error(t('signup.activation.expired'));
-      } else if (code === 'ACTIVATION_CODE_INVALID') {
-        toast.error(t('signup.activation.invalid'));
-      } else if (code === 'USER_NOT_FOUND') {
-        toast.error(t('signup.activation.userNotFound'));
-      } else {
-        toast.error(t('signup.activation.generic'));
+        return;
       }
+      if (code === 'ACTIVATION_CODE_INVALID') {
+        toast.error(t('signup.activation.invalid'));
+        return;
+      }
+      if (code === 'USER_NOT_FOUND') {
+        toast.error(t('signup.activation.userNotFound'));
+        return;
+      }
+      if (code === 'ACTIVATION_CODE_MISSING') {
+        // The user's record has no active code stored — auto-generate a new one
+        // and tell them to check their inbox. Clear the stale input so they
+        // don't re-submit the same value.
+        toast.message(t('signup.activation.missingAutoResend'));
+        setValue('code', '');
+        if (getValues('email')) resend.mutate();
+        return;
+      }
+      toast.error(t('signup.activation.generic'));
     },
-  });
-
-  const resend = useMutation({
-    mutationFn: () => signupService.resend(getValues('email')),
-    onSuccess: () => toast.success(t('signup.activation.resentToast')),
-    onError: () => toast.error(t('signup.activation.generic')),
   });
 
   const onSubmit = (data: ActivationConfirmValues) => confirm.mutate(data);

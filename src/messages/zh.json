@@ -528,7 +528,8 @@
       "invalid": "激活码无效。请检查后重试。",
       "userNotFound": "未找到该邮箱对应的账户。",
       "generic": "无法激活,请重试。",
-      "notVerifiedToast": "请先确认邮箱再登录"
+      "notVerifiedToast": "请先确认邮箱再登录",
+      "missingAutoResend": "您的激活码已过期,我们已发送新的激活码。"
     },
     "errors": {
       "emailAlreadyExists": "该邮箱已被使用",
