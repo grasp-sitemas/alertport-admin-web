@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select';
 import { userFormSchema, type UserFormValues, DEFAULT_USER_VALUES } from './schemas';
 import { usersService, type AdminUserFormData } from '@/services/users.service';
+import { isTrialError, toastTrialError } from '@/components/trial/trial-error-toast';
 import { ROLES, isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
 import { useCepLookup } from '@/hooks/use-cep-lookup';
@@ -158,7 +159,13 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
       onOpenChange(false);
       reset();
     },
-    onError: () => toast.error(t('notifications.errorOccurred')),
+    onError: (err) => {
+      if (isTrialError(err)) {
+        toastTrialError(err, t);
+        return;
+      }
+      toast.error(t('notifications.errorOccurred'));
+    },
   });
 
   const onSubmit = (data: UserFormValues) => mutation.mutate(data);

@@ -1,28 +1,48 @@
 {
   "str": {
     "helpers": {
+      "type": {
+        "reports": {
+          "performance": {
+            "local": "站点绩效"
+          },
+          "patrols": "巡逻",
+          "alert": {
+            "sos": "SOS 警报"
+          },
+          "incidents": "事件",
+          "events": {
+            "not": {
+              "attended": "未处理事件"
+            }
+          },
+          "supervision": {
+            "patrols": "督导巡逻"
+          },
+          "analysis": {
+            "patrols": {
+              "integration": "巡逻分析 - 集成"
+            }
+          },
+          "sequential": {
+            "reading": {
+              "history": "历史数据"
+            }
+          }
+        }
+      },
       "equipments": {
         "brands": {
-          "ALERTPORT": "ALERTPORT",
+          "ZOOY": "ZOOY",
           "JWM": "JWM",
-          "OTHER": "其他",
-          "ZOOY": "ZOOY"
+          "ALERTPORT": "ALERTPORT",
+          "OTHER": "其他"
         },
         "types": {
-          "DEVICE-OTHER": "其他",
-          "DEVICE-PHONE": "电话",
-          "DEVICE-READER": "读取器",
-          "EQUIPMENT-SENSOR": "传感器"
+          "DEVICE-PHONE": "手机",
+          "DEVICE-READER": "读卡器",
+          "DEVICE-OTHER": "其他"
         }
-      }
-    },
-    "event": {
-      "filter": {
-        "all": "全部",
-        "sos_alert": "SOS警报",
-        "incident": "事件",
-        "cancel_patrol": "取消巡逻",
-        "failure_patrol": "巡逻失败"
       }
     }
   },
@@ -144,7 +164,8 @@
     "companySettings": "设置",
     "schedules": "调度",
     "timelines": "时间线",
-    "monitoring": "监控"
+    "monitoring": "监控",
+    "plan": "套餐"
   },
   "dashboard": {
     "title": "仪表板",
@@ -398,51 +419,46 @@
     "qrDownload": "下载",
     "qrPrint": "打印"
   },
-  "str": {
-    "helpers": {
-      "type": {
-        "reports": {
-          "performance": {
-            "local": "站点绩效"
-          },
-          "patrols": "巡逻",
-          "alert": {
-            "sos": "SOS 警报"
-          },
-          "incidents": "事件",
-          "events": {
-            "not": {
-              "attended": "未处理事件"
-            }
-          },
-          "supervision": {
-            "patrols": "督导巡逻"
-          },
-          "analysis": {
-            "patrols": {
-              "integration": "巡逻分析 - 集成"
-            }
-          },
-          "sequential": {
-            "reading": {
-              "history": "历史数据"
-            }
-          }
-        }
-      },
-      "equipments": {
-        "brands": {
-          "ZOOY": "ZOOY",
-          "JWM": "JWM",
-          "ALERTPORT": "ALERTPORT",
-          "OTHER": "其他"
-        },
-        "types": {
-          "DEVICE-PHONE": "手机",
-          "DEVICE-READER": "读卡器",
-          "DEVICE-OTHER": "其他"
-        }
-      }
+  "trial": {
+    "badgeAria": "试用期 — 剩余 {days} 天",
+    "badgeExpiredAria": "试用期已过期",
+    "badgeExpired": "已过期",
+    "badgeEndingToday": "今日结束",
+    "badgeDaysRemaining": "剩余 {count} 天",
+    "bannerExpiredTitle": "您的试用期已结束",
+    "bannerExpiredDescription": "请订阅套餐以继续使用全部功能。",
+    "bannerDescription": "试用期内享受全部功能。",
+    "bannerEndingToday": "您的试用期今日结束",
+    "bannerDaysRemaining": "试用期剩余 {count} 天",
+    "upgradeCta": "升级套餐",
+    "viewPlanCta": "查看套餐",
+    "errors": {
+      "expired": "试用期已结束",
+      "expiredDescription": "请订阅套餐以继续。",
+      "limitReached": "{resource}已达上限",
+      "limitReachedDescription": "升级套餐以创建更多。",
+      "featureUnavailable": "当前套餐不支持此功能",
+      "featureUnavailableDescription": "升级套餐即可解锁。",
+      "readonly": "只读模式",
+      "readonlyDescription": "试用期已结束,请激活套餐后再编辑。",
+      "blocked": "当前套餐已阻止此操作"
+    }
+  },
+  "plan": {
+    "title": "套餐",
+    "subtitle": "查看当前套餐的用量、限制和功能。",
+    "currentPlan": "当前套餐",
+    "trialEnds": "试用期结束于",
+    "limitsAndUsage": "限额与用量",
+    "features": "包含功能",
+    "limits": {
+      "users": "用户",
+      "devices": "设备",
+      "sites": "站点",
+      "clients": "客户",
+      "incidents": "事件",
+      "integrations": "集成",
+      "reportsPerMonth": "报表 / 月"
     }
   }
 }

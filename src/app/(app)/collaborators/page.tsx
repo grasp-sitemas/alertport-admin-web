@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { FilterPanel } from '@/components/shared/filter-panel';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
+import { GatedCreateButton } from '@/components/trial/gated-create-button';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
@@ -154,7 +155,8 @@ export default function CollaboratorsPage() {
         <PageHeader
           title={t('collaborators.title')}
           action={
-            <Button
+            <GatedCreateButton
+              resource="users"
               onClick={() => {
                 setEditing(undefined);
                 setFormOpen(true);
@@ -162,7 +164,7 @@ export default function CollaboratorsPage() {
             >
               <Plus className="h-4 w-4" />
               {t('collaborators.createCollaborator')}
-            </Button>
+            </GatedCreateButton>
           }
         />
 

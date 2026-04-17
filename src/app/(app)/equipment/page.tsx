@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { FilterPanel } from '@/components/shared/filter-panel';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
+import { GatedCreateButton } from '@/components/trial/gated-create-button';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { RoleGuard } from '@/components/shared/role-guard';
@@ -161,7 +162,8 @@ export default function EquipmentPage() {
         <PageHeader
           title={t('equipment.title')}
           action={
-            <Button
+            <GatedCreateButton
+              resource="devices"
               onClick={() => {
                 setEditing(undefined);
                 setFormOpen(true);
@@ -169,7 +171,7 @@ export default function EquipmentPage() {
             >
               <Plus className="h-4 w-4" />
               {t('equipment.createEquipment')}
-            </Button>
+            </GatedCreateButton>
           }
         />
 

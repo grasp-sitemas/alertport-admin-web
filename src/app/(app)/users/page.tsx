@@ -14,6 +14,7 @@ import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { RoleGuard } from '@/components/shared/role-guard';
 import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { UserFormDialog } from '@/features/users/user-form-dialog';
+import { GatedCreateButton } from '@/components/trial/gated-create-button';
 import { usersService } from '@/services/users.service';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
@@ -136,7 +137,8 @@ export default function UsersPage() {
         <PageHeader
           title={t('users.title')}
           action={
-            <Button
+            <GatedCreateButton
+              resource="users"
               onClick={() => {
                 setEditing(undefined);
                 setFormOpen(true);
@@ -144,7 +146,7 @@ export default function UsersPage() {
             >
               <Plus className="h-4 w-4" />
               {t('users.createUser')}
-            </Button>
+            </GatedCreateButton>
           }
         />
 

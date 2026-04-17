@@ -1,28 +1,48 @@
 {
   "str": {
     "helpers": {
+      "type": {
+        "reports": {
+          "performance": {
+            "local": "Rendimiento de locales"
+          },
+          "patrols": "Patrullas",
+          "alert": {
+            "sos": "Alertas SOS"
+          },
+          "incidents": "Incidentes",
+          "events": {
+            "not": {
+              "attended": "Eventos no atendidos"
+            }
+          },
+          "supervision": {
+            "patrols": "Patrullas de supervisión"
+          },
+          "analysis": {
+            "patrols": {
+              "integration": "Análisis de patrullas - Integración"
+            }
+          },
+          "sequential": {
+            "reading": {
+              "history": "Datos Históricos"
+            }
+          }
+        }
+      },
       "equipments": {
         "brands": {
-          "ALERTPORT": "ALERTPORT",
+          "ZOOY": "ZOOY",
           "JWM": "JWM",
-          "OTHER": "Otro",
-          "ZOOY": "ZOOY"
+          "ALERTPORT": "ALERTPORT",
+          "OTHER": "Otro"
         },
         "types": {
-          "DEVICE-OTHER": "Otro",
           "DEVICE-PHONE": "Teléfono",
           "DEVICE-READER": "Lector",
-          "EQUIPMENT-SENSOR": "Sensor"
+          "DEVICE-OTHER": "Otro"
         }
-      }
-    },
-    "event": {
-      "filter": {
-        "all": "Todos",
-        "sos_alert": "Alerta SOS",
-        "incident": "Incidente",
-        "cancel_patrol": "Patrulla cancelada",
-        "failure_patrol": "Falla de patrulla"
       }
     }
   },
@@ -144,7 +164,8 @@
     "companySettings": "Configuración",
     "schedules": "Programaciones",
     "timelines": "Líneas de Tiempo",
-    "monitoring": "Monitoreo"
+    "monitoring": "Monitoreo",
+    "plan": "Plan"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -398,51 +419,46 @@
     "qrDownload": "Descargar",
     "qrPrint": "Imprimir"
   },
-  "str": {
-    "helpers": {
-      "type": {
-        "reports": {
-          "performance": {
-            "local": "Rendimiento de locales"
-          },
-          "patrols": "Patrullas",
-          "alert": {
-            "sos": "Alertas SOS"
-          },
-          "incidents": "Incidentes",
-          "events": {
-            "not": {
-              "attended": "Eventos no atendidos"
-            }
-          },
-          "supervision": {
-            "patrols": "Patrullas de supervisión"
-          },
-          "analysis": {
-            "patrols": {
-              "integration": "Análisis de patrullas - Integración"
-            }
-          },
-          "sequential": {
-            "reading": {
-              "history": "Datos Históricos"
-            }
-          }
-        }
-      },
-      "equipments": {
-        "brands": {
-          "ZOOY": "ZOOY",
-          "JWM": "JWM",
-          "ALERTPORT": "ALERTPORT",
-          "OTHER": "Otro"
-        },
-        "types": {
-          "DEVICE-PHONE": "Teléfono",
-          "DEVICE-READER": "Lector",
-          "DEVICE-OTHER": "Otro"
-        }
-      }
+  "trial": {
+    "badgeAria": "Prueba — {days} días restantes",
+    "badgeExpiredAria": "Prueba expirada",
+    "badgeExpired": "Expirado",
+    "badgeEndingToday": "Finaliza hoy",
+    "badgeDaysRemaining": "{count} {count, plural, one {día} other {días}}",
+    "bannerExpiredTitle": "Tu prueba gratuita terminó",
+    "bannerExpiredDescription": "Contrata un plan para seguir usando todas las funciones.",
+    "bannerDescription": "Aprovecha todas las funciones durante el período de prueba.",
+    "bannerEndingToday": "Tu prueba finaliza hoy",
+    "bannerDaysRemaining": "Te quedan {count} {count, plural, one {día} other {días}} de prueba",
+    "upgradeCta": "Contratar plan",
+    "viewPlanCta": "Ver plan",
+    "errors": {
+      "expired": "Período de prueba finalizado",
+      "expiredDescription": "Contrata un plan para continuar.",
+      "limitReached": "Límite alcanzado para {resource}",
+      "limitReachedDescription": "Mejora tu plan para crear más.",
+      "featureUnavailable": "Función no disponible en tu plan",
+      "featureUnavailableDescription": "Mejora el plan para desbloquearla.",
+      "readonly": "Modo solo lectura",
+      "readonlyDescription": "Tu prueba terminó. Activa un plan para editar.",
+      "blocked": "Acción bloqueada por el plan actual"
+    }
+  },
+  "plan": {
+    "title": "Plan",
+    "subtitle": "Revisa tu uso, límites y funciones del plan actual.",
+    "currentPlan": "Plan actual",
+    "trialEnds": "La prueba termina el",
+    "limitsAndUsage": "Límites y uso",
+    "features": "Funciones incluidas",
+    "limits": {
+      "users": "Usuarios",
+      "devices": "Dispositivos",
+      "sites": "Sitios",
+      "clients": "Clientes",
+      "incidents": "Incidentes",
+      "integrations": "Integraciones",
+      "reportsPerMonth": "Informes / mes"
     }
   }
 }
