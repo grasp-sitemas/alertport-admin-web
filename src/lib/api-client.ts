@@ -49,6 +49,11 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (correlationId) {
     config.headers['x-correlation-id'] = correlationId;
   }
+  // Don't override Content-Type for FormData — let the browser/Axios set it
+  // with the correct boundary. Only set it if it's not already FormData.
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
   return config;
 });
 

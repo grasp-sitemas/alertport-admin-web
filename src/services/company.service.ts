@@ -45,11 +45,11 @@ export const companyService = {
     file?: File | null,
   ): Promise<ApiSingleResponse<Company>> {
     // Legacy uses POST /api/company/formdata/v1/ with multipart FormData
+    // Don't set Content-Type — let Axios/browser set it with proper boundary
     const fd = toFormData(companyData, file);
     const { data } = await apiClient.post<ApiSingleResponse<Company>>(
       endpoints.companyFormData,
       fd,
-      { headers: { 'Content-Type': 'multipart/form-data' } },
     );
     return data;
   },
@@ -60,11 +60,11 @@ export const companyService = {
     file?: File | null,
   ): Promise<ApiSingleResponse<Company>> {
     // Legacy uses PUT /api/company/formdata/v1/{id} with multipart FormData
+    // Don't set Content-Type — let Axios/browser set it with proper boundary
     const fd = toFormData(companyData, file);
     const { data } = await apiClient.put<ApiSingleResponse<Company>>(
       endpoints.companyFormDataById(id),
       fd,
-      { headers: { 'Content-Type': 'multipart/form-data' } },
     );
     return data;
   },
