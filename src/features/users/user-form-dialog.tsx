@@ -31,6 +31,7 @@ import { isTrialError, toastTrialError } from '@/components/trial/trial-error-to
 import { ROLES, isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
 import { useCepLookup } from '@/hooks/use-cep-lookup';
+import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 import {
   useAccountsLookup,
   useClientsLookup,
@@ -154,7 +155,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
       return usersService.create(payload as AdminUserFormData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      invalidateHierarchyAfter(queryClient, 'user');
       toast.success(isEdit ? t('users.updateSuccess') : t('users.createSuccess'));
       onOpenChange(false);
       reset();

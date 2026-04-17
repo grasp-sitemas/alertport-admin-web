@@ -19,6 +19,7 @@ import { usersService } from '@/services/users.service';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import type { User } from '@/types/api';
+import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 
 export default function UsersPage() {
   const t = useTranslations();
@@ -55,7 +56,7 @@ export default function UsersPage() {
     // Legacy deletes by email via DELETE /api/users/v1/{email} with full body
     mutationFn: (user: User) => usersService.delete(user.email, user as unknown as Record<string, unknown>),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      invalidateHierarchyAfter(queryClient, 'user');
       toast.success(t('users.deleteSuccess'));
       setDeleteTarget(undefined);
     },

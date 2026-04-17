@@ -20,6 +20,7 @@ import { companyService } from '@/services/company.service';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import type { Company } from '@/types/api';
+import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 
 export default function SitesPage() {
   const t = useTranslations();
@@ -55,7 +56,7 @@ export default function SitesPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => companyService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sites'] });
+      invalidateHierarchyAfter(queryClient, 'site');
       toast.success(t('sites.deleteSuccess'));
       setDeleteTarget(undefined);
     },

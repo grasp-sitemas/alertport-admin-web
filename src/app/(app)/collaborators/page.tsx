@@ -20,6 +20,7 @@ import { usersService } from '@/services/users.service';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import type { User } from '@/types/api';
+import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 
 const SUBTYPE_LABELS: Record<string, string> = {
   VIGILANT: 'collaborators.vigilant',
@@ -61,7 +62,7 @@ export default function CollaboratorsPage() {
     mutationFn: (user: User) =>
       usersService.deleteCollaborator(user.email, user as unknown as Record<string, unknown>),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['collaborators'] });
+      invalidateHierarchyAfter(queryClient, 'user');
       toast.success(t('collaborators.deleteSuccess'));
       setDeleteTarget(undefined);
     },

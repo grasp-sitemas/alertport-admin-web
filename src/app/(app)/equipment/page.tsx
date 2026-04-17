@@ -20,6 +20,7 @@ import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import type { Equipment } from '@/types/api';
 import { translateDynamicLabel } from '@/lib/i18n-labels';
+import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 
 export default function EquipmentPage() {
   const t = useTranslations();
@@ -66,7 +67,7 @@ export default function EquipmentPage() {
   const archiveMutation = useMutation({
     mutationFn: (equipment: Equipment) => equipmentService.archive(equipment),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['equipment'] });
+      invalidateHierarchyAfter(queryClient, 'equipment');
       toast.success(t('equipment.deleteSuccess'));
       setDeleteTarget(undefined);
     },

@@ -25,6 +25,7 @@ import { companyService } from '@/services/company.service';
 import { companyFormSchema, type CompanyFormValues } from '@/features/company/schemas';
 import { useCepLookup } from '@/hooks/use-cep-lookup';
 import type { Company, User } from '@/types/api';
+import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 
 /**
  * Picks the right entity off the `/me` response based on the user's role,
@@ -143,6 +144,9 @@ export default function CompanyPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['me'] });
+      // Editing the company (ACCOUNT) can ripple into every downstream lookup
+      // (its clients, sites, equipment). Invalidate the whole tree.
+      invalidateHierarchyAfter(queryClient, 'account');
       toast.success(t('company.updateSuccess'));
     },
     onError: () => toast.error(t('notifications.errorOccurred')),
