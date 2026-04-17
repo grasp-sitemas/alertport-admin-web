@@ -14,7 +14,9 @@
     "test:e2e": "playwright test",
     "format": "prettier --write \"src/**/*.{ts,tsx,json,css}\"",
     "validate": "npm run typecheck && npm run lint && npm run test && npm run build",
-    "clean": "rm -rf .next .turbo"
+    "clean": "rm -rf .next .turbo",
+    "deploy:prod": "scripts/deploy.sh admin-alertport",
+    "deploy:hml": "scripts/deploy.sh admin-alertport-hml"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
