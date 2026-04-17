@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { passesPasswordPolicy } from '@/features/auth/password-policy';
 
 export const collaboratorFormSchema = z
   .object({
@@ -10,7 +11,14 @@ export const collaboratorFormSchema = z
     username: z.string().min(1, { message: 'validation.required' }),
     oldUsername: z.string().optional(),
     primaryPhone: z.string().optional(),
-    password: z.string().optional(),
+    // Password is required on create (no _id), optional on edit. When present
+    // it must satisfy the app-wide policy.
+    password: z
+      .string()
+      .optional()
+      .refine((v) => !v || v.length === 0 || passesPasswordPolicy(v), {
+        message: 'signup.password.failsPolicy',
+      }),
     photoURL: z.string().optional(),
     account: z.string().min(1, { message: 'validation.required' }),
     client: z.string().min(1, { message: 'validation.required' }),

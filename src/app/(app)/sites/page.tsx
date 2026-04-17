@@ -21,6 +21,7 @@ import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import type { Company } from '@/types/api';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
+import { maskPhoneBR } from '@/lib/br-masks';
 
 export default function SitesPage() {
   const t = useTranslations();
@@ -94,7 +95,7 @@ export default function SitesPage() {
     {
       key: 'primaryPhone',
       headerKey: 'common.phone',
-      render: (item) => item.primaryPhone || '—',
+      render: (item) => (item.primaryPhone ? maskPhoneBR(item.primaryPhone) : '—'),
     },
     {
       key: 'status',

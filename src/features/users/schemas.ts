@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { passesPasswordPolicy } from '@/features/auth/password-policy';
 
 export const userFormSchema = z
   .object({
@@ -10,7 +11,15 @@ export const userFormSchema = z
     username: z.string().optional(),
     oldUsername: z.string().optional(),
     primaryPhone: z.string().optional(),
-    password: z.string().optional(),
+    // When present, password must meet the app-wide policy (min 8, uppercase,
+    // special char, no sequential digits). When empty/undefined — typical on
+    // EDIT — the field is skipped entirely and the server keeps the old hash.
+    password: z
+      .string()
+      .optional()
+      .refine((v) => !v || v.length === 0 || passesPasswordPolicy(v), {
+        message: 'signup.password.failsPolicy',
+      }),
     confirmPassword: z.string().optional(),
     photoURL: z.string().optional(),
     account: z.string().optional(),

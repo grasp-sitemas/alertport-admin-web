@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch, type Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
@@ -26,6 +26,17 @@ import {
   type RecoveryEmailValues,
   type RecoveryResetValues,
 } from './schemas';
+import { PasswordChecklist } from './password-checklist';
+
+/**
+ * Small wrapper that feeds the currently-watched `password` into
+ * PasswordChecklist so the live policy updates as the user types a new
+ * password in the recovery dialog.
+ */
+function RecoveryPasswordChecklist({ control }: { control: Control<RecoveryResetValues> }) {
+  const password = useWatch({ control, name: 'password' }) ?? '';
+  return <PasswordChecklist password={password} />;
+}
 
 type Step = 1 | 2 | 3;
 
@@ -229,6 +240,13 @@ export function RecoveryPasswordDialog({
                   {t(resetForm.formState.errors.password.message as string)}
                 </p>
               )}
+              {/* Live password policy checklist */}
+              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+                <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-text-muted">
+                  {t('signup.password.rules.title')}
+                </p>
+                <RecoveryPasswordChecklist control={resetForm.control} />
+              </div>
             </div>
 
             <div className="space-y-2">

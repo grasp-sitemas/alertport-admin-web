@@ -34,6 +34,8 @@ import { useCepLookup } from '@/hooks/use-cep-lookup';
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
+import { sanitizeFormPayload } from '@/lib/sanitize-payload';
+import { maskPhoneBR } from '@/lib/br-masks';
 import type { Company } from '@/types/api';
 
 interface Props {
@@ -63,10 +65,8 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
           typeof site.client === 'object'
             ? (site.client?._id ?? '')
             : (site.client as string | undefined) ?? '',
-        primaryPhone: site.primaryPhone ?? '',
+        primaryPhone: (site.primaryPhone ?? '').replace(/\D/g, ''),
         owner: (site as unknown as { owner?: string }).owner ?? '',
-        enableFreePatrol:
-          (site as unknown as { enableFreePatrol?: boolean }).enableFreePatrol ?? false,
         address: {
           cep: site.address?.cep ?? '',
           address: site.address?.address ?? '',
@@ -94,6 +94,7 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<SiteFormValues>({
     resolver: zodResolver(siteFormSchema),
@@ -141,8 +142,10 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
           /* ignore — geolocation is optional */
         }
       }
-      if (isEdit && site) return companyService.update(site._id, payload);
-      return companyService.create(payload);
+      // Strip empty-string ObjectId refs + normalize masked fields before POST.
+      const sanitized = sanitizeFormPayload(payload as unknown as Record<string, unknown>);
+      if (isEdit && site) return companyService.update(site._id, sanitized as never);
+      return companyService.create(sanitized as never);
     },
     onSuccess: () => {
       invalidateHierarchyAfter(queryClient, 'site');
@@ -232,7 +235,18 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
 
             <div className="space-y-2">
               <Label>{t('common.phone')}</Label>
-              <Input {...register('primaryPhone')} />
+              <Input
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="(11) 99999-9999"
+                maxLength={16}
+                value={maskPhoneBR(watch('primaryPhone') ?? '')}
+                onChange={(e) =>
+                  setValue('primaryPhone', e.target.value.replace(/\D/g, ''), {
+                    shouldValidate: false,
+                  })
+                }
+              />
             </div>
 
             <div className="space-y-2">
@@ -254,16 +268,6 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
               />
             </div>
 
-            <div className="space-y-2 flex items-end">
-              <label className="inline-flex items-center gap-2 text-sm text-text-secondary">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-white/20 bg-white/5"
-                  {...register('enableFreePatrol')}
-                />
-                {t('sites.enableFreePatrol')}
-              </label>
-            </div>
           </div>
 
           <div className="h-px bg-white/10 my-2" />

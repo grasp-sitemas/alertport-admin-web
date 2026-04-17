@@ -39,6 +39,9 @@ import {
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
+import { sanitizeFormPayload } from '@/lib/sanitize-payload';
+import { maskPhoneBR } from '@/lib/br-masks';
+import { PasswordField } from '@/components/shared/password-field';
 import { useCepLookup } from '@/hooks/use-cep-lookup';
 import { Search } from 'lucide-react';
 
@@ -112,6 +115,7 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CollaboratorFormValues>({
     resolver: zodResolver(collaboratorFormSchema),
@@ -156,9 +160,9 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
         throw new Error('username');
       }
 
-      const payload = {
+      const payload: Record<string, unknown> = {
         ...data,
-        type: 'USER-CUSTOMER' as const,
+        type: 'USER-CUSTOMER',
         oldEmail: data.oldEmail ?? (isEdit ? data.email : undefined),
         oldUsername: data.oldUsername ?? (isEdit ? data.username : undefined),
       };
@@ -166,10 +170,18 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
       if (isEdit && !payload.password) {
         delete payload.password;
       }
+      // Strip empty-string ObjectId refs (site/client/account) so Mongoose
+      // doesn't blow up on cast + normalize phone/CEP/document digits.
+      const sanitized = sanitizeFormPayload(payload) as unknown;
       if (isEdit && collaborator) {
-        return usersService.updateCollaborator(collaborator._id, payload);
+        return usersService.updateCollaborator(
+          collaborator._id,
+          sanitized as Parameters<typeof usersService.updateCollaborator>[1],
+        );
       }
-      return usersService.createCollaborator(payload);
+      return usersService.createCollaborator(
+        sanitized as Parameters<typeof usersService.createCollaborator>[0],
+      );
     },
     onSuccess: () => {
       invalidateHierarchyAfter(queryClient, 'user');
@@ -359,7 +371,18 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
 
             <div className="space-y-2">
               <Label>{t('common.phone')}</Label>
-              <Input {...register('primaryPhone')} />
+              <Input
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="(11) 99999-9999"
+                maxLength={16}
+                value={maskPhoneBR(watch('primaryPhone') ?? '')}
+                onChange={(e) =>
+                  setValue('primaryPhone', e.target.value.replace(/\D/g, ''), {
+                    shouldValidate: false,
+                  })
+                }
+              />
             </div>
 
             <div className="space-y-2">
@@ -387,12 +410,16 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
             )}
 
             {!isEdit && (
-              <div className="space-y-2 sm:col-span-2">
-                <Label>{t('auth.password')}</Label>
-                <Input type="password" autoComplete="new-password" {...register('password')} />
-                {errors.password && (
-                  <p className="text-xs text-red-400">{t(errors.password.message as string)}</p>
-                )}
+              <div className="sm:col-span-2">
+                <PasswordField
+                  label={t('auth.password')}
+                  value={watch('password') ?? ''}
+                  onChange={(e) =>
+                    setValue('password', e.target.value, { shouldValidate: false })
+                  }
+                  showPolicy
+                  error={errors.password ? t(errors.password.message as string) : undefined}
+                />
               </div>
             )}
           </div>
