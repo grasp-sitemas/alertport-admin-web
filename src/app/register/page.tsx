@@ -15,6 +15,7 @@ import {
   Building2,
   User,
   Mail,
+  MailCheck,
   Lock,
   Phone,
   FileText,
@@ -23,10 +24,10 @@ import {
   Eye,
   EyeOff,
   ShieldCheck,
-  CheckCircle2,
   Globe,
   Loader2,
   Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,6 +44,7 @@ import {
 } from '@/features/auth/signup-schemas';
 import { COMMON_TIMEZONES, getAllTimezones } from '@/features/auth/timezones';
 import { LegalModal, type LegalKind } from '@/features/auth/legal-modal';
+import { PasswordChecklist } from '@/features/auth/password-checklist';
 
 type Step = 1 | 2 | 3;
 
@@ -163,14 +165,16 @@ export default function RegisterPage() {
       <div className="absolute inset-0 bg-grid-pattern opacity-40 pointer-events-none" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[640px] bg-brand-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      <header className="relative z-10 flex items-center justify-between p-6">
-        <Logo size="md" />
+      <header className="relative z-10 flex items-center justify-end p-6">
         <LocaleSwitcher />
       </header>
 
       <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-2xl">
           <div className="rounded-3xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)] backdrop-blur-xl p-8 sm:p-10 shadow-[0_0_80px_rgba(179,38,30,0.08)]">
+            <div className="mb-6 flex justify-center">
+              <Logo size="md" showText={false} />
+            </div>
             {step !== 3 && <Stepper current={step} />}
 
             <div className="mt-4 mb-6 text-center sm:text-left">
@@ -356,7 +360,7 @@ export default function RegisterPage() {
                   <Field
                     label={t('signup.user.password')}
                     icon={<Lock className="h-4 w-4 text-text-muted" />}
-                    error={userForm.formState.errors.password?.message as string | undefined}
+                    error={undefined /* surfaced by the checklist below */}
                     t={t}
                   >
                     <div className="relative">
@@ -405,6 +409,14 @@ export default function RegisterPage() {
                       </button>
                     </div>
                   </Field>
+                </div>
+
+                {/* Live password policy checklist */}
+                <div className="-mt-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+                  <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-text-muted">
+                    {t('signup.password.rules.title')}
+                  </p>
+                  <PasswordChecklist password={userForm.watch('password') ?? ''} />
                 </div>
 
                 <label className="flex items-start gap-3 cursor-pointer select-none rounded-xl border border-white/[0.08] bg-white/[0.02] p-3 text-sm text-text-secondary hover:bg-white/[0.04]">
@@ -466,43 +478,7 @@ export default function RegisterPage() {
               </form>
             )}
 
-            {step === 3 && (
-              <div className="space-y-6 text-center">
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/10 ring-1 ring-emerald-500/30">
-                  <CheckCircle2 className="h-10 w-10 text-emerald-400" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-semibold text-white">
-                    {t('signup.success.emailSent')}
-                  </h3>
-                  <p className="text-sm text-text-secondary">
-                    {t('signup.success.checkInbox', { email: userForm.getValues('email') })}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-left text-xs text-text-muted">
-                  <p className="mb-2 font-medium uppercase tracking-wide text-text-secondary">
-                    {t('signup.success.nextSteps')}
-                  </p>
-                  <ol className="space-y-1 list-decimal list-inside">
-                    <li>{t('signup.success.step1')}</li>
-                    <li>{t('signup.success.step2')}</li>
-                    <li>{t('signup.success.step3')}</li>
-                  </ol>
-                </div>
-                <Button
-                  size="lg"
-                  className="w-full"
-                  onClick={() => {
-                    const params = new URLSearchParams();
-                    params.set('email', userForm.getValues('email'));
-                    router.push(`/activate?${params.toString()}`);
-                  }}
-                >
-                  {t('signup.success.activateCta')}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+            {step === 3 && <SuccessStep email={userForm.getValues('email')} />}
           </div>
 
           <p className="text-center text-xs text-text-muted mt-6">
@@ -580,6 +556,72 @@ function TimezoneSelect({ value, onChange, allTimezones, suggested, detected }: 
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ─── Success step (link-based activation) ──────────────────────────────
+
+function SuccessStep({ email }: { email: string }) {
+  const t = useTranslations();
+  const router = useRouter();
+  const resend = useMutation({
+    mutationFn: () => signupService.resend(email),
+    onSuccess: () => toast.success(t('signup.activation.resentToast')),
+    onError: () => toast.error(t('signup.activation.generic')),
+  });
+
+  return (
+    <div className="space-y-6 text-center">
+      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-brand-500/10 ring-1 ring-brand-500/30">
+        <MailCheck className="h-10 w-10 text-brand-400" />
+      </div>
+      <div className="space-y-2">
+        <h3 className="text-xl font-semibold text-white">{t('signup.success.linkSentTitle')}</h3>
+        <p className="text-sm text-text-secondary">
+          {t('signup.success.linkSentBody')}
+        </p>
+        <p className="text-sm font-medium text-white break-all">{email}</p>
+      </div>
+
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-left text-xs text-text-muted">
+        <p className="mb-2 font-medium uppercase tracking-wider text-text-secondary">
+          {t('signup.success.nextStepsTitle')}
+        </p>
+        <ol className="space-y-1.5 list-decimal list-inside">
+          <li>{t('signup.success.linkStep1')}</li>
+          <li>{t('signup.success.linkStep2')}</li>
+          <li>{t('signup.success.linkStep3')}</li>
+        </ol>
+      </div>
+
+      <div className="space-y-2">
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full"
+          onClick={() => resend.mutate()}
+          disabled={resend.isPending}
+        >
+          {resend.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4" />
+          )}
+          {t('signup.success.resendLinkCta')}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full"
+          onClick={() => router.replace('/login')}
+        >
+          {t('signup.activation.backToLogin')}
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <p className="text-[11px] text-text-muted">{t('signup.success.spamNote')}</p>
     </div>
   );
 }

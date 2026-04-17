@@ -509,7 +509,15 @@
       "step1": "打开我们发送的邮件",
       "step2": "复制激活码",
       "step3": "激活账户并登录",
-      "activateCta": "打开激活页面"
+      "activateCta": "打开激活页面",
+      "linkSentTitle": "请确认您的邮箱",
+      "linkSentBody": "我们已向以下邮箱发送激活链接:",
+      "nextStepsTitle": "下一步",
+      "linkStep1": "打开我们发送的邮件",
+      "linkStep2": "点击\"激活我的账户\"按钮",
+      "linkStep3": "账户激活后即可登录",
+      "resendLinkCta": "重新发送链接",
+      "spamNote": "未收到? 请检查垃圾邮件 — 可能需要几分钟。"
     },
     "activation": {
       "title": "激活您的账户",
@@ -529,12 +537,29 @@
       "userNotFound": "未找到该邮箱对应的账户。",
       "generic": "无法激活,请重试。",
       "notVerifiedToast": "请先确认邮箱再登录",
-      "missingAutoResend": "您的激活码已过期,我们已发送新的激活码。"
+      "missingAutoResend": "您的激活码已过期,我们已发送新的激活码。",
+      "verifyingTitle": "正在激活账户…",
+      "verifyingSubtitle": "仅需几秒钟。",
+      "errorTitle": "激活失败",
+      "goToLogin": "前往登录",
+      "resendLinkCta": "重新发送激活链接",
+      "linkMissing": "激活链接不完整。请点击下方按钮重新申请。",
+      "missingNoCode": "此链接已失效,请在下方申请新的。"
     },
     "errors": {
       "emailAlreadyExists": "该邮箱已被使用",
       "companyCreateFailed": "无法创建公司",
       "generic": "无法完成注册"
+    },
+    "password": {
+      "failsPolicy": "密码不符合所有要求",
+      "rules": {
+        "title": "密码须符合:",
+        "minLength": "至少 8 个字符",
+        "uppercase": "包含一个大写字母",
+        "special": "包含一个特殊字符 (!@#$…)",
+        "noSequentialDigits": "无连续数字 (如 123)"
+      }
     }
   },
   "legal": {
