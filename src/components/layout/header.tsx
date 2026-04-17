@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/use-auth';
 import { getInitials } from '@/lib/utils';
+import { resolveAssetUrl } from '@/lib/asset-url';
 import { RoleBadge } from '@/components/shared/status-badge';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import { ChatConnectionBadge } from '@/features/calls/call-dialog';
@@ -62,7 +63,9 @@ export function Header({ onMenuClick }: HeaderProps) {
                 className="flex items-center gap-3 h-10 px-2 py-1"
               >
                 <Avatar className="h-8 w-8">
-                  {user?.photoURL && <AvatarImage src={user.photoURL} alt={user.firstName} />}
+                  {user?.photoURL && (
+                    <AvatarImage src={resolveAssetUrl(user.photoURL)} alt={user.firstName} />
+                  )}
                   <AvatarFallback>{getInitials(user?.firstName, user?.lastName)}</AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:flex flex-col items-start">

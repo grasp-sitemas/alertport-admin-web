@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useEffect, useMemo, useState } from 'react';
+import { Controller } from 'react-hook-form';
+import { useAppForm } from '@/hooks/use-app-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -28,6 +29,7 @@ import type { Company, User } from '@/types/api';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 import { sanitizeFormPayload } from '@/lib/sanitize-payload';
 import { maskPhoneBR } from '@/lib/br-masks';
+import { PhotoUpload } from '@/components/shared/photo-upload';
 
 /**
  * Picks the right entity off the `/me` response based on the user's role,
@@ -77,7 +79,7 @@ export default function CompanyPage() {
     reset,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<CompanyFormValues>({
+  } = useAppForm<CompanyFormValues>({
     resolver: zodResolver(companyFormSchema),
     defaultValues: {
       name: '',
@@ -113,7 +115,7 @@ export default function CompanyPage() {
       _id: company._id,
       name: company.name ?? '',
       fantasyName: company.fantasyName ?? '',
-      personType: company.personType,
+      personType: (company.personType ?? undefined) as 'LEGAL' | 'PHYSICAL' | undefined,
       document: company.document ?? '',
       email: company.email ?? '',
       primaryPhone: company.primaryPhone ?? '',
@@ -121,7 +123,7 @@ export default function CompanyPage() {
       timezone: extras.timezone ?? '',
       logoURL: company.logoURL ?? '',
       status: company.status ?? 'ACTIVE',
-      type: (company.type as 'ACCOUNT' | 'CLIENT' | 'SITE') ?? 'ACCOUNT',
+      type: company.type ?? 'ACCOUNT',
       address: {
         cep: company.address?.cep ?? '',
         address: company.address?.address ?? '',
@@ -139,19 +141,21 @@ export default function CompanyPage() {
   }, [company, reset]);
 
   const cep = useCepLookup(setValue, 'address');
+  const [logoFile, setLogoFile] = useState<File | null>(null);
 
   const mutation = useMutation({
     mutationFn: (values: CompanyFormValues) => {
       if (!company) throw new Error('No company loaded');
       // Strip empty-string ObjectId refs + normalize masked phone/document fields.
       const sanitized = sanitizeFormPayload(values as unknown as Record<string, unknown>);
-      return companyService.update(company._id, sanitized as never);
+      return companyService.update(company._id, sanitized as never, logoFile);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['me'] });
       // Editing the company (ACCOUNT) can ripple into every downstream lookup
       // (its clients, sites, equipment). Invalidate the whole tree.
       invalidateHierarchyAfter(queryClient, 'account');
+      setLogoFile(null);
       toast.success(t('company.updateSuccess'));
     },
     onError: () => toast.error(t('notifications.errorOccurred')),
@@ -189,6 +193,18 @@ export default function CompanyPage() {
               <CardDescription>{t('company.editCompany')}</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
+                <PhotoUpload
+                  value={logoFile}
+                  previewUrl={watch('logoURL')}
+                  onChange={(file) => {
+                    setLogoFile(file);
+                    if (!file) setValue('logoURL', '');
+                  }}
+                  label={t('common.logo')}
+                  shape="rect"
+                />
+              </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>{t('company.companyName')}</Label>
                 <Input {...register('name')} />

@@ -2,7 +2,8 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useForm, useWatch } from 'react-hook-form';
+import { useWatch } from 'react-hook-form';
+import { useAppForm } from '@/hooks/use-app-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
@@ -36,7 +37,7 @@ export default function LoginPage() {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormValues>({
+  } = useAppForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
   });

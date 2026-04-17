@@ -1,0 +1,35 @@
+{
+  "status": 200,
+  "results": [
+    {
+      "_id": "672000000000000000000001",
+      "legacyId": "",
+      "code": "PANIC-0001",
+      "name": "Panic Button 1",
+      "type": "PANIC",
+      "brand": "SHIELDGO",
+      "user": "631b46da51e6a07b54d5c464",
+      "hasImport": true,
+      "companyLegacyParentId": "",
+      "status": "ACTIVE",
+      "account": { "_id": "64514294c86e6e000f6252dd", "name": "Some Account" },
+      "client": { "_id": "647a1e20ecff11000fccb901", "name": "Some Client" },
+      "site": { "_id": "673f9925a6894ee9685a9092", "name": "Some Site" }
+    },
+    {
+      "_id": "672000000000000000000002",
+      "code": "GPS-0001",
+      "type": null,
+      "brand": null,
+      "user": null,
+      "hasImport": false,
+      "status": "ARCHIVED",
+      "account": "64514294c86e6e000f6252dd",
+      "client": "647a1e20ecff11000fccb901",
+      "site": "673f9925a6894ee9685a9092"
+    }
+  ],
+  "totalCount": 2,
+  "page": 1,
+  "limit": 20
+}

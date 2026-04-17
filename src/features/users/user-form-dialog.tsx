@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useForm, Controller, useWatch } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { Controller, useWatch } from 'react-hook-form';
+import { useAppForm } from '@/hooks/use-app-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -35,6 +36,7 @@ import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 import { sanitizeFormPayload } from '@/lib/sanitize-payload';
 import { maskPhoneBR } from '@/lib/br-masks';
 import { PasswordField } from '@/components/shared/password-field';
+import { PhotoUpload } from '@/components/shared/photo-upload';
 import {
   useAccountsLookup,
   useClientsLookup,
@@ -115,13 +117,18 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<UserFormValues>({
+  } = useAppForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
     defaultValues: defaults,
   });
 
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+
   useEffect(() => {
-    if (open) reset(defaults);
+    if (open) {
+      reset(defaults);
+      setPhotoFile(null);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, user?._id]);
 
@@ -158,9 +165,9 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
       // normalizes primaryPhone / cep / document down to digits-only.
       const sanitized = sanitizeFormPayload(payload) as unknown;
       if (isEdit && user) {
-        return usersService.update(user._id, sanitized as Partial<AdminUserFormData>);
+        return usersService.update(user._id, sanitized as Partial<AdminUserFormData>, photoFile);
       }
-      return usersService.create(sanitized as AdminUserFormData);
+      return usersService.create(sanitized as AdminUserFormData, photoFile);
     },
     onSuccess: () => {
       invalidateHierarchyAfter(queryClient, 'user');
@@ -191,6 +198,17 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <PhotoUpload
+            value={photoFile}
+            previewUrl={watch('photoURL')}
+            onChange={(file) => {
+              setPhotoFile(file);
+              if (!file) setValue('photoURL', '');
+            }}
+            label={t('common.photo')}
+            shape="circle"
+          />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>{t('users.role')}</Label>

@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  # Weekly snapshot of HML fixtures so an API enum drift fails the build
+  # even when nobody is pushing frontend code. Monday 6am UTC.
+  schedule:
+    - cron: '0 6 * * 1'
+
+# Cancel superseded runs on the same PR so we don't waste runners.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-typecheck-test:
+    name: Lint · Typecheck · Unit + contract tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        # Enforces the `no useForm from react-hook-form` rule added in
+        # Phase 1 — silent Save regressions never reach main.
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit + contract tests
+        # Covers: resolveAssetUrl, toMultipartFormData, toastFirstError,
+        # useAppForm, and schema contracts against checked-in API fixtures.
+        run: npm test
+
+  e2e:
+    name: Playwright smoke (CRUD forms)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: lint-typecheck-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build Next.js
+        run: npm run build
+        env:
+          # Point the client at a placeholder host — the smoke tests stub
+          # every request via `page.route`, so the real value never matters.
+          NEXT_PUBLIC_API_URL: https://api-hml.shieldgo.com.br
+          NEXT_PUBLIC_MS_CHAT_URL: https://api-chat-hml.shieldgo.com.br
+
+      - name: Run Playwright
+        run: npx playwright test
+        env:
+          NEXT_PUBLIC_API_URL: https://api-hml.shieldgo.com.br
+          NEXT_PUBLIC_MS_CHAT_URL: https://api-chat-hml.shieldgo.com.br
+
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  schema-drift:
+    # Weekly guard: snapshot live HML fixtures and re-run contract tests so
+    # an upstream API change surfaces as a red build even when no frontend
+    # PR is open. Skipped without the E2E_* secrets.
+    name: Schema drift check (weekly)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'schedule' }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Snapshot fixtures from HML
+        env:
+          E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          API_URL: ${{ secrets.API_URL }}
+        run: npm run test:fixtures:snapshot
+      - name: Run contract tests on fresh fixtures
+        run: npm test -- tests/contracts

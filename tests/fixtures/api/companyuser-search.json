@@ -1,0 +1,56 @@
+{
+  "status": 200,
+  "results": [
+    {
+      "_id": "6499d3e0e7d6a4000f8a69e6",
+      "firstName": "Adaclécio",
+      "lastName": "Zanzara",
+      "email": "redacted@example.com",
+      "username": "adaclecio",
+      "primaryPhone": "11999999999",
+      "photoURL": "/filemanager/photo/abc.png",
+      "status": "ACTIVE",
+      "type": "USER-COMPANY",
+      "account": "64514294c86e6e000f6252dd",
+      "client": "647a1e20ecff11000fccb901",
+      "site": null,
+      "companyUser": {
+        "subtype": "OPERATOR",
+        "status": "ACTIVE"
+      },
+      "address": {
+        "cep": "04720000",
+        "address": "Rua Example",
+        "number": "1554",
+        "complement": "",
+        "neighborhood": "Granja Julieta",
+        "city": "São Paulo",
+        "state": "SP",
+        "country": "BR",
+        "ibge": "3550308",
+        "gia": "1004",
+        "name": "MAIN"
+      }
+    },
+    {
+      "_id": "631b46da51e6a07b54d5c464",
+      "firstName": "Grasp",
+      "lastName": "User",
+      "email": "redacted@example.com",
+      "username": "graspuser",
+      "status": "ACTIVE",
+      "type": "USER-COMPANY",
+      "companyUser": {
+        "subtype": "SUPER_ADMIN_MASTER",
+        "status": "ACTIVE"
+      },
+      "account": {
+        "_id": "631b45f84d6c4a2e78c4348e",
+        "name": "Grasp"
+      }
+    }
+  ],
+  "totalCount": 2,
+  "page": 1,
+  "limit": 20
+}

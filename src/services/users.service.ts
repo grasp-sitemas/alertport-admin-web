@@ -1,6 +1,7 @@
 import { apiClient } from '@/lib/api-client';
 import { endpoints } from '@/config/endpoints';
 import { normalizePage, type NormalizedPage } from '@/lib/pagination';
+import { toMultipartFormData } from '@/lib/multipart-form-data';
 import type {
   ApiPaginatedResponse,
   ApiSingleResponse,
@@ -69,13 +70,9 @@ export interface CustomerUserFormData {
   status: 'ACTIVE' | 'ARCHIVED';
 }
 
-function toFormData(payload: unknown, file?: File | null): FormData {
-  const fd = new FormData();
-  if (file) fd.append('file', file);
-  else fd.append('file', new Blob([]));
-  fd.append('jsonData', JSON.stringify(payload));
-  return fd;
-}
+// Multipart helper lives in @/lib/multipart-form-data so both services share
+// the "never append an empty Blob" rule that avoids the multer ENOENT crash.
+const toFormData = toMultipartFormData;
 
 export const usersService = {
   // ── Admin users (type USER-COMPANY) ──

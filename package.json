@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:fixtures:snapshot": "tsx scripts/snapshot-api-fixtures.ts",
     "format": "prettier --write \"src/**/*.{ts,tsx,json,css}\"",
     "validate": "npm run typecheck && npm run lint && npm run test && npm run build",
     "clean": "rm -rf .next .turbo",
@@ -74,6 +75,7 @@
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5",
     "vitest": "^4.1.4"
   }

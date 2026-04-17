@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useForm, Controller, useWatch } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { Controller, useWatch } from 'react-hook-form';
+import { useAppForm } from '@/hooks/use-app-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -42,6 +43,7 @@ import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 import { sanitizeFormPayload } from '@/lib/sanitize-payload';
 import { maskPhoneBR } from '@/lib/br-masks';
 import { PasswordField } from '@/components/shared/password-field';
+import { PhotoUpload } from '@/components/shared/photo-upload';
 import { useCepLookup } from '@/hooks/use-cep-lookup';
 import { Search } from 'lucide-react';
 
@@ -117,14 +119,19 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<CollaboratorFormValues>({
+  } = useAppForm<CollaboratorFormValues>({
     resolver: zodResolver(collaboratorFormSchema),
     defaultValues: defaults,
   });
 
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+
   // When the dialog opens for a new/edit target, reset to those values
   useEffect(() => {
-    if (open) reset(defaults);
+    if (open) {
+      reset(defaults);
+      setPhotoFile(null);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, collaborator?._id]);
 
@@ -177,10 +184,12 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
         return usersService.updateCollaborator(
           collaborator._id,
           sanitized as Parameters<typeof usersService.updateCollaborator>[1],
+          photoFile,
         );
       }
       return usersService.createCollaborator(
         sanitized as Parameters<typeof usersService.createCollaborator>[0],
+        photoFile,
       );
     },
     onSuccess: () => {
@@ -207,6 +216,17 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
         </DialogHeader>
 
         <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
+          <PhotoUpload
+            value={photoFile}
+            previewUrl={watch('photoURL')}
+            onChange={(file) => {
+              setPhotoFile(file);
+              if (!file) setValue('photoURL', '');
+            }}
+            label={t('common.photo')}
+            shape="circle"
+          />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Subtype */}
             <div className="space-y-2">

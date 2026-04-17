@@ -103,7 +103,18 @@
     "description": "Descrição",
     "notes": "Observações",
     "total": "Total",
-    "optional": "opcional"
+    "optional": "opcional",
+    "photo": "Foto",
+    "logo": "Logo",
+    "refresh": "Atualizar",
+    "choosePhoto": "Escolher foto",
+    "changePhoto": "Trocar foto",
+    "takePhoto": "Tirar foto",
+    "remove": "Remover",
+    "fileNone": "Nenhum arquivo selecionado",
+    "fileTooLarge": "Arquivo maior que {size}",
+    "fileTypeInvalid": "Tipo de arquivo não permitido",
+    "photoUploadHint": "Imagens até {size}. JPG, PNG ou similar."
   },
   "auth": {
     "login": "Entrar",
@@ -157,6 +168,7 @@
     "alertOccurrences": "Ocorrências de Alertas",
     "alertScheduling": "Agendamento de Alertas",
     "alertMonitor": "Monitor de Alertas",
+    "callRecordings": "Gravações",
     "attendance": "Controle de Presença",
     "timeEntries": "Registros de Ponto",
     "management": "Gestão",
@@ -394,7 +406,8 @@
     "deletedSuccessfully": "Excluído com sucesso",
     "errorOccurred": "Ocorreu um erro. Tente novamente.",
     "networkError": "Erro de conexão. Verifique sua internet.",
-    "unauthorized": "Sem permissão para realizar esta ação."
+    "unauthorized": "Sem permissão para realizar esta ação.",
+    "validationFailed": "Verifique os campos antes de salvar."
   },
   "calls": {
     "incoming": "Chamada recebida",
@@ -413,7 +426,14 @@
     "chatDisconnected": "Chat desconectado",
     "noTarget": "Sem destinatário para a chamada",
     "deviceOffline": "Dispositivo offline",
-    "wakeupSent": "Push de wake-up enviado"
+    "wakeupSent": "Push de wake-up enviado",
+    "recordings": {
+      "title": "Gravações de chamadas",
+      "empty": "Nenhuma gravação disponível.",
+      "play": "Ouvir",
+      "pageTitle": "Gravações",
+      "pageDescription": "Chamadas de escuta ativa concluídas ficam disponíveis para reprodução."
+    }
   },
   "clients": {
     "title": "Clientes",

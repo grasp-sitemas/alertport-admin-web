@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { ShieldCheck, Scale, X } from 'lucide-react';
+import { ShieldCheck, Scale } from 'lucide-react';
 import {
   Dialog,
   DialogContent,

@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm, useWatch, type Control } from 'react-hook-form';
+import { useWatch, type Control } from 'react-hook-form';
+import { useAppForm } from '@/hooks/use-app-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
@@ -59,12 +60,12 @@ export function RecoveryPasswordDialog({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const emailForm = useForm<RecoveryEmailValues>({
+  const emailForm = useAppForm<RecoveryEmailValues>({
     resolver: zodResolver(recoveryEmailSchema),
     defaultValues: { email: defaultEmail },
   });
 
-  const resetForm = useForm<RecoveryResetValues>({
+  const resetForm = useAppForm<RecoveryResetValues>({
     resolver: zodResolver(recoveryResetSchema),
     defaultValues: { code: '', password: '', passwordConfirm: '' },
   });

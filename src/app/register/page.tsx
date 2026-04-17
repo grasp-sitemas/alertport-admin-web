@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
+import { useAppForm } from '@/hooks/use-app-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
@@ -85,7 +85,7 @@ export default function RegisterPage() {
     [detectedTz],
   );
 
-  const companyForm = useForm<SignupCompanyValues>({
+  const companyForm = useAppForm<SignupCompanyValues>({
     resolver: zodResolver(signupCompanySchema),
     // Validate on blur so typing CPF/CNPJ doesn't flash an error on every keystroke.
     mode: 'onBlur',
@@ -100,7 +100,7 @@ export default function RegisterPage() {
     },
   });
 
-  const userForm = useForm<SignupUserValues>({
+  const userForm = useAppForm<SignupUserValues>({
     resolver: zodResolver(signupUserSchema),
     defaultValues: {
       firstName: '',

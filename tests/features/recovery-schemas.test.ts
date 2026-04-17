@@ -22,8 +22,8 @@ describe('recoveryResetSchema', () => {
   it('accepts an 8-char code with matching passwords', () => {
     const parsed = recoveryResetSchema.safeParse({
       code: 'ABCD1234',
-      password: 'secret-1',
-      passwordConfirm: 'secret-1',
+      password: 'Secret-8',
+      passwordConfirm: 'Secret-8',
     });
     expect(parsed.success).toBe(true);
     // code is transformed to uppercase by the schema
@@ -35,8 +35,8 @@ describe('recoveryResetSchema', () => {
   it('uppercases lowercase code input', () => {
     const parsed = recoveryResetSchema.safeParse({
       code: 'abcd1234',
-      password: 'secret-1',
-      passwordConfirm: 'secret-1',
+      password: 'Secret-8',
+      passwordConfirm: 'Secret-8',
     });
     expect(parsed.success).toBe(true);
     if (parsed.success) {
@@ -47,8 +47,8 @@ describe('recoveryResetSchema', () => {
   it('rejects a code shorter than 8 characters', () => {
     const parsed = recoveryResetSchema.safeParse({
       code: 'ABCD',
-      password: 'secret-1',
-      passwordConfirm: 'secret-1',
+      password: 'Secret-8',
+      passwordConfirm: 'Secret-8',
     });
     expect(parsed.success).toBe(false);
   });
@@ -65,7 +65,7 @@ describe('recoveryResetSchema', () => {
   it('rejects mismatched passwords', () => {
     const parsed = recoveryResetSchema.safeParse({
       code: 'ABCD1234',
-      password: 'secret-1',
+      password: 'Secret-8',
       passwordConfirm: 'secret-2',
     });
     expect(parsed.success).toBe(false);

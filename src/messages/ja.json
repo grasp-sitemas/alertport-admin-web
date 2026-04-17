@@ -103,7 +103,18 @@
     "description": "説明",
     "notes": "備考",
     "total": "合計",
-    "optional": "オプション"
+    "optional": "オプション",
+    "photo": "写真",
+    "logo": "ロゴ",
+    "refresh": "更新",
+    "choosePhoto": "写真を選択",
+    "changePhoto": "写真を変更",
+    "takePhoto": "撮影",
+    "remove": "削除",
+    "fileNone": "ファイル未選択",
+    "fileTooLarge": "ファイルが {size} を超えています",
+    "fileTypeInvalid": "許可されていないファイル形式",
+    "photoUploadHint": "最大 {size} の画像。JPG、PNG など。"
   },
   "auth": {
     "login": "ログイン",
@@ -157,6 +168,7 @@
     "alertOccurrences": "アラート発生",
     "alertScheduling": "アラートスケジュール",
     "alertMonitor": "アラートモニター",
+    "callRecordings": "録音",
     "attendance": "勤怠管理",
     "timeEntries": "勤怠記録",
     "management": "管理",
@@ -394,7 +406,8 @@
     "deletedSuccessfully": "正常に削除されました",
     "errorOccurred": "エラーが発生しました。もう一度お試しください。",
     "networkError": "接続エラー。インターネットを確認してください。",
-    "unauthorized": "この操作を実行する権限がありません。"
+    "unauthorized": "この操作を実行する権限がありません。",
+    "validationFailed": "保存前に入力内容をご確認ください。"
   },
   "calls": {
     "incoming": "着信",
@@ -413,7 +426,14 @@
     "chatDisconnected": "チャット切断",
     "noTarget": "通話先がありません",
     "deviceOffline": "デバイスオフライン",
-    "wakeupSent": "ウェイクアップ送信済み"
+    "wakeupSent": "ウェイクアップ送信済み",
+    "recordings": {
+      "title": "通話の録音",
+      "empty": "録音はありません。",
+      "play": "再生",
+      "pageTitle": "録音",
+      "pageDescription": "サイレントリッスン通話は終了後に再生できます。"
+    }
   },
   "clients": {
     "title": "クライアント",

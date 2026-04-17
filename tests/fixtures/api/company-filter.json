@@ -1,0 +1,68 @@
+{
+  "status": 200,
+  "results": [
+    {
+      "_id": "631b45f84d6c4a2e78c4348e",
+      "name": "Grasp",
+      "fantasyName": "Grasp",
+      "document": "00000000000",
+      "personType": "LEGAL",
+      "email": "redacted@example.com",
+      "primaryPhone": "11999999999",
+      "secondaryPhone": null,
+      "logoURL": "/filemanager/photo/m6w4itvm03ncooo03styw.png",
+      "type": "WHITE-LABEL-COMPANY",
+      "status": "ACTIVE",
+      "address": {
+        "cep": "04619-000",
+        "address": "Rua Example",
+        "number": "132",
+        "complement": "",
+        "neighborhood": "Campo Belo",
+        "city": "São Paulo",
+        "state": "SP",
+        "country": "BR",
+        "name": "MAIN"
+      }
+    },
+    {
+      "_id": "64514294c86e6e000f6252dd",
+      "name": "Some Account",
+      "type": "ACCOUNT",
+      "status": "ACTIVE",
+      "email": "redacted@example.com",
+      "primaryPhone": "",
+      "personType": null,
+      "address": null
+    },
+    {
+      "_id": "647a1e20ecff11000fccb901",
+      "name": "Some Client",
+      "type": "CLIENT",
+      "status": "ACTIVE",
+      "account": "64514294c86e6e000f6252dd",
+      "primaryPhone": "11999999999"
+    },
+    {
+      "_id": "673f9925a6894ee9685a9092",
+      "name": "Some Site",
+      "type": "SITE",
+      "status": "ARCHIVED",
+      "account": "64514294c86e6e000f6252dd",
+      "client": "647a1e20ecff11000fccb901",
+      "address": {
+        "cep": "04619-000",
+        "address": "Rua X",
+        "number": "1",
+        "neighborhood": "Bairro",
+        "city": "São Paulo",
+        "state": "SP",
+        "country": "BR",
+        "name": "MAIN"
+      }
+    }
+  ],
+  "totalCount": 4,
+  "page": 1,
+  "limit": 20
+}

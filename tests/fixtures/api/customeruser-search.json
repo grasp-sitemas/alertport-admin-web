@@ -1,0 +1,45 @@
+{
+  "status": 200,
+  "results": [
+    {
+      "_id": "674484f4ae5dcdb407a3e53f",
+      "firstName": "Estação",
+      "lastName": "Minas",
+      "email": "redacted@example.com",
+      "username": "estacaominas",
+      "primaryPhone": "",
+      "status": "ACTIVE",
+      "type": "USER-CUSTOMER",
+      "account": "673f6a5becf3e3c22c6c79c4",
+      "client": "673f6b22ecf3e3c22c6c7a9b",
+      "site": "673f9925a6894ee9685a9092",
+      "customerUser": {
+        "subtype": "VIGILANT",
+        "status": "ACTIVE",
+        "employeeCode": "VIG-0001"
+      },
+      "address": {
+        "name": "MAIN"
+      }
+    },
+    {
+      "_id": "674484f4ae5dcdb407a3e540",
+      "firstName": "Supervisor",
+      "lastName": "Example",
+      "email": "redacted@example.com",
+      "username": "superex",
+      "status": "ARCHIVED",
+      "type": "USER-CUSTOMER",
+      "account": { "_id": "673f6a5becf3e3c22c6c79c4", "name": "Acc" },
+      "client": { "_id": "673f6b22ecf3e3c22c6c7a9b", "name": "Client" },
+      "site": { "_id": "673f9925a6894ee9685a9092", "name": "Site" },
+      "customerUser": {
+        "subtype": "SUPERVISOR",
+        "status": "ACTIVE"
+      }
+    }
+  ],
+  "totalCount": 2,
+  "page": 1,
+  "limit": 20
+}

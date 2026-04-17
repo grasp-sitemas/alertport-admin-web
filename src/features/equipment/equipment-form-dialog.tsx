@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm, Controller, useWatch } from 'react-hook-form';
+import { Controller, useWatch } from 'react-hook-form';
+import { useAppForm } from '@/hooks/use-app-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -105,7 +106,7 @@ export function EquipmentFormDialog({ open, onOpenChange, equipment }: Props) {
     reset,
     setValue,
     formState: { errors, isSubmitting },
-  } = useForm<EquipmentFormValues>({
+  } = useAppForm<EquipmentFormValues>({
     resolver: zodResolver(equipmentFormSchema),
     defaultValues: defaults,
   });
@@ -153,7 +154,10 @@ export function EquipmentFormDialog({ open, onOpenChange, equipment }: Props) {
           <DialogDescription>{t('equipment.equipmentDetails')}</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit((data) => saveMutation.mutate(data))} className="space-y-4">
+        <form
+          onSubmit={handleSubmit((data) => saveMutation.mutate(data))}
+          className="space-y-4"
+        >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {canSelectAccount && (
               <div className="space-y-2 sm:col-span-3">

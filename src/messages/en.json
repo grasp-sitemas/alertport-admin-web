@@ -103,7 +103,18 @@
     "description": "Description",
     "notes": "Notes",
     "total": "Total",
-    "optional": "optional"
+    "optional": "optional",
+    "photo": "Photo",
+    "logo": "Logo",
+    "refresh": "Refresh",
+    "choosePhoto": "Choose photo",
+    "changePhoto": "Change photo",
+    "takePhoto": "Take a photo",
+    "remove": "Remove",
+    "fileNone": "No file selected",
+    "fileTooLarge": "File larger than {size}",
+    "fileTypeInvalid": "File type not allowed",
+    "photoUploadHint": "Images up to {size}. JPG, PNG, etc."
   },
   "auth": {
     "login": "Sign in",
@@ -157,6 +168,7 @@
     "alertOccurrences": "Alert Occurrences",
     "alertScheduling": "Alert Scheduling",
     "alertMonitor": "Alert Monitor",
+    "callRecordings": "Recordings",
     "attendance": "Attendance Control",
     "timeEntries": "Time Entries",
     "management": "Management",
@@ -394,7 +406,8 @@
     "deletedSuccessfully": "Deleted successfully",
     "errorOccurred": "An error occurred. Please try again.",
     "networkError": "Connection error. Check your internet.",
-    "unauthorized": "No permission to perform this action."
+    "unauthorized": "No permission to perform this action.",
+    "validationFailed": "Please review the fields before saving."
   },
   "calls": {
     "incoming": "Incoming call",
@@ -413,7 +426,14 @@
     "chatDisconnected": "Chat disconnected",
     "noTarget": "No target for call",
     "deviceOffline": "Device offline",
-    "wakeupSent": "Wake-up push sent"
+    "wakeupSent": "Wake-up push sent",
+    "recordings": {
+      "title": "Call recordings",
+      "empty": "No recordings available.",
+      "play": "Listen",
+      "pageTitle": "Recordings",
+      "pageDescription": "Completed silent-listen calls become available for playback."
+    }
   },
   "clients": {
     "title": "Clients",

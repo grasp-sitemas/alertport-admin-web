@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm, Controller, useWatch } from 'react-hook-form';
+import { Controller, useWatch } from 'react-hook-form';
+import { useAppForm } from '@/hooks/use-app-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -90,7 +91,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
     reset,
     setValue,
     formState: { errors, isSubmitting },
-  } = useForm<AlertScheduleFormValues>({
+  } = useAppForm<AlertScheduleFormValues>({
     resolver: zodResolver(alertScheduleSchema),
     defaultValues: defaults,
   });

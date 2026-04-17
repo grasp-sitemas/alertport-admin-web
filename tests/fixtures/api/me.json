@@ -1,0 +1,62 @@
+{
+  "status": 200,
+  "result": {
+    "_id": "631b46da51e6a07b54d5c464",
+    "firstName": "Grasp",
+    "lastName": "User",
+    "email": "redacted@example.com",
+    "username": "graspuser",
+    "language": "pt",
+    "photoURL": "/filemanager/photo/c014wutsask7cakt92vduc.png",
+    "status": "ACTIVE",
+    "type": "USER-COMPANY",
+    "primaryPhone": "",
+    "companyUser": {
+      "_id": "631b46d951e6a07b54d5c461",
+      "subtype": "SUPER_ADMIN_MASTER",
+      "status": "ACTIVE"
+    },
+    "company": {
+      "_id": "631b45f84d6c4a2e78c4348e",
+      "name": "Grasp",
+      "fantasyName": "Grasp",
+      "document": "00000000000",
+      "personType": "LEGAL",
+      "email": "redacted@example.com",
+      "primaryPhone": "11999999999",
+      "secondaryPhone": null,
+      "logoURL": "/filemanager/photo/m6w4itvm03ncooo03styw.png",
+      "type": "WHITE-LABEL-COMPANY",
+      "status": "ACTIVE",
+      "address": {
+        "_id": "638a093b12b07f00103a4ec8",
+        "cep": "04619-000",
+        "address": "Rua Example",
+        "number": "132",
+        "complement": "",
+        "neighborhood": "Campo Belo",
+        "city": "São Paulo",
+        "state": "SP",
+        "country": "BR",
+        "ibge": "3550308",
+        "gia": "1004",
+        "name": "MAIN"
+      }
+    },
+    "address": {
+      "_id": "631fa72ab01df439fd8405e8",
+      "cep": "04619-000",
+      "address": "Rua Example",
+      "number": "132",
+      "complement": "",
+      "neighborhood": "Campo Belo",
+      "city": "São Paulo",
+      "state": "SP",
+      "country": "BR",
+      "ibge": "3550308",
+      "gia": "1004",
+      "name": "MAIN",
+      "status": "ACTIVE"
+    }
+  }
+}

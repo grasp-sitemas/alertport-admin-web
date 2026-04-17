@@ -27,10 +27,47 @@ import { getSocket, type IncomingCallPayload, type StartCallAck, type WebRtcSign
 import { getWebRtcIceServers } from '@/lib/webrtc-ice';
 import { useAuth } from '@/hooks/use-auth';
 
-// Call recording is intentionally NOT wired into the frontend. Per product
-// decision (2026-04-17), the audit artifact should be produced on the backend
-// so the operator app stays oblivious. We keep `call-recording.ts` in the repo
-// as a reference implementation, but nothing here imports it.
+/**
+ * Silent-listen recording — transparent, automatic.
+ *
+ * WebRTC is peer-to-peer: the ms-chat server never sees the actual audio
+ * stream. Any "backend recording" actually has to capture audio at an endpoint
+ * — here, the operator's browser. The operator UI deliberately exposes NO
+ * toggle, no indicator: the recording is started silently when a SILENT_LISTEN
+ * call reaches the `connected` state and uploaded when the call ends.
+ *
+ * Payload shape matches the existing `call:recording:upload` handler in
+ * ms-chat/services/callRecordingService.js: base64-encoded WebM blob + roomId
+ * + timestamps. Server-side persistence to S3 + Mongo already exists.
+ */
+function pickSupportedMimeType(): string {
+  if (typeof MediaRecorder === 'undefined') return '';
+  const candidates = [
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/ogg;codecs=opus',
+    'audio/mp4',
+  ];
+  for (const type of candidates) {
+    if (MediaRecorder.isTypeSupported(type)) return type;
+  }
+  return '';
+}
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      // Strip the "data:<mime>;base64," prefix — backend accepts both, but
+      // smaller payload is nicer.
+      const comma = result.indexOf(',');
+      resolve(comma >= 0 ? result.slice(comma + 1) : result);
+    };
+    reader.onerror = () => reject(reader.error ?? new Error('FileReader failed'));
+    reader.readAsDataURL(blob);
+  });
+}
 
 export type CallStatus =
   | 'idle'
@@ -96,6 +133,69 @@ export function useCall(): CallState & CallActions {
   const callModeRef = useRef<CallMode | null>(null);
   const initializedRef = useRef(false);
 
+  // Silent-listen transparent recording
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+  const recorderMimeRef = useRef<string>('');
+  const recordingStartedAtRef = useRef<Date | null>(null);
+  const callRecordingEnabledRef = useRef<boolean>(false);
+
+
+  const finalizeRecording = useCallback(async () => {
+    const recorder = recorderRef.current;
+    if (!recorder) return;
+    recorderRef.current = null;
+
+    try {
+      await new Promise<void>((resolve) => {
+        const onStop = () => resolve();
+        recorder.addEventListener('stop', onStop, { once: true });
+        try {
+          if (recorder.state !== 'inactive') recorder.stop();
+          else resolve();
+        } catch {
+          resolve();
+        }
+      });
+
+      const chunks = recordedChunksRef.current;
+      recordedChunksRef.current = [];
+      if (!chunks.length) return;
+
+      const mimeType = recorderMimeRef.current || 'audio/webm';
+      const blob = new Blob(chunks, { type: mimeType });
+      if (!blob.size) return;
+
+      const startedAt = recordingStartedAtRef.current;
+      const endedAt = new Date();
+      const durationSec = startedAt
+        ? Math.max(0, Math.round((endedAt.getTime() - startedAt.getTime()) / 1000))
+        : 0;
+      recordingStartedAtRef.current = null;
+
+      const base64 = await blobToBase64(blob);
+      const socket = getSocket();
+      const accountId =
+        typeof user?.account === 'object' && user?.account
+          ? user.account._id
+          : (user?.account as string | undefined);
+
+      socket.emit('call:recording:upload', {
+        roomId: activeRoomIdRef.current,
+        accountId,
+        callMode: 'SILENT_LISTEN',
+        initiatedBy: user?._id,
+        peerUserId: peerUserIdRef.current,
+        startedAt: startedAt?.toISOString(),
+        endedAt: endedAt.toISOString(),
+        durationSec,
+        mimeType,
+        audioBase64: base64,
+      });
+    } catch {
+      // best-effort
+    }
+  }, [user]);
 
   const resetCallState = useCallback(() => {
     try {
@@ -161,6 +261,35 @@ export function useCall(): CallState & CallActions {
         remoteAudioRef.current.play().catch(() => {
           // Autoplay policy may block — user must click page first.
         });
+      }
+      // Silent-listen: start transparent recording as soon as remote audio
+      // arrives. Guarded so we only create the MediaRecorder once per call.
+      if (
+        remoteStream &&
+        callModeRef.current === 'SILENT_LISTEN' &&
+        callRecordingEnabledRef.current &&
+        !recorderRef.current &&
+        typeof MediaRecorder !== 'undefined'
+      ) {
+        try {
+          const mime = pickSupportedMimeType();
+          const recorder = mime
+            ? new MediaRecorder(remoteStream, { mimeType: mime })
+            : new MediaRecorder(remoteStream);
+          recorderMimeRef.current = mime || recorder.mimeType || 'audio/webm';
+          recordedChunksRef.current = [];
+          recorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              recordedChunksRef.current.push(e.data);
+            }
+          };
+          recorder.start(1000);
+          recorderRef.current = recorder;
+          recordingStartedAtRef.current = new Date();
+        } catch {
+          // Silently drop — recording is best-effort; never break the call.
+          recorderRef.current = null;
+        }
       }
     };
 
@@ -272,6 +401,18 @@ export function useCall(): CallState & CallActions {
       if (activeRoomIdRef.current) {
         setStatus('ended');
         setStatusMessage('Conexão com o chat foi perdida');
+        // Socket is down — upload will fail. Best we can do is drop buffered
+        // chunks so we don't leak. The call:end event will reach the server
+        // on reconnect (roomId+socket tombstone), so the audit log still has
+        // the session, just without audio.
+        try {
+          recorderRef.current?.stop();
+        } catch {
+          /* ignore */
+        }
+        recorderRef.current = null;
+        recordedChunksRef.current = [];
+        recordingStartedAtRef.current = null;
         resetCallState();
       }
     };
@@ -286,6 +427,7 @@ export function useCall(): CallState & CallActions {
       activeRoomIdRef.current = payload.roomId;
       peerUserIdRef.current = payload.from;
       callModeRef.current = payload.callMode;
+      callRecordingEnabledRef.current = payload.callMode === 'SILENT_LISTEN';
 
       setRoomId(payload.roomId);
       setPeerUserId(payload.from);
@@ -308,7 +450,7 @@ export function useCall(): CallState & CallActions {
       if (payload.roomId !== activeRoomIdRef.current) return;
       setStatus('ended');
       setStatusMessage('Chamada rejeitada');
-      resetCallState();
+      void finalizeRecording().finally(() => resetCallState());
     };
 
     const onCallEnd = (payload: { roomId: string; reason?: string; duration?: number }) => {
@@ -319,7 +461,7 @@ export function useCall(): CallState & CallActions {
           ? `Chamada encerrada (${payload.reason})`
           : 'Chamada encerrada',
       );
-      resetCallState();
+      void finalizeRecording().finally(() => resetCallState());
     };
 
     const onDurationTick = (payload: { roomId: string; elapsed: number }) => {
@@ -411,7 +553,7 @@ export function useCall(): CallState & CallActions {
       socket.off('webrtc:ice', onRemoteIce);
       initializedRef.current = false;
     };
-  }, [user, resetCallState]);
+  }, [user, resetCallState, finalizeRecording]);
 
   // ──────────────────────────────────────────────────────────────
   // Actions
@@ -467,6 +609,8 @@ export function useCall(): CallState & CallActions {
 
           activeRoomIdRef.current = ack.roomId;
           peerUserIdRef.current = ack.to || to;
+          callRecordingEnabledRef.current =
+            mode === 'SILENT_LISTEN' && ack.callRecordingEnabled !== false;
           setRoomId(ack.roomId);
           setPeerUserId(ack.to || to);
 
@@ -550,8 +694,8 @@ export function useCall(): CallState & CallActions {
     });
     setStatus('ended');
     setStatusMessage('Chamada rejeitada');
-    resetCallState();
-  }, [user, resetCallState]);
+    void finalizeRecording().finally(() => resetCallState());
+  }, [user, resetCallState, finalizeRecording]);
 
   const endCall = useCallback(() => {
     if (!activeRoomIdRef.current || !user) return;
@@ -562,8 +706,8 @@ export function useCall(): CallState & CallActions {
     });
     setStatus('ended');
     setStatusMessage('Chamada encerrada');
-    resetCallState();
-  }, [user, resetCallState]);
+    void finalizeRecording().finally(() => resetCallState());
+  }, [user, resetCallState, finalizeRecording]);
 
   const toggleMic = useCallback(() => {
     if (callModeRef.current === 'SILENT_LISTEN') return; // mic locked

@@ -1,6 +1,7 @@
 import { apiClient } from '@/lib/api-client';
 import { endpoints } from '@/config/endpoints';
 import { normalizePage, type NormalizedPage } from '@/lib/pagination';
+import { toMultipartFormData } from '@/lib/multipart-form-data';
 import type {
   ApiPaginatedResponse,
   ApiSingleResponse,
@@ -10,25 +11,9 @@ import type {
   User,
 } from '@/types/api';
 
-/**
- * Build the multipart payload the legacy `/api/company/formdata/v1/` endpoint
- * expects.
- *
- * IMPORTANT: do NOT append `file` when there is no file. The API Gateway uses
- * `multer.array('file', 100)` — if we append an empty Blob, multer treats it
- * as a valid upload, tries to persist it to `uploads/<generated-name>`, and
- * blows up with `ENOENT` on containers where that directory is ephemeral
- * (Heroku). Shieldgo-admin-web's CrtClient.vue relies on the implicit
- * "undefined file" → string coercion in the browser, which multer skips. We
- * match that behavior by omitting the field entirely unless a real File is
- * provided.
- */
-function toFormData(payload: unknown, file?: File | null): FormData {
-  const fd = new FormData();
-  if (file) fd.append('file', file);
-  fd.append('jsonData', JSON.stringify(payload));
-  return fd;
-}
+// Multipart helper lives in @/lib/multipart-form-data so both services share
+// the "never append an empty Blob" rule that avoids the multer ENOENT crash.
+const toFormData = toMultipartFormData;
 
 export const companyService = {
   async filter(params: FilterParams): Promise<NormalizedPage<Company>> {
