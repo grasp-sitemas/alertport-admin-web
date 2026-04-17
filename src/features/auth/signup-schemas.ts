@@ -1,16 +1,19 @@
 import { z } from 'zod';
 import { passesPasswordPolicy } from './password-policy';
-import { isValidBrDocument } from '@/lib/br-documents';
+import { isValidBrDocument, normalizeBrDocument } from '@/lib/br-documents';
 
 // Company (step 1)
 export const signupCompanySchema = z.object({
   name: z.string().trim().min(2, { message: 'validation.required' }),
   fantasyName: z.string().trim(),
+  // Accepts CPF (11 digits) OR CNPJ — legacy numeric AND the new alphanumeric
+  // CNPJ spec (IN RFB 2.229/2024). The transform strips separators and
+  // uppercases letters so both branches validate uniformly.
   document: z
     .string()
     .trim()
-    .min(11, { message: 'signup.company.documentInvalid' })
-    .transform((v) => v.replace(/[^\d]/g, ''))
+    .min(1, { message: 'signup.company.documentInvalid' })
+    .transform((v) => normalizeBrDocument(v))
     .refine((v) => v.length === 11 || v.length === 14, {
       message: 'signup.company.documentInvalid',
     })
