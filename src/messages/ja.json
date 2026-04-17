@@ -423,7 +423,8 @@
     "deleteConfirm": "このクライアントをアーカイブしますか？",
     "deleteSuccess": "クライアントをアーカイブしました",
     "createSuccess": "クライアントを作成しました",
-    "updateSuccess": "クライアントを更新しました"
+    "updateSuccess": "クライアントを更新しました",
+    "accountRequired": "クライアントのアカウントを選択してください"
   },
   "sites": {
     "title": "拠点",

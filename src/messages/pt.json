@@ -423,7 +423,8 @@
     "deleteConfirm": "Tem certeza que deseja arquivar este cliente?",
     "deleteSuccess": "Cliente arquivado com sucesso",
     "createSuccess": "Cliente criado com sucesso",
-    "updateSuccess": "Cliente atualizado com sucesso"
+    "updateSuccess": "Cliente atualizado com sucesso",
+    "accountRequired": "Selecione uma conta para este cliente"
   },
   "sites": {
     "title": "Postos",
