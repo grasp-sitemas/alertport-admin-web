@@ -10,6 +10,7 @@ import {
   Building2,
   Briefcase,
   MapPin,
+  Gem,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserSubtype } from '@/types/api';
@@ -120,6 +121,12 @@ export const navigation: NavSection[] = [
         titleKey: 'sidebar.companySettings',
         href: '/company',
         icon: Building2,
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN'],
+      },
+      {
+        titleKey: 'sidebar.plan',
+        href: '/plan',
+        icon: Gem,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN'],
       },
     ],

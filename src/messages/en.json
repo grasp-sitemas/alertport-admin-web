@@ -1,28 +1,48 @@
 {
   "str": {
     "helpers": {
+      "type": {
+        "reports": {
+          "performance": {
+            "local": "Performance locals"
+          },
+          "patrols": "Patrols",
+          "alert": {
+            "sos": "SOS alerts"
+          },
+          "incidents": "Incidents",
+          "events": {
+            "not": {
+              "attended": "Events not attended"
+            }
+          },
+          "supervision": {
+            "patrols": "Supervision patrols"
+          },
+          "analysis": {
+            "patrols": {
+              "integration": "Analysis patrols - Integration"
+            }
+          },
+          "sequential": {
+            "reading": {
+              "history": "Historical Data"
+            }
+          }
+        }
+      },
       "equipments": {
         "brands": {
-          "ALERTPORT": "ALERTPORT",
+          "ZOOY": "ZOOY",
           "JWM": "JWM",
-          "OTHER": "Other",
-          "ZOOY": "ZOOY"
+          "ALERTPORT": "ALERTPORT",
+          "OTHER": "Other"
         },
         "types": {
-          "DEVICE-OTHER": "Other",
           "DEVICE-PHONE": "Phone",
           "DEVICE-READER": "Reader",
-          "EQUIPMENT-SENSOR": "Sensor"
+          "DEVICE-OTHER": "Other"
         }
-      }
-    },
-    "event": {
-      "filter": {
-        "all": "All",
-        "sos_alert": "SOS Alert",
-        "incident": "Incident",
-        "cancel_patrol": "Cancelled patrol",
-        "failure_patrol": "Patrol failure"
       }
     }
   },
@@ -144,7 +164,8 @@
     "companySettings": "Settings",
     "schedules": "Schedules",
     "timelines": "Timelines",
-    "monitoring": "Monitoring"
+    "monitoring": "Monitoring",
+    "plan": "Plan"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -398,51 +419,46 @@
     "qrDownload": "Download",
     "qrPrint": "Print"
   },
-  "str": {
-    "helpers": {
-      "type": {
-        "reports": {
-          "performance": {
-            "local": "Performance locals"
-          },
-          "patrols": "Patrols",
-          "alert": {
-            "sos": "SOS alerts"
-          },
-          "incidents": "Incidents",
-          "events": {
-            "not": {
-              "attended": "Events not attended"
-            }
-          },
-          "supervision": {
-            "patrols": "Supervision patrols"
-          },
-          "analysis": {
-            "patrols": {
-              "integration": "Analysis patrols - Integration"
-            }
-          },
-          "sequential": {
-            "reading": {
-              "history": "Historical Data"
-            }
-          }
-        }
-      },
-      "equipments": {
-        "brands": {
-          "ZOOY": "ZOOY",
-          "JWM": "JWM",
-          "ALERTPORT": "ALERTPORT",
-          "OTHER": "Other"
-        },
-        "types": {
-          "DEVICE-PHONE": "Phone",
-          "DEVICE-READER": "Reader",
-          "DEVICE-OTHER": "Other"
-        }
-      }
+  "trial": {
+    "badgeAria": "Trial — {days} days remaining",
+    "badgeExpiredAria": "Trial expired",
+    "badgeExpired": "Expired",
+    "badgeEndingToday": "Ends today",
+    "badgeDaysRemaining": "{count} {count, plural, one {day} other {days}}",
+    "bannerExpiredTitle": "Your trial has ended",
+    "bannerExpiredDescription": "Subscribe to a plan to continue using all features.",
+    "bannerDescription": "Enjoy all features during your trial period.",
+    "bannerEndingToday": "Your trial ends today",
+    "bannerDaysRemaining": "{count} {count, plural, one {day} other {days}} left in your trial",
+    "upgradeCta": "Upgrade plan",
+    "viewPlanCta": "View plan",
+    "errors": {
+      "expired": "Trial period ended",
+      "expiredDescription": "Subscribe to a plan to continue.",
+      "limitReached": "Limit reached for {resource}",
+      "limitReachedDescription": "Upgrade your plan to create more.",
+      "featureUnavailable": "Feature not available on your plan",
+      "featureUnavailableDescription": "Upgrade to unlock this feature.",
+      "readonly": "Read-only mode",
+      "readonlyDescription": "Your trial has ended. Activate a plan to edit.",
+      "blocked": "Action blocked by current plan"
+    }
+  },
+  "plan": {
+    "title": "Plan",
+    "subtitle": "Track your usage, limits and current plan features.",
+    "currentPlan": "Current plan",
+    "trialEnds": "Trial ends on",
+    "limitsAndUsage": "Limits & usage",
+    "features": "Included features",
+    "limits": {
+      "users": "Users",
+      "devices": "Devices",
+      "sites": "Sites",
+      "clients": "Clients",
+      "incidents": "Incidents",
+      "integrations": "Integrations",
+      "reportsPerMonth": "Reports / month"
     }
   }
 }

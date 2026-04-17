@@ -1,28 +1,48 @@
 {
   "str": {
     "helpers": {
+      "type": {
+        "reports": {
+          "performance": {
+            "local": "拠点パフォーマンス"
+          },
+          "patrols": "巡回",
+          "alert": {
+            "sos": "SOSアラート"
+          },
+          "incidents": "インシデント",
+          "events": {
+            "not": {
+              "attended": "未対応イベント"
+            }
+          },
+          "supervision": {
+            "patrols": "監督巡回"
+          },
+          "analysis": {
+            "patrols": {
+              "integration": "巡回分析 - 連携"
+            }
+          },
+          "sequential": {
+            "reading": {
+              "history": "履歴データ"
+            }
+          }
+        }
+      },
       "equipments": {
         "brands": {
-          "ALERTPORT": "ALERTPORT",
+          "ZOOY": "ZOOY",
           "JWM": "JWM",
-          "OTHER": "その他",
-          "ZOOY": "ZOOY"
+          "ALERTPORT": "ALERTPORT",
+          "OTHER": "その他"
         },
         "types": {
-          "DEVICE-OTHER": "その他",
           "DEVICE-PHONE": "電話",
           "DEVICE-READER": "リーダー",
-          "EQUIPMENT-SENSOR": "センサー"
+          "DEVICE-OTHER": "その他"
         }
-      }
-    },
-    "event": {
-      "filter": {
-        "all": "すべて",
-        "sos_alert": "SOSアラート",
-        "incident": "インシデント",
-        "cancel_patrol": "パトロールキャンセル",
-        "failure_patrol": "パトロール失敗"
       }
     }
   },
@@ -144,7 +164,8 @@
     "companySettings": "設定",
     "schedules": "スケジュール",
     "timelines": "タイムライン",
-    "monitoring": "モニタリング"
+    "monitoring": "モニタリング",
+    "plan": "プラン"
   },
   "dashboard": {
     "title": "ダッシュボード",
@@ -398,51 +419,46 @@
     "qrDownload": "ダウンロード",
     "qrPrint": "印刷"
   },
-  "str": {
-    "helpers": {
-      "type": {
-        "reports": {
-          "performance": {
-            "local": "拠点パフォーマンス"
-          },
-          "patrols": "巡回",
-          "alert": {
-            "sos": "SOSアラート"
-          },
-          "incidents": "インシデント",
-          "events": {
-            "not": {
-              "attended": "未対応イベント"
-            }
-          },
-          "supervision": {
-            "patrols": "監督巡回"
-          },
-          "analysis": {
-            "patrols": {
-              "integration": "巡回分析 - 連携"
-            }
-          },
-          "sequential": {
-            "reading": {
-              "history": "履歴データ"
-            }
-          }
-        }
-      },
-      "equipments": {
-        "brands": {
-          "ZOOY": "ZOOY",
-          "JWM": "JWM",
-          "ALERTPORT": "ALERTPORT",
-          "OTHER": "その他"
-        },
-        "types": {
-          "DEVICE-PHONE": "電話",
-          "DEVICE-READER": "リーダー",
-          "DEVICE-OTHER": "その他"
-        }
-      }
+  "trial": {
+    "badgeAria": "トライアル — 残り{days}日",
+    "badgeExpiredAria": "トライアル期限切れ",
+    "badgeExpired": "期限切れ",
+    "badgeEndingToday": "本日終了",
+    "badgeDaysRemaining": "残り{count}日",
+    "bannerExpiredTitle": "トライアル期間が終了しました",
+    "bannerExpiredDescription": "引き続きご利用いただくにはプランへのご加入が必要です。",
+    "bannerDescription": "トライアル期間中は全機能をご利用いただけます。",
+    "bannerEndingToday": "トライアルは本日終了します",
+    "bannerDaysRemaining": "トライアル期間残り{count}日",
+    "upgradeCta": "プランを契約",
+    "viewPlanCta": "プランを見る",
+    "errors": {
+      "expired": "トライアル期間が終了しました",
+      "expiredDescription": "続行するにはプランを契約してください。",
+      "limitReached": "{resource}の上限に達しました",
+      "limitReachedDescription": "さらに作成するにはプランをアップグレードしてください。",
+      "featureUnavailable": "この機能は現在のプランでは利用できません",
+      "featureUnavailableDescription": "アップグレードして機能を解放してください。",
+      "readonly": "読み取り専用モード",
+      "readonlyDescription": "トライアルが終了しました。編集するにはプランを契約してください。",
+      "blocked": "現在のプランによりブロックされました"
+    }
+  },
+  "plan": {
+    "title": "プラン",
+    "subtitle": "現在のプランの使用量、制限、機能を確認します。",
+    "currentPlan": "現在のプラン",
+    "trialEnds": "トライアル終了日",
+    "limitsAndUsage": "制限と使用量",
+    "features": "含まれる機能",
+    "limits": {
+      "users": "ユーザー",
+      "devices": "デバイス",
+      "sites": "サイト",
+      "clients": "クライアント",
+      "incidents": "インシデント",
+      "integrations": "統合",
+      "reportsPerMonth": "レポート / 月"
     }
   }
 }

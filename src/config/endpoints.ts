@@ -123,6 +123,17 @@ export const endpoints = {
   guardGroups: url('/api/users/guardgroups/v1/'),
   deleteGuardGroup: url('/api/users/guardgroups/delete/v1/'),
 
+  // ─── Trial / Plan ────────────────────────────────────────
+  trialContext: url('/api/company/trial/context/v1/'),
+  trialStatus: url('/api/company/trial/status/v1/'),
+  trialHistory: url('/api/company/trial/history/v1/'),
+  trialStart: url('/api/company/trial/start/v1/'),
+  trialExtend: url('/api/company/trial/extend/v1/'),
+  trialExpire: url('/api/company/trial/expire/v1/'),
+  trialConvert: url('/api/company/trial/convert/v1/'),
+  planFeatures: url('/api/company/plan/features/v1/'),
+  planLimits: url('/api/company/plan/limits/v1/'),
+
   // ─── Addresses / Geolocation ─────────────────────────────
   addressGeolocation: url('/api/address/geo/v1/'),
 

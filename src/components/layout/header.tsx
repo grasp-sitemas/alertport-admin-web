@@ -18,6 +18,7 @@ import { RoleBadge } from '@/components/shared/status-badge';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import { ChatConnectionBadge } from '@/features/calls/call-dialog';
 import { useCallContext } from '@/features/calls/call-context';
+import { TrialBadge } from '@/components/trial/trial-badge';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -46,6 +47,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
         {/* Right: actions */}
         <div className="flex items-center gap-2">
+          <TrialBadge />
           {call && (
             <div className="hidden sm:block">
               <ChatConnectionBadge connected={call.socketConnected} />

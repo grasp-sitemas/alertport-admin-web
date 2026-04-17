@@ -1,28 +1,48 @@
 {
   "str": {
     "helpers": {
+      "type": {
+        "reports": {
+          "performance": {
+            "local": "Performance de locais"
+          },
+          "patrols": "Rondas",
+          "alert": {
+            "sos": "Alertas de SOS"
+          },
+          "incidents": "Incidentes",
+          "events": {
+            "not": {
+              "attended": "Eventos não atendidos"
+            }
+          },
+          "supervision": {
+            "patrols": "Rondas de supervisão"
+          },
+          "analysis": {
+            "patrols": {
+              "integration": "Análise de rondas - Integração"
+            }
+          },
+          "sequential": {
+            "reading": {
+              "history": "Dados Históricos"
+            }
+          }
+        }
+      },
       "equipments": {
         "brands": {
-          "ALERTPORT": "ALERTPORT",
+          "ZOOY": "ZOOY",
           "JWM": "JWM",
-          "OTHER": "Outro",
-          "ZOOY": "ZOOY"
+          "ALERTPORT": "ALERTPORT",
+          "OTHER": "Outro"
         },
         "types": {
-          "DEVICE-OTHER": "Outro",
           "DEVICE-PHONE": "Celular",
           "DEVICE-READER": "Leitor",
-          "EQUIPMENT-SENSOR": "Sensor"
+          "DEVICE-OTHER": "Outro"
         }
-      }
-    },
-    "event": {
-      "filter": {
-        "all": "Todos",
-        "sos_alert": "Alerta SOS",
-        "incident": "Incidente",
-        "cancel_patrol": "Ronda cancelada",
-        "failure_patrol": "Falha de ronda"
       }
     }
   },
@@ -144,7 +164,8 @@
     "companySettings": "Configurações",
     "schedules": "Agendamentos",
     "timelines": "Timelines",
-    "monitoring": "Monitoramento"
+    "monitoring": "Monitoramento",
+    "plan": "Plano"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -398,51 +419,46 @@
     "qrDownload": "Baixar",
     "qrPrint": "Imprimir"
   },
-  "str": {
-    "helpers": {
-      "type": {
-        "reports": {
-          "performance": {
-            "local": "Performance de locais"
-          },
-          "patrols": "Rondas",
-          "alert": {
-            "sos": "Alertas de SOS"
-          },
-          "incidents": "Incidentes",
-          "events": {
-            "not": {
-              "attended": "Eventos não atendidos"
-            }
-          },
-          "supervision": {
-            "patrols": "Rondas de supervisão"
-          },
-          "analysis": {
-            "patrols": {
-              "integration": "Análise de rondas - Integração"
-            }
-          },
-          "sequential": {
-            "reading": {
-              "history": "Dados Históricos"
-            }
-          }
-        }
-      },
-      "equipments": {
-        "brands": {
-          "ZOOY": "ZOOY",
-          "JWM": "JWM",
-          "ALERTPORT": "ALERTPORT",
-          "OTHER": "Outro"
-        },
-        "types": {
-          "DEVICE-PHONE": "Celular",
-          "DEVICE-READER": "Leitor",
-          "DEVICE-OTHER": "Outro"
-        }
-      }
+  "trial": {
+    "badgeAria": "Teste gratuito — {days} dias restantes",
+    "badgeExpiredAria": "Teste gratuito expirado",
+    "badgeExpired": "Expirado",
+    "badgeEndingToday": "Encerra hoje",
+    "badgeDaysRemaining": "{count} {count, plural, one {dia} other {dias}}",
+    "bannerExpiredTitle": "Seu teste gratuito acabou",
+    "bannerExpiredDescription": "Para continuar usando todos os recursos, contrate um plano.",
+    "bannerDescription": "Aproveite todos os recursos durante o período de teste.",
+    "bannerEndingToday": "Seu teste gratuito encerra hoje",
+    "bannerDaysRemaining": "Restam {count} {count, plural, one {dia} other {dias}} no seu teste",
+    "upgradeCta": "Contratar plano",
+    "viewPlanCta": "Ver plano",
+    "errors": {
+      "expired": "Período de teste encerrado",
+      "expiredDescription": "Contrate um plano para continuar.",
+      "limitReached": "Limite atingido para {resource}",
+      "limitReachedDescription": "Aumente o plano para criar mais.",
+      "featureUnavailable": "Recurso indisponível no seu plano",
+      "featureUnavailableDescription": "Faça upgrade para ativar este recurso.",
+      "readonly": "Modo somente leitura",
+      "readonlyDescription": "Seu período de teste terminou. Ative um plano para editar.",
+      "blocked": "Ação bloqueada pelo plano atual"
+    }
+  },
+  "plan": {
+    "title": "Plano",
+    "subtitle": "Acompanhe seu uso, limites e recursos do plano atual.",
+    "currentPlan": "Plano atual",
+    "trialEnds": "Teste termina em",
+    "limitsAndUsage": "Limites e uso",
+    "features": "Recursos incluídos",
+    "limits": {
+      "users": "Usuários",
+      "devices": "Dispositivos",
+      "sites": "Locais",
+      "clients": "Clientes",
+      "incidents": "Incidentes",
+      "integrations": "Integrações",
+      "reportsPerMonth": "Relatórios / mês"
     }
   }
 }
