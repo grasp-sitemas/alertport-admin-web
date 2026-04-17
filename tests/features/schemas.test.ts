@@ -22,15 +22,43 @@ describe('loginSchema', () => {
 });
 
 describe('userFormSchema', () => {
-  it('accepts a valid user', () => {
+  it('accepts a valid ADMIN user without client/site', () => {
     const parsed = userFormSchema.safeParse({
       firstName: 'John',
       lastName: 'Doe',
       email: 'a@b.com',
       status: 'ACTIVE',
+      companyUser: { subtype: 'ADMIN', status: 'ACTIVE' },
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it('accepts a valid OPERATOR user WITH client', () => {
+    const parsed = userFormSchema.safeParse({
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'a@b.com',
+      client: 'cli-1',
+      status: 'ACTIVE',
       companyUser: { subtype: 'OPERATOR', status: 'ACTIVE' },
     });
     expect(parsed.success).toBe(true);
+  });
+
+  it('rejects OPERATOR / MANAGER / AUDITOR without client', () => {
+    const base = {
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'a@b.com',
+      status: 'ACTIVE' as const,
+    };
+    for (const subtype of ['OPERATOR', 'MANAGER', 'AUDITOR'] as const) {
+      const parsed = userFormSchema.safeParse({
+        ...base,
+        companyUser: { subtype, status: 'ACTIVE' },
+      });
+      expect(parsed.success).toBe(false);
+    }
   });
 
   it('rejects mismatched passwords', () => {
@@ -38,6 +66,7 @@ describe('userFormSchema', () => {
       firstName: 'John',
       lastName: 'Doe',
       email: 'a@b.com',
+      client: 'cli-1',
       password: 'a',
       confirmPassword: 'b',
       status: 'ACTIVE',

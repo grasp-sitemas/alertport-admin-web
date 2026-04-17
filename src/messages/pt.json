@@ -82,7 +82,8 @@
     "type": "Tipo",
     "description": "Descrição",
     "notes": "Observações",
-    "total": "Total"
+    "total": "Total",
+    "optional": "opcional"
   },
   "auth": {
     "login": "Entrar",
@@ -392,7 +393,10 @@
     "deleteConfirm": "Tem certeza que deseja arquivar este posto?",
     "deleteSuccess": "Posto arquivado com sucesso",
     "createSuccess": "Posto criado com sucesso",
-    "updateSuccess": "Posto atualizado com sucesso"
+    "updateSuccess": "Posto atualizado com sucesso",
+    "qrTitle": "QR Code do posto",
+    "qrDownload": "Baixar",
+    "qrPrint": "Imprimir"
   },
   "str": {
     "helpers": {

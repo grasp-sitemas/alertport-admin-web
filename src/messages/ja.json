@@ -82,7 +82,8 @@
     "type": "種類",
     "description": "説明",
     "notes": "備考",
-    "total": "合計"
+    "total": "合計",
+    "optional": "オプション"
   },
   "auth": {
     "login": "ログイン",
@@ -392,7 +393,10 @@
     "deleteConfirm": "この拠点をアーカイブしますか？",
     "deleteSuccess": "拠点をアーカイブしました",
     "createSuccess": "拠点を作成しました",
-    "updateSuccess": "拠点を更新しました"
+    "updateSuccess": "拠点を更新しました",
+    "qrTitle": "拠点のQRコード",
+    "qrDownload": "ダウンロード",
+    "qrPrint": "印刷"
   },
   "str": {
     "helpers": {

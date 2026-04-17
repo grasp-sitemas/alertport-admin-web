@@ -369,13 +369,21 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
               )}
             </div>
 
-            <div className="space-y-2 sm:col-span-2">
+            <div className="space-y-2">
               <Label>{t('common.email')}</Label>
               <Input type="email" {...register('email')} />
               {errors.email && (
                 <p className="text-xs text-red-400">{t(errors.email.message as string)}</p>
               )}
             </div>
+
+            {/* Employee code — read-only on edit (legacy), auto-generated server-side on create */}
+            {isEdit && (
+              <div className="space-y-2">
+                <Label>{t('collaborators.employeeCode')}</Label>
+                <Input {...register('customerUser.employeeCode')} disabled />
+              </div>
+            )}
 
             {!isEdit && (
               <div className="space-y-2 sm:col-span-2">

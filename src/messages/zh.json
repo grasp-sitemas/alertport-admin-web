@@ -82,7 +82,8 @@
     "type": "类型",
     "description": "描述",
     "notes": "备注",
-    "total": "总计"
+    "total": "总计",
+    "optional": "可选"
   },
   "auth": {
     "login": "登录",
@@ -392,7 +393,10 @@
     "deleteConfirm": "确定要归档此站点吗？",
     "deleteSuccess": "站点已归档",
     "createSuccess": "站点创建成功",
-    "updateSuccess": "站点更新成功"
+    "updateSuccess": "站点更新成功",
+    "qrTitle": "站点二维码",
+    "qrDownload": "下载",
+    "qrPrint": "打印"
   },
   "str": {
     "helpers": {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Plus, Pencil, Trash2, MapPin } from 'lucide-react';
+import { Plus, Pencil, Trash2, MapPin, QrCode } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/page-header';
@@ -14,6 +14,7 @@ import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { RoleGuard } from '@/components/shared/role-guard';
 import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { SiteFormDialog } from '@/features/sites/site-form-dialog';
+import { SiteQrDialog } from '@/features/sites/site-qr-dialog';
 import { companyService } from '@/services/company.service';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
@@ -32,6 +33,7 @@ export default function SitesPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Company | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<Company | undefined>();
+  const [qrTarget, setQrTarget] = useState<Company | undefined>();
 
   const queryParams = {
     ...buildFilterParams(pagination.paginationParams),
@@ -102,6 +104,18 @@ export default function SitesPage() {
       headerKey: 'common.actions',
       render: (item) => (
         <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            title={t('sites.qrTitle')}
+            onClick={(e) => {
+              e.stopPropagation();
+              setQrTarget(item);
+            }}
+          >
+            <QrCode className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -194,6 +208,11 @@ export default function SitesPage() {
         />
 
         <SiteFormDialog open={formOpen} onOpenChange={setFormOpen} site={editing} />
+        <SiteQrDialog
+          open={!!qrTarget}
+          onOpenChange={(open) => !open && setQrTarget(undefined)}
+          site={qrTarget}
+        />
         <ConfirmDialog
           open={!!deleteTarget}
           onOpenChange={(open) => !open && setDeleteTarget(undefined)}

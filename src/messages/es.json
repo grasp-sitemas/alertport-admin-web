@@ -82,7 +82,8 @@
     "type": "Tipo",
     "description": "Descripción",
     "notes": "Observaciones",
-    "total": "Total"
+    "total": "Total",
+    "optional": "opcional"
   },
   "auth": {
     "login": "Ingresar",
@@ -392,7 +393,10 @@
     "deleteConfirm": "¿Archivar este puesto?",
     "deleteSuccess": "Puesto archivado",
     "createSuccess": "Puesto creado",
-    "updateSuccess": "Puesto actualizado"
+    "updateSuccess": "Puesto actualizado",
+    "qrTitle": "QR Code del puesto",
+    "qrDownload": "Descargar",
+    "qrPrint": "Imprimir"
   },
   "str": {
     "helpers": {

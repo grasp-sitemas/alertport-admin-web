@@ -82,7 +82,8 @@
     "type": "Type",
     "description": "Description",
     "notes": "Notes",
-    "total": "Total"
+    "total": "Total",
+    "optional": "optional"
   },
   "auth": {
     "login": "Sign in",
@@ -392,7 +393,10 @@
     "deleteConfirm": "Are you sure you want to archive this site?",
     "deleteSuccess": "Site archived successfully",
     "createSuccess": "Site created successfully",
-    "updateSuccess": "Site updated successfully"
+    "updateSuccess": "Site updated successfully",
+    "qrTitle": "Site QR Code",
+    "qrDownload": "Download",
+    "qrPrint": "Print"
   },
   "str": {
     "helpers": {
