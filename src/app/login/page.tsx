@@ -16,6 +16,7 @@ import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import { loginSchema, type LoginFormValues } from '@/features/auth/schemas';
 import { useLogin } from '@/features/auth/use-login';
 import { RecoveryPasswordDialog } from '@/features/auth/recovery-password-dialog';
+import { SignupDialog } from '@/features/auth/signup-dialog';
 import { isSessionValid } from '@/lib/session';
 
 export default function LoginPage() {
@@ -23,6 +24,7 @@ export default function LoginPage() {
   const router = useRouter();
   const login = useLogin();
   const [recoveryOpen, setRecoveryOpen] = useState(false);
+  const [signupOpen, setSignupOpen] = useState(false);
 
   useEffect(() => {
     if (isSessionValid()) {
@@ -131,6 +133,29 @@ export default function LoginPage() {
                 )}
               </Button>
             </form>
+
+            {/* Divider */}
+            <div className="my-6 flex items-center gap-3">
+              <div className="h-px flex-1 bg-white/10" />
+              <span className="text-xs uppercase tracking-wider text-text-muted">
+                {t('auth.or')}
+              </span>
+              <div className="h-px flex-1 bg-white/10" />
+            </div>
+
+            {/* Signup CTA */}
+            <div className="text-center">
+              <p className="text-sm text-text-secondary">{t('auth.noAccountYet')}</p>
+              <button
+                type="button"
+                onClick={() => setSignupOpen(true)}
+                className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-brand-400 transition-colors hover:text-brand-300"
+              >
+                {t('auth.signupCta')}
+                <span aria-hidden>→</span>
+              </button>
+              <p className="mt-3 text-xs text-text-muted">{t('auth.signupBenefit')}</p>
+            </div>
           </div>
 
           <p className="text-center text-xs text-text-muted mt-6">
@@ -143,6 +168,16 @@ export default function LoginPage() {
         open={recoveryOpen}
         onOpenChange={setRecoveryOpen}
         defaultEmail={currentEmail}
+      />
+      <SignupDialog
+        open={signupOpen}
+        onOpenChange={setSignupOpen}
+        onSuccess={(email) => {
+          // Pre-fill /activate for the next step after the success screen closes.
+          const params = new URLSearchParams();
+          if (email) params.set('email', email);
+          router.prefetch(`/activate${params.toString() ? '?' + params.toString() : ''}`);
+        }}
       />
     </div>
   );

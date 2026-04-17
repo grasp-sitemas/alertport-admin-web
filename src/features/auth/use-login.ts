@@ -38,8 +38,20 @@ export function useLogin() {
       toast.success(t('auth.welcomeBack'));
       router.replace('/dashboard');
     },
-    onError: (error: AxiosError<{ messageId?: string; message?: string }>) => {
-      const messageId = error.response?.data?.messageId;
+    onError: (error: AxiosError<{ messageId?: string; message?: string; code?: string; email?: string }>) => {
+      const body = error.response?.data;
+      const messageId = body?.messageId;
+
+      // Self-signup: user registered but never confirmed the activation code.
+      // Redirect to /activate with the email pre-filled.
+      if (body?.code === 'EMAIL_NOT_VERIFIED' || messageId === 'response.user.email.not.verified') {
+        const email = body?.email ?? '';
+        toast.warning(t('signup.activation.notVerifiedToast'));
+        const params = new URLSearchParams();
+        if (email) params.set('email', email);
+        router.push(`/activate${params.toString() ? '?' + params.toString() : ''}`);
+        return;
+      }
 
       if (messageId === 'response.user.archived') {
         toast.error(t('auth.loginArchivedUser'));

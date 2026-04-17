@@ -10,6 +10,9 @@ function url(path: string): string {
 export const endpoints = {
   // ─── Auth ────────────────────────────────────────────────
   login: url('/api/users/system/login/v1/'),
+  signup: url('/api/users/system/signup/v1'),
+  activationConfirm: url('/api/users/system/activation/confirm/v1'),
+  activationResend: url('/api/users/system/activation/resend/v1'),
   me: url('/api/users/me/v1/'),
   companyUserMe: url('/api/users/system/companyuser/me/v1'),
   changeLanguage: url('/api/users/system/change/language/v1/'),
