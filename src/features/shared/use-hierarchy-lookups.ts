@@ -61,21 +61,21 @@ export function useClientsLookup(account?: string) {
 
 export function useSitesLookup(client?: string) {
   const scope = useUserScope();
-  const effectiveAccount = scope.accountId;
   const effectiveClient = client || scope.clientId;
 
   return useQuery({
-    queryKey: ['lookup', 'sites', effectiveAccount ?? '', effectiveClient ?? ''],
+    // Keyed ONLY by client so React Query re-fetches every time the user picks a
+    // different client. Matches legacy `Services.getSitesByClient` which sends
+    // just `{ client, status, type }` — no account — so the backend resolves
+    // sites purely from the client ID (and respects hierarchy server-side).
+    queryKey: ['lookup', 'sites', effectiveClient ?? ''],
     queryFn: () =>
       companyService.filterSites({
         skip: 1,
         limit: 500,
         status: 'ACTIVE',
-        ...(effectiveAccount ? { account: effectiveAccount } : {}),
-        ...(effectiveClient ? { client: effectiveClient } : {}),
+        client: effectiveClient,
       }),
-    // Wait for a client to be known (either picked or from session).
-    // The legacy changeClient handler only loads sites AFTER client is set.
     enabled: !!effectiveClient,
     staleTime: 5 * 60 * 1000,
   });
