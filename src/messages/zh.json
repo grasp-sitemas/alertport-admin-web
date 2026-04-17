@@ -423,7 +423,8 @@
     "deleteConfirm": "确定要归档此客户吗？",
     "deleteSuccess": "客户已归档",
     "createSuccess": "客户创建成功",
-    "updateSuccess": "客户更新成功"
+    "updateSuccess": "客户更新成功",
+    "accountRequired": "请为该客户选择账户"
   },
   "sites": {
     "title": "站点",

@@ -423,7 +423,8 @@
     "deleteConfirm": "¿Archivar este cliente?",
     "deleteSuccess": "Cliente archivado",
     "createSuccess": "Cliente creado",
-    "updateSuccess": "Cliente actualizado"
+    "updateSuccess": "Cliente actualizado",
+    "accountRequired": "Selecciona una cuenta para este cliente"
   },
   "sites": {
     "title": "Puestos",

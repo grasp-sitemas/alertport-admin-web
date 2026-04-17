@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import type { AxiosError } from 'axios';
 import {
   Dialog,
   DialogContent,
@@ -29,12 +30,23 @@ import { companyService } from '@/services/company.service';
 import { useAccountsLookup } from '@/features/shared/use-hierarchy-lookups';
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
+import { maskPhoneBR } from '@/lib/br-masks';
 import type { Company } from '@/types/api';
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   client?: Company;
+}
+
+interface ApiErrorItem {
+  id?: string;
+  text?: string;
+}
+interface ApiErrorBody {
+  messageId?: string;
+  message?: string;
+  errors?: ApiErrorItem[];
 }
 
 export function ClientFormDialog({ open, onOpenChange, client }: Props) {
@@ -53,18 +65,18 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
         _id: client._id,
         name: client.name ?? '',
         email: client.email || '',
-        primaryPhone: client.primaryPhone ?? '',
+        primaryPhone: (client.primaryPhone ?? '').replace(/\D/g, ''),
         owner: (client as unknown as { owner?: string }).owner ?? '',
         account:
           typeof client.account === 'object'
             ? (client.account?._id ?? '')
-            : (client.account as string | undefined) ?? '',
+            : ((client.account as string | undefined) ?? ''),
         type: 'CLIENT',
         status: client.status ?? 'ACTIVE',
       }
     : {
         ...DEFAULT_CLIENT_VALUES,
-        account: canSelectAccount ? '' : sessionAccountId || '',
+        account: canSelectAccount ? '' : (sessionAccountId ?? ''),
       };
 
   const {
@@ -72,9 +84,13 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
     control,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ClientFormValues>({
     resolver: zodResolver(clientFormSchema),
+    mode: 'onBlur',
+    reValidateMode: 'onBlur',
     defaultValues: defaults,
   });
 
@@ -85,9 +101,24 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
 
   const mutation = useMutation({
     mutationFn: async (data: ClientFormValues) => {
-      const payload = { ...data, type: 'CLIENT' as const };
-      if (isEdit && client) return companyService.update(client._id, payload);
-      return companyService.create(payload);
+      // Strip empty optional fields so Mongoose doesn't try to cast "" to
+      // ObjectId refs (account) or email-validate empty strings.
+      const sanitized: Record<string, unknown> = {
+        name: data.name,
+        type: 'CLIENT' as const,
+        status: data.status,
+        account: data.account,
+      };
+      if (data.email && data.email.trim()) sanitized.email = data.email.trim();
+      if (data.primaryPhone && data.primaryPhone.trim()) {
+        sanitized.primaryPhone = data.primaryPhone.replace(/\D/g, '');
+      }
+      if (data.owner && data.owner.trim()) sanitized.owner = data.owner.trim();
+
+      if (isEdit && client) {
+        return companyService.update(client._id, sanitized);
+      }
+      return companyService.create(sanitized as never);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
@@ -95,7 +126,20 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
       onOpenChange(false);
       reset();
     },
-    onError: () => toast.error(t('notifications.errorOccurred')),
+    onError: (err: AxiosError<ApiErrorBody>) => {
+      // Surface backend validation details when available — the generic
+      // "Ocorreu um erro. Tente novamente." gives no hint of WHICH field
+      // is missing.
+      const body = err.response?.data;
+      const detail =
+        body?.errors?.[0]?.text ||
+        body?.errors?.[0]?.id ||
+        body?.message ||
+        body?.messageId;
+      toast.error(t('notifications.errorOccurred'), {
+        description: detail ?? undefined,
+      });
+    },
   });
 
   return (
@@ -110,7 +154,10 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {canSelectAccount && (
               <div className="space-y-2 sm:col-span-2">
-                <Label>{t('common.account')}</Label>
+                <Label>
+                  {t('common.account')}
+                  <span className="text-red-400 ml-0.5">*</span>
+                </Label>
                 <Controller
                   control={control}
                   name="account"
@@ -129,10 +176,16 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
                     </Select>
                   )}
                 />
+                {errors.account && (
+                  <p className="text-xs text-red-400">{t(errors.account.message as string)}</p>
+                )}
               </div>
             )}
             <div className="space-y-2 sm:col-span-2">
-              <Label>{t('common.name')}</Label>
+              <Label>
+                {t('common.name')}
+                <span className="text-red-400 ml-0.5">*</span>
+              </Label>
               <Input {...register('name')} />
               {errors.name && (
                 <p className="text-xs text-red-400">{t(errors.name.message as string)}</p>
@@ -140,14 +193,25 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
             </div>
             <div className="space-y-2">
               <Label>{t('common.email')}</Label>
-              <Input type="email" {...register('email')} />
+              <Input type="email" {...register('email')} placeholder="nome@empresa.com" />
               {errors.email && (
                 <p className="text-xs text-red-400">{t(errors.email.message as string)}</p>
               )}
             </div>
             <div className="space-y-2">
               <Label>{t('common.phone')}</Label>
-              <Input {...register('primaryPhone')} />
+              <Input
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="(11) 99999-9999"
+                maxLength={16}
+                value={maskPhoneBR(watch('primaryPhone') ?? '')}
+                onChange={(e) =>
+                  setValue('primaryPhone', e.target.value.replace(/\D/g, ''), {
+                    shouldValidate: false,
+                  })
+                }
+              />
             </div>
             <div className="space-y-2">
               <Label>{t('clients.owner')}</Label>
