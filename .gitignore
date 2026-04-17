@@ -34,9 +34,14 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# Commit templates (no secrets) so the Vercel projects can mirror them
+!.env.example
+!.env.hml
+!.env.production
 
 # vercel
 .vercel
+.vercel.*.bak
 
 # typescript
 *.tsbuildinfo
