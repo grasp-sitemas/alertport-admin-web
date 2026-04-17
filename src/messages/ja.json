@@ -148,7 +148,8 @@
     "or": "または",
     "noAccountYet": "アカウントをお持ちでないですか？",
     "signupCta": "無料アカウント作成",
-    "signupBenefit": "14日間の無料トライアル · クレジットカード不要"
+    "signupBenefit": "14日間の無料トライアル · クレジットカード不要",
+    "alreadyHaveAccount": "すでにアカウントをお持ちですか？"
   },
   "sidebar": {
     "dashboard": "ダッシュボード",
@@ -477,7 +478,9 @@
       "documentInvalid": "無効な書類",
       "email": "ビジネスメール",
       "phone": "ビジネス電話",
-      "timezone": "タイムゾーン"
+      "timezone": "タイムゾーン",
+      "timezoneDetected": "検出済み",
+      "timezoneHint": "リストから選択するか、下の候補を使用してください。"
     },
     "user": {
       "title": "管理者アカウント",

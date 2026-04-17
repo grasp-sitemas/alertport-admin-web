@@ -148,7 +148,8 @@
     "or": "或",
     "noAccountYet": "还没有账户？",
     "signupCta": "免费创建账户",
-    "signupBenefit": "14 天免费试用 · 无需信用卡"
+    "signupBenefit": "14 天免费试用 · 无需信用卡",
+    "alreadyHaveAccount": "已有账户?"
   },
   "sidebar": {
     "dashboard": "仪表板",
@@ -477,7 +478,9 @@
       "documentInvalid": "无效的证件",
       "email": "企业邮箱",
       "phone": "企业电话",
-      "timezone": "时区"
+      "timezone": "时区",
+      "timezoneDetected": "已检测",
+      "timezoneHint": "从列表中选择时区,或使用下方建议。"
     },
     "user": {
       "title": "您的管理员账户",
