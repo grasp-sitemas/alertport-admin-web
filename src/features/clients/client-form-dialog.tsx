@@ -26,6 +26,9 @@ import {
 } from '@/components/ui/select';
 import { clientFormSchema, type ClientFormValues, DEFAULT_CLIENT_VALUES } from './schemas';
 import { companyService } from '@/services/company.service';
+import { useAccountsLookup } from '@/features/shared/use-hierarchy-lookups';
+import { isSuperAdminMaster } from '@/config/roles';
+import { useAuth } from '@/hooks/use-auth';
 import type { Company } from '@/types/api';
 
 interface Props {
@@ -37,7 +40,13 @@ interface Props {
 export function ClientFormDialog({ open, onOpenChange, client }: Props) {
   const t = useTranslations();
   const queryClient = useQueryClient();
+  const { userSubtype, user: sessionUser } = useAuth();
   const isEdit = !!client;
+  const canSelectAccount = isSuperAdminMaster(userSubtype);
+  const sessionAccountId =
+    typeof sessionUser?.account === 'object' ? sessionUser.account?._id : undefined;
+
+  const accountsLookup = useAccountsLookup();
 
   const defaults: ClientFormValues = client
     ? {
@@ -45,16 +54,18 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
         name: client.name ?? '',
         email: client.email || '',
         primaryPhone: client.primaryPhone ?? '',
-        owner:
-          (client as unknown as { owner?: string }).owner ?? '',
+        owner: (client as unknown as { owner?: string }).owner ?? '',
         account:
           typeof client.account === 'object'
-            ? client.account?._id
+            ? (client.account?._id ?? '')
             : (client.account as string | undefined) ?? '',
         type: 'CLIENT',
         status: client.status ?? 'ACTIVE',
       }
-    : DEFAULT_CLIENT_VALUES;
+    : {
+        ...DEFAULT_CLIENT_VALUES,
+        account: canSelectAccount ? '' : sessionAccountId || '',
+      };
 
   const {
     register,
@@ -97,6 +108,29 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
 
         <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {canSelectAccount && (
+              <div className="space-y-2 sm:col-span-2">
+                <Label>{t('common.account')}</Label>
+                <Controller
+                  control={control}
+                  name="account"
+                  render={({ field }) => (
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('common.selectOption')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(accountsLookup.data?.results ?? []).map((a) => (
+                          <SelectItem key={a._id} value={a._id}>
+                            {a.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            )}
             <div className="space-y-2 sm:col-span-2">
               <Label>{t('common.name')}</Label>
               <Input {...register('name')} />

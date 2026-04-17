@@ -29,7 +29,10 @@ import { siteFormSchema, type SiteFormValues, DEFAULT_SITE_VALUES } from './sche
 import { companyService } from '@/services/company.service';
 import { helpersService } from '@/services/helpers.service';
 import { useClientsLookup } from './use-clients-lookup';
+import { useAccountsLookup } from '@/features/shared/use-hierarchy-lookups';
 import { useCepLookup } from '@/hooks/use-cep-lookup';
+import { isSuperAdminMaster } from '@/config/roles';
+import { useAuth } from '@/hooks/use-auth';
 import type { Company } from '@/types/api';
 
 interface Props {
@@ -41,7 +44,11 @@ interface Props {
 export function SiteFormDialog({ open, onOpenChange, site }: Props) {
   const t = useTranslations();
   const queryClient = useQueryClient();
+  const { userSubtype, user: sessionUser } = useAuth();
   const isEdit = !!site;
+  const canSelectAccount = isSuperAdminMaster(userSubtype);
+  const sessionAccountId =
+    typeof sessionUser?.account === 'object' ? sessionUser.account?._id : undefined;
 
   const defaults: SiteFormValues = site
     ? {
@@ -75,7 +82,10 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
         type: 'SITE',
         status: site.status ?? 'ACTIVE',
       }
-    : DEFAULT_SITE_VALUES;
+    : {
+        ...DEFAULT_SITE_VALUES,
+        account: canSelectAccount ? '' : sessionAccountId || '',
+      };
 
   const {
     register,
@@ -95,6 +105,7 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
   }, [open, site?._id]);
 
   const accountWatched = useWatch({ control, name: 'account' });
+  const accountsLookup = useAccountsLookup();
   const clientsLookup = useClientsLookup(accountWatched || undefined);
 
   const cep = useCepLookup(setValue, 'address');
@@ -154,6 +165,37 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
           className="space-y-4"
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {canSelectAccount && (
+              <div className="space-y-2 sm:col-span-2">
+                <Label>{t('common.account')}</Label>
+                <Controller
+                  control={control}
+                  name="account"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value ?? ''}
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        // Clear client when account changes (cascade)
+                        setValue('client', '');
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('common.selectOption')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(accountsLookup.data?.results ?? []).map((a) => (
+                          <SelectItem key={a._id} value={a._id}>
+                            {a.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            )}
+
             <div className="space-y-2 sm:col-span-2">
               <Label>{t('common.name')}</Label>
               <Input {...register('name')} />
@@ -168,7 +210,7 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
                 control={control}
                 name="client"
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
                     <SelectTrigger>
                       <SelectValue placeholder={t('common.selectOption')} />
                     </SelectTrigger>
