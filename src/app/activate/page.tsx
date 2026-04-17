@@ -2,28 +2,34 @@
 
 export const dynamic = 'force-dynamic';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { toast } from 'sonner';
 import type { AxiosError } from 'axios';
-import { Mail, KeyRound, ShieldCheck, CheckCircle2, ArrowRight, Loader2, RefreshCw } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { CheckCircle2, AlertTriangle, Loader2, ArrowRight, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/layout/logo';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import { signupService } from '@/services/signup.service';
-import {
-  activationConfirmSchema,
-  type ActivationConfirmValues,
-} from '@/features/auth/signup-schemas';
 
+/**
+ * Link-based activation page.
+ *
+ * Flow:
+ *   1. User clicks the "Ativar minha conta" button in the activation email,
+ *      which points to `/activate?token=<base64url>&email=<email>`.
+ *   2. On mount, we POST to /api/users/system/activation/confirm/v1 with
+ *      { email, token }. While the request is in flight we show a
+ *      "verifying" spinner.
+ *   3. On success: big check + "Conta ativada" + CTA to /login.
+ *   4. On failure (missing / invalid / expired / user not found): friendly
+ *      error screen + "Reenviar link" button.
+ *
+ * No manual code input — we don't want users to type a 43-char base64 token.
+ * If they lose the email, they press "Reenviar link".
+ */
 export default function ActivatePage() {
-  // Next's CSR bailout requires useSearchParams to sit inside a Suspense boundary.
   return (
     <Suspense fallback={<div className="min-h-screen bg-app-gradient" />}>
       <ActivatePageContent />
@@ -31,77 +37,64 @@ export default function ActivatePage() {
   );
 }
 
+type Status = 'idle' | 'verifying' | 'success' | 'error';
+
 function ActivatePageContent() {
   const t = useTranslations();
   const router = useRouter();
   const params = useSearchParams();
-  const [done, setDone] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    getValues,
-    formState: { errors },
-  } = useForm<ActivationConfirmValues>({
-    resolver: zodResolver(activationConfirmSchema),
-    defaultValues: {
-      email: params.get('email') ?? '',
-      code: params.get('code') ?? '',
-    },
-  });
+  const email = (params.get('email') ?? '').trim().toLowerCase();
+  const token = (params.get('token') ?? '').trim();
 
-  // Auto-submit if both email + code come from the URL (e.g. user clicked
-  // a future "activation link"). Commented out until a link-style activation
-  // is adopted to keep this form idempotent.
-  useEffect(() => {
-    const e = params.get('email');
-    const c = params.get('code');
-    if (e) setValue('email', e);
-    if (c) setValue('code', c.toUpperCase());
-  }, [params, setValue]);
-
-  const resend = useMutation({
-    mutationFn: () => signupService.resend(getValues('email')),
-    onSuccess: () => toast.success(t('signup.activation.resentToast')),
-    onError: () => toast.error(t('signup.activation.generic')),
-  });
+  const [status, setStatus] = useState<Status>('idle');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const ranRef = useRef<boolean>(false);
 
   const confirm = useMutation({
-    mutationFn: (values: ActivationConfirmValues) =>
-      signupService.confirm({ email: values.email, code: values.code }),
+    mutationFn: (args: { email: string; token: string }) =>
+      signupService.confirm({ email: args.email, code: args.token }),
+    onMutate: () => setStatus('verifying'),
     onSuccess: () => {
-      setDone(true);
-      toast.success(t('signup.activation.successToast'));
+      setStatus('success');
     },
     onError: (err: AxiosError<{ code?: string }>) => {
       const code = err.response?.data?.code;
-      if (code === 'ACTIVATION_CODE_EXPIRED') {
-        toast.error(t('signup.activation.expired'));
-        return;
-      }
-      if (code === 'ACTIVATION_CODE_INVALID') {
-        toast.error(t('signup.activation.invalid'));
-        return;
-      }
-      if (code === 'USER_NOT_FOUND') {
-        toast.error(t('signup.activation.userNotFound'));
-        return;
-      }
-      if (code === 'ACTIVATION_CODE_MISSING') {
-        // The user's record has no active code stored — auto-generate a new one
-        // and tell them to check their inbox. Clear the stale input so they
-        // don't re-submit the same value.
-        toast.message(t('signup.activation.missingAutoResend'));
-        setValue('code', '');
-        if (getValues('email')) resend.mutate();
-        return;
-      }
-      toast.error(t('signup.activation.generic'));
+      const key =
+        code === 'ACTIVATION_CODE_EXPIRED'
+          ? 'signup.activation.expired'
+          : code === 'ACTIVATION_CODE_INVALID'
+            ? 'signup.activation.invalid'
+            : code === 'ACTIVATION_CODE_MISSING'
+              ? 'signup.activation.missingNoCode'
+              : code === 'USER_NOT_FOUND'
+                ? 'signup.activation.userNotFound'
+                : 'signup.activation.generic';
+      setErrorMessage(t(key));
+      setStatus('error');
     },
   });
 
-  const onSubmit = (data: ActivationConfirmValues) => confirm.mutate(data);
+  const resend = useMutation({
+    mutationFn: () => signupService.resend(email),
+    onSuccess: () => {
+      setErrorMessage(t('signup.activation.resentToast'));
+    },
+    onError: () => setErrorMessage(t('signup.activation.generic')),
+  });
+
+  // Run the activation exactly once on mount when we have a token + email.
+  useEffect(() => {
+    if (ranRef.current) return;
+    ranRef.current = true;
+    if (email && token) {
+      confirm.mutate({ email, token });
+    } else {
+      setStatus('error');
+      setErrorMessage(t('signup.activation.linkMissing'));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="relative min-h-screen flex flex-col bg-app-gradient overflow-hidden">
@@ -115,115 +108,29 @@ function ActivatePageContent() {
       <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
           <div className="rounded-3xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)] backdrop-blur-xl p-8 sm:p-10 shadow-[0_0_80px_rgba(179,38,30,0.08)]">
-            <div className="flex flex-col items-center text-center mb-6">
-              {done ? (
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/20">
-                  <CheckCircle2 className="h-8 w-8 text-emerald-400" />
-                </div>
-              ) : (
-                <div className="mb-4">
-                  <Logo size="lg" showText={false} className="scale-125" />
-                </div>
-              )}
-              <h1 className="text-xl font-semibold text-white">
-                {done ? t('signup.activation.doneTitle') : t('signup.activation.title')}
-              </h1>
-              <p className="mt-1 text-sm text-text-secondary">
-                {done ? t('signup.activation.doneSubtitle') : t('signup.activation.subtitle')}
-              </p>
+            {/* Central brand mark */}
+            <div className="mb-6 flex justify-center">
+              <Logo size="lg" showText={false} className="scale-125" />
             </div>
 
-            {!done && (
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t('signup.user.email')}</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
-                    <Input
-                      id="email"
-                      type="email"
-                      autoComplete="email"
-                      className="pl-10"
-                      placeholder="voce@empresa.com"
-                      {...register('email')}
-                    />
-                  </div>
-                  {errors.email && (
-                    <p className="text-xs text-red-400">{t(errors.email.message as string)}</p>
-                  )}
-                </div>
+            {status === 'verifying' && <VerifyingView t={t} />}
 
-                <div className="space-y-2">
-                  <Label htmlFor="code">{t('signup.activation.codeLabel')}</Label>
-                  <div className="relative">
-                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
-                    <Input
-                      id="code"
-                      autoComplete="one-time-code"
-                      className="pl-10 font-mono uppercase tracking-[0.35em] text-center"
-                      placeholder="ABC123"
-                      maxLength={6}
-                      {...register('code', {
-                        onChange: (e) =>
-                          setValue('code', e.target.value.toUpperCase(), { shouldValidate: false }),
-                      })}
-                    />
-                  </div>
-                  {errors.code && (
-                    <p className="text-xs text-red-400">{t(errors.code.message as string)}</p>
-                  )}
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full"
-                  size="lg"
-                  disabled={confirm.isPending}
-                >
-                  {confirm.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      {t('common.loading')}
-                    </>
-                  ) : (
-                    <>
-                      <ShieldCheck className="h-4 w-4" />
-                      {t('signup.activation.confirmCta')}
-                    </>
-                  )}
-                </Button>
-
-                <div className="flex items-center justify-between gap-3 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => resend.mutate()}
-                    disabled={resend.isPending || !getValues('email')}
-                    className="inline-flex items-center gap-1 text-text-muted hover:text-white disabled:opacity-50"
-                  >
-                    <RefreshCw className={`h-3 w-3 ${resend.isPending ? 'animate-spin' : ''}`} />
-                    {t('signup.activation.resendCta')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => router.replace('/login')}
-                    className="text-text-muted hover:text-white"
-                  >
-                    {t('signup.activation.backToLogin')}
-                  </button>
-                </div>
-              </form>
+            {status === 'success' && (
+              <SuccessView
+                t={t}
+                onLogin={() => router.replace('/login')}
+              />
             )}
 
-            {done && (
-              <div className="space-y-5 text-center">
-                <p className="text-sm text-text-secondary">
-                  {t('signup.activation.doneDescription')}
-                </p>
-                <Button className="w-full" size="lg" onClick={() => router.replace('/login')}>
-                  {t('auth.login')}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
+            {status === 'error' && (
+              <ErrorView
+                t={t}
+                message={errorMessage}
+                canResend={!!email}
+                onResend={() => resend.mutate()}
+                isResending={resend.isPending}
+                onBackToLogin={() => router.replace('/login')}
+              />
             )}
           </div>
 
@@ -232,6 +139,87 @@ function ActivatePageContent() {
           </p>
         </div>
       </main>
+    </div>
+  );
+}
+
+// ─── Views ──────────────────────────────────────────────────────────────
+
+function VerifyingView({ t }: { t: (k: string) => string }) {
+  return (
+    <div className="text-center space-y-4">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-500/10 ring-1 ring-brand-500/20">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-400" />
+      </div>
+      <h1 className="text-xl font-semibold text-white">{t('signup.activation.verifyingTitle')}</h1>
+      <p className="text-sm text-text-secondary">{t('signup.activation.verifyingSubtitle')}</p>
+    </div>
+  );
+}
+
+function SuccessView({ t, onLogin }: { t: (k: string) => string; onLogin: () => void }) {
+  return (
+    <div className="text-center space-y-5">
+      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/10 ring-1 ring-emerald-500/30">
+        <CheckCircle2 className="h-10 w-10 text-emerald-400" />
+      </div>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold text-white">
+          {t('signup.activation.doneTitle')}
+        </h1>
+        <p className="text-sm text-text-secondary">
+          {t('signup.activation.doneDescription')}
+        </p>
+      </div>
+      <Button className="w-full" size="lg" onClick={onLogin}>
+        {t('signup.activation.goToLogin')}
+        <ArrowRight className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+function ErrorView({
+  t,
+  message,
+  canResend,
+  onResend,
+  isResending,
+  onBackToLogin,
+}: {
+  t: (k: string) => string;
+  message: string;
+  canResend: boolean;
+  onResend: () => void;
+  isResending: boolean;
+  onBackToLogin: () => void;
+}) {
+  return (
+    <div className="text-center space-y-5">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10 ring-1 ring-rose-500/30">
+        <AlertTriangle className="h-8 w-8 text-rose-400" />
+      </div>
+      <div className="space-y-2">
+        <h1 className="text-xl font-semibold text-white">
+          {t('signup.activation.errorTitle')}
+        </h1>
+        <p className="text-sm text-text-secondary">{message}</p>
+      </div>
+      <div className="space-y-2">
+        {canResend && (
+          <Button className="w-full" size="lg" onClick={onResend} disabled={isResending}>
+            {isResending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            {t('signup.activation.resendLinkCta')}
+          </Button>
+        )}
+        <Button variant="ghost" className="w-full" onClick={onBackToLogin}>
+          {t('signup.activation.backToLogin')}
+        </Button>
+      </div>
     </div>
   );
 }

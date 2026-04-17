@@ -54,8 +54,7 @@ export default function LoginPage() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-brand-600/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header */}
-      <header className="relative z-10 flex items-center justify-between p-6">
-        <Logo size="md" />
+      <header className="relative z-10 flex items-center justify-end p-6">
         <LocaleSwitcher />
       </header>
 

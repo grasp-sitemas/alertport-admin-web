@@ -509,7 +509,15 @@
       "step1": "Abre el correo que enviamos",
       "step2": "Copia el código de activación",
       "step3": "Activa la cuenta e inicia sesión",
-      "activateCta": "Abrir pantalla de activación"
+      "activateCta": "Abrir pantalla de activación",
+      "linkSentTitle": "Confirma tu correo",
+      "linkSentBody": "Enviamos un enlace de activación a:",
+      "nextStepsTitle": "Cómo continuar",
+      "linkStep1": "Abre el correo que te enviamos",
+      "linkStep2": "Haz clic en el botón \"Activar mi cuenta\"",
+      "linkStep3": "Tu cuenta queda activada y lista para entrar",
+      "resendLinkCta": "Reenviar enlace",
+      "spamNote": "¿No llegó? Revisa tu carpeta de spam — puede tardar unos minutos."
     },
     "activation": {
       "title": "Activa tu cuenta",
@@ -529,12 +537,29 @@
       "userNotFound": "No encontramos una cuenta con ese correo.",
       "generic": "No se pudo activar. Intenta de nuevo.",
       "notVerifiedToast": "Confirma tu correo antes de iniciar sesión",
-      "missingAutoResend": "Tu código expiró. Enviamos uno nuevo a tu correo."
+      "missingAutoResend": "Tu código expiró. Enviamos uno nuevo a tu correo.",
+      "verifyingTitle": "Activando tu cuenta…",
+      "verifyingSubtitle": "Tarda solo unos segundos.",
+      "errorTitle": "No se pudo activar",
+      "goToLogin": "Ir al inicio de sesión",
+      "resendLinkCta": "Reenviar enlace de activación",
+      "linkMissing": "El enlace de activación está incompleto. Solicita uno nuevo abajo.",
+      "missingNoCode": "Este enlace ya no está activo. Solicita uno nuevo abajo."
     },
     "errors": {
       "emailAlreadyExists": "Este correo ya está en uso",
       "companyCreateFailed": "No se pudo crear la empresa",
       "generic": "No se pudo completar el registro"
+    },
+    "password": {
+      "failsPolicy": "La contraseña no cumple todos los requisitos",
+      "rules": {
+        "title": "Tu contraseña debe cumplir:",
+        "minLength": "Al menos 8 caracteres",
+        "uppercase": "Una letra mayúscula",
+        "special": "Un carácter especial (!@#$…)",
+        "noSequentialDigits": "Sin dígitos en secuencia (ej.: 123)"
+      }
     }
   },
   "legal": {

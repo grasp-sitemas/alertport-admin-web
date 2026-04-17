@@ -509,7 +509,15 @@
       "step1": "送信されたメールを開く",
       "step2": "アクティベーションコードをコピー",
       "step3": "アカウントをアクティブ化してログイン",
-      "activateCta": "アクティベーション画面を開く"
+      "activateCta": "アクティベーション画面を開く",
+      "linkSentTitle": "メールを確認してください",
+      "linkSentBody": "アクティベーションリンクを送信しました:",
+      "nextStepsTitle": "次のステップ",
+      "linkStep1": "送信されたメールを開く",
+      "linkStep2": "「アカウントを有効化」ボタンをクリック",
+      "linkStep3": "アカウントが有効化され、ログインできます",
+      "resendLinkCta": "リンクを再送信",
+      "spamNote": "届かない場合は迷惑メールもご確認ください — 数分かかる場合があります。"
     },
     "activation": {
       "title": "アカウントを有効化",
@@ -529,12 +537,29 @@
       "userNotFound": "このメールのアカウントが見つかりません。",
       "generic": "有効化できませんでした。もう一度お試しください。",
       "notVerifiedToast": "ログインの前にメールを確認してください",
-      "missingAutoResend": "コードの有効期限が切れていたため、新しいコードを送信しました。"
+      "missingAutoResend": "コードの有効期限が切れていたため、新しいコードを送信しました。",
+      "verifyingTitle": "アカウントを有効化中…",
+      "verifyingSubtitle": "数秒で完了します。",
+      "errorTitle": "有効化できませんでした",
+      "goToLogin": "ログインへ",
+      "resendLinkCta": "アクティベーションリンクを再送信",
+      "linkMissing": "アクティベーションリンクが不完全です。下のボタンから新しいリンクを取得してください。",
+      "missingNoCode": "このリンクは無効です。下のボタンから新しいリンクを取得してください。"
     },
     "errors": {
       "emailAlreadyExists": "このメールは既に使用されています",
       "companyCreateFailed": "会社を作成できませんでした",
       "generic": "登録を完了できませんでした"
+    },
+    "password": {
+      "failsPolicy": "パスワードが要件を満たしていません",
+      "rules": {
+        "title": "パスワードの要件:",
+        "minLength": "8文字以上",
+        "uppercase": "大文字を含む",
+        "special": "特殊文字を含む (!@#$…)",
+        "noSequentialDigits": "連続する数字を含まない（例: 123）"
+      }
     }
   },
   "legal": {

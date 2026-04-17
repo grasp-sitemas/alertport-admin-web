@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { passesPasswordPolicy } from './password-policy';
 
 // Company (step 1)
 export const signupCompanySchema = z.object({
@@ -36,7 +37,12 @@ export const signupUserSchema = z
       .min(1, { message: 'validation.required' })
       .email({ message: 'validation.email' }),
     primaryPhone: z.string().trim(),
-    password: z.string().min(8, { message: 'signup.user.passwordMinLength' }),
+    password: z
+      .string()
+      .min(8, { message: 'signup.user.passwordMinLength' })
+      .refine((v) => passesPasswordPolicy(v), {
+        message: 'signup.password.failsPolicy',
+      }),
     passwordConfirm: z.string().min(1, { message: 'validation.required' }),
     acceptTerms: z.boolean().refine((v) => v === true, {
       message: 'signup.user.termsRequired',

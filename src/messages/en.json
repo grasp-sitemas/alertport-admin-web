@@ -509,7 +509,15 @@
       "step1": "Open the email we just sent",
       "step2": "Copy the activation code",
       "step3": "Activate your account and sign in",
-      "activateCta": "Open activation screen"
+      "activateCta": "Open activation screen",
+      "linkSentTitle": "Confirm your email",
+      "linkSentBody": "We sent an activation link to:",
+      "nextStepsTitle": "What to do next",
+      "linkStep1": "Open the email we just sent you",
+      "linkStep2": "Click the \"Activate my account\" button",
+      "linkStep3": "Your account is activated and ready to sign in",
+      "resendLinkCta": "Resend link",
+      "spamNote": "Didn't arrive? Check your spam folder — it may take a few minutes."
     },
     "activation": {
       "title": "Activate your account",
@@ -529,12 +537,29 @@
       "userNotFound": "No account found for this email.",
       "generic": "Could not activate. Please try again.",
       "notVerifiedToast": "Please confirm your email before signing in",
-      "missingAutoResend": "Your code had expired. We sent a new one to your email."
+      "missingAutoResend": "Your code had expired. We sent a new one to your email.",
+      "verifyingTitle": "Activating your account…",
+      "verifyingSubtitle": "This only takes a few seconds.",
+      "errorTitle": "Activation failed",
+      "goToLogin": "Go to login",
+      "resendLinkCta": "Resend activation link",
+      "linkMissing": "The activation link is incomplete. Request a new one with the button below.",
+      "missingNoCode": "This link is no longer active. Request a new one below."
     },
     "errors": {
       "emailAlreadyExists": "This email is already in use",
       "companyCreateFailed": "Could not create the company",
       "generic": "Sign-up could not be completed"
+    },
+    "password": {
+      "failsPolicy": "Password does not meet all requirements",
+      "rules": {
+        "title": "Your password must meet:",
+        "minLength": "At least 8 characters",
+        "uppercase": "One uppercase letter",
+        "special": "One special character (!@#$…)",
+        "noSequentialDigits": "No sequential digits (e.g. 123)"
+      }
     }
   },
   "legal": {
