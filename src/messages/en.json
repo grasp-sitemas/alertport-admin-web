@@ -494,9 +494,11 @@
       "password": "Password",
       "passwordConfirm": "Confirm password",
       "passwordMinLength": "Password must be at least 8 characters",
-      "termsHtml": "I have read and accept the <a class=\"underline\" href=\"/terms\" target=\"_blank\">terms of use</a> and <a class=\"underline\" href=\"/privacy-policy\" target=\"_blank\">privacy policy</a>.",
       "termsRequired": "Please accept the terms to continue",
-      "submit": "Create free account"
+      "submit": "Create free account",
+      "termsPrefix": "I have read and accept the",
+      "termsAnd": "and the",
+      "termsSuffix": "."
     },
     "success": {
       "title": "All set!",
@@ -532,6 +534,21 @@
       "emailAlreadyExists": "This email is already in use",
       "companyCreateFailed": "Could not create the company",
       "generic": "Sign-up could not be completed"
+    }
+  },
+  "legal": {
+    "lastUpdated": "Last updated: {date}",
+    "footerNote": "By continuing you confirm you have read this document.",
+    "acceptCta": "I have read and accept",
+    "terms": {
+      "title": "Terms of Use",
+      "subtitle": "Conditions that govern the use of AlertPort.",
+      "link": "Terms of Use"
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "subtitle": "How we handle your personal data.",
+      "link": "Privacy Policy"
     }
   }
 }

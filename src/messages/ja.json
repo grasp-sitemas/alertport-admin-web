@@ -494,9 +494,11 @@
       "password": "パスワード",
       "passwordConfirm": "パスワード確認",
       "passwordMinLength": "パスワードは8文字以上で入力してください",
-      "termsHtml": "<a class=\"underline\" href=\"/terms\" target=\"_blank\">利用規約</a>と<a class=\"underline\" href=\"/privacy-policy\" target=\"_blank\">プライバシーポリシー</a>に同意します。",
       "termsRequired": "続行するには規約に同意してください",
-      "submit": "無料アカウントを作成"
+      "submit": "無料アカウントを作成",
+      "termsPrefix": "",
+      "termsAnd": "および",
+      "termsSuffix": "に同意します。"
     },
     "success": {
       "title": "完了！",
@@ -532,6 +534,21 @@
       "emailAlreadyExists": "このメールは既に使用されています",
       "companyCreateFailed": "会社を作成できませんでした",
       "generic": "登録を完了できませんでした"
+    }
+  },
+  "legal": {
+    "lastUpdated": "最終更新: {date}",
+    "footerNote": "続行することで、本書類を読んだことを確認します。",
+    "acceptCta": "読んで同意する",
+    "terms": {
+      "title": "利用規約",
+      "subtitle": "AlertPortの利用に関する条件です。",
+      "link": "利用規約"
+    },
+    "privacy": {
+      "title": "プライバシーポリシー",
+      "subtitle": "個人データの取扱について。",
+      "link": "プライバシーポリシー"
     }
   }
 }

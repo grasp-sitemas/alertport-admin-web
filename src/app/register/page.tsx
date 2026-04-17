@@ -42,6 +42,7 @@ import {
   type SignupUserValues,
 } from '@/features/auth/signup-schemas';
 import { COMMON_TIMEZONES, getAllTimezones } from '@/features/auth/timezones';
+import { LegalModal, type LegalKind } from '@/features/auth/legal-modal';
 
 type Step = 1 | 2 | 3;
 
@@ -82,6 +83,7 @@ export default function RegisterPage() {
   const [step, setStep] = useState<Step>(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const [legalOpen, setLegalOpen] = useState<LegalKind | null>(null);
   const detectedTz = useMemo(detectTimezone, []);
   const allTimezones = useMemo<string[]>(
     () => getAllTimezones(detectedTz),
@@ -411,10 +413,25 @@ export default function RegisterPage() {
                     className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-white/20 bg-transparent text-brand-500 focus:ring-brand-500"
                     {...userForm.register('acceptTerms')}
                   />
-                  <span
-                    // eslint-disable-next-line react/no-danger
-                    dangerouslySetInnerHTML={{ __html: t('signup.user.termsHtml') }}
-                  />
+                  <span>
+                    {t('signup.user.termsPrefix')}{' '}
+                    <button
+                      type="button"
+                      onClick={() => setLegalOpen('terms')}
+                      className="font-medium text-brand-400 underline underline-offset-2 hover:text-brand-300"
+                    >
+                      {t('legal.terms.link')}
+                    </button>{' '}
+                    {t('signup.user.termsAnd')}{' '}
+                    <button
+                      type="button"
+                      onClick={() => setLegalOpen('privacy')}
+                      className="font-medium text-brand-400 underline underline-offset-2 hover:text-brand-300"
+                    >
+                      {t('legal.privacy.link')}
+                    </button>
+                    {t('signup.user.termsSuffix')}
+                  </span>
                 </label>
                 {userForm.formState.errors.acceptTerms && (
                   <p className="text-xs text-red-400 -mt-3">
@@ -496,6 +513,23 @@ export default function RegisterPage() {
           </p>
         </div>
       </main>
+
+      <LegalModal
+        kind="terms"
+        open={legalOpen === 'terms'}
+        onOpenChange={(o) => setLegalOpen(o ? 'terms' : null)}
+        onAccept={() => {
+          userForm.setValue('acceptTerms', true as unknown as true, { shouldValidate: true });
+        }}
+      />
+      <LegalModal
+        kind="privacy"
+        open={legalOpen === 'privacy'}
+        onOpenChange={(o) => setLegalOpen(o ? 'privacy' : null)}
+        onAccept={() => {
+          userForm.setValue('acceptTerms', true as unknown as true, { shouldValidate: true });
+        }}
+      />
     </div>
   );
 }
