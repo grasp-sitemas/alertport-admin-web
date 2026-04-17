@@ -287,7 +287,8 @@
       "openedToast": "处理已开始",
       "recordAddedToast": "记录已添加",
       "closedToast": "处理已成功结束",
-      "typeRequired": "请选择处理类型"
+      "typeRequired": "请选择处理类型",
+      "operatorOnly": "仅操作员角色可以开始和结束处理。其他角色只能查看记录。"
     }
   },
   "attendance": {
@@ -602,5 +603,16 @@
       "subtitle": "我们如何处理您的个人数据。",
       "link": "隐私政策"
     }
-  }
+  },
+  "CALL_CLIENT": "致电客户",
+  "CALL_VIGILANT": "致电警卫",
+  "CALL_SUPERVISOR": "致电客户主管",
+  "CALL_POLICE": "致电警察 (190)",
+  "CALL_FIREMEN": "致电消防 (193)",
+  "REPORT_ACCIDENTAL_SOS": "报告意外触发紧急按钮",
+  "REPORT_UNDUE_SOS": "报告不当触发紧急按钮",
+  "REPORT_TEST_BY_CUSTOMER": "报告客户进行的测试",
+  "REPORT_TEST_BY_THIRD_PARTIES": "报告第三方进行的测试",
+  "REPORT_FAILURE_TO_CONTACT_PRIORITY_PHONES": "报告优先电话联系失败",
+  "OTHERS": "其他"
 }

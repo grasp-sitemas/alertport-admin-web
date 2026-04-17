@@ -33,6 +33,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Badge } from '@/components/ui/badge';
 import { alertsService } from '@/services/alerts.service';
 import { useAuth } from '@/hooks/use-auth';
+import { translateDynamicLabel } from '@/lib/i18n-labels';
 import type { PatrolAction } from '@/types/api';
 import { cn } from '@/lib/utils';
 
@@ -68,6 +69,11 @@ export function AttendanceDialog({
   const queryClient = useQueryClient();
 
   const operatorId = user?._id ?? '';
+  // Shieldgo only allows OPERATOR role to OPEN/CLOSE the attendance flag on a
+  // patrol-action — other roles (ADMIN/MANAGER/AUDITOR) get a 401
+  // `invalid.user.role`. Mirror that gate here so the dialog doesn't auto-fire
+  // a request that will definitely fail.
+  const isOperator = user?.companyUser?.subtype === 'OPERATOR';
 
   // siteGroup on the session user object may be a populated ref `{ _id }` or a
   // plain id string depending on how the server hydrated the login payload.
@@ -112,7 +118,9 @@ export function AttendanceDialog({
     enabled: !!open && !!eventId,
   });
 
-  const attendanceTypes = typesQuery.data?.result ?? [];
+  // The legacy API returns `results` (plural); alertsService.getAttendanceTypes
+  // now normalizes to a bare array.
+  const attendanceTypes = typesQuery.data ?? [];
   const records = recordsQuery.data?.results ?? [];
   const attendanceIsOpen =
     event?.attendance?.status === 'IN_PROGRESS' || !!event?.attendance?.isAttendance;
@@ -149,7 +157,19 @@ export function AttendanceDialog({
       toast.success(t('alerts.attendance.openedToast'));
       invalidate();
     },
-    onError: () => toast.error(t('notifications.errorOccurred')),
+    onError: (err: unknown) => {
+      // Backend rejects non-OPERATOR roles with 401 `invalid.user.role`. In
+      // that specific case surface the dedicated copy so the operator
+      // understands nothing was silently broken; our auto-open guard above
+      // already prevents the API call from firing for non-operators, but keep
+      // this belt-and-suspenders in case the role resolves late.
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 401) {
+        toast.error(t('alerts.attendance.operatorOnly'));
+        return;
+      }
+      toast.error(t('notifications.errorOccurred'));
+    },
   });
 
   const addRecordMutation = useMutation({
@@ -202,16 +222,19 @@ export function AttendanceDialog({
   });
 
   // Auto-open the attendance flag when the dialog first appears for an event
-  // that doesn't have it yet — saves the operator one click.
+  // that doesn't have it yet — saves the operator one click. Only OPERATOR
+  // role may open/close (the backend returns `invalid.user.role` for other
+  // roles), so we skip the auto-trigger entirely in that case.
   useEffect(() => {
     if (!open || !event || !operatorId) return;
+    if (!isOperator) return;
     if (attendanceIsOpen) return;
     if (openMutation.isPending || openMutation.isSuccess) return;
     openMutation.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, eventId]);
+  }, [open, eventId, isOperator]);
 
-  const canClose = records.length > 0 && attendanceIsOpen && !closeMutation.isPending;
+  const canClose = records.length > 0 && attendanceIsOpen && isOperator && !closeMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -274,11 +297,21 @@ export function AttendanceDialog({
                       {t('common.noData')}
                     </SelectItem>
                   )}
-                  {attendanceTypes.map((opt) => (
-                    <SelectItem key={opt._id} value={opt._id}>
-                      {opt.name}
-                    </SelectItem>
-                  ))}
+                  {attendanceTypes.map((opt) => {
+                    // Backend sends the enum _id (e.g. "CALL_CLIENT") which is
+                    // the i18n key used across the legacy app. Fall back to
+                    // the server-provided `name` and finally the humanized id.
+                    const label =
+                      translateDynamicLabel(opt._id, t, '') ||
+                      translateDynamicLabel(opt.name, t, '') ||
+                      opt.name ||
+                      opt._id;
+                    return (
+                      <SelectItem key={opt._id} value={opt._id}>
+                        {label}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -332,8 +365,16 @@ export function AttendanceDialog({
             ) : (
               <ul className="space-y-2">
                 {records.map((r) => {
+                  // Same label resolution path as the Select options so the
+                  // history and the picker stay visually consistent.
                   const typeName =
-                    attendanceTypes.find((it) => it._id === r.type)?.name ?? r.type;
+                    translateDynamicLabel(r.type, t, '') ||
+                    translateDynamicLabel(
+                      attendanceTypes.find((it) => it._id === r.type)?.name,
+                      t,
+                      '',
+                    ) ||
+                    r.type;
                   return (
                     <li
                       key={r._id}
@@ -361,8 +402,15 @@ export function AttendanceDialog({
             )}
           </div>
 
+          {/* Role gate notice — only OPERATORs can open/close attendance. */}
+          {!isOperator && (
+            <div className="flex items-start gap-2 rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-xs text-sky-200">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <span>{t('alerts.attendance.operatorOnly')}</span>
+            </div>
+          )}
           {/* Close attendance hint */}
-          {!canClose && attendanceIsOpen && records.length === 0 && (
+          {isOperator && !canClose && attendanceIsOpen && records.length === 0 && (
             <div className="flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200">
               <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
               <span>{t('alerts.attendance.mustAddRecord')}</span>

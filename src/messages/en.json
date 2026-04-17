@@ -287,7 +287,8 @@
       "openedToast": "Attendance opened",
       "recordAddedToast": "Record added",
       "closedToast": "Attendance closed successfully",
-      "typeRequired": "Select an attendance type"
+      "typeRequired": "Select an attendance type",
+      "operatorOnly": "Only users with the OPERATOR role can open and close attendance. Records below are read-only for your role."
     }
   },
   "attendance": {
@@ -602,5 +603,16 @@
       "subtitle": "How we handle your personal data.",
       "link": "Privacy Policy"
     }
-  }
+  },
+  "CALL_CLIENT": "Call the client",
+  "CALL_VIGILANT": "Call the vigilant",
+  "CALL_SUPERVISOR": "Call the client's supervisor",
+  "CALL_POLICE": "Call the police (190)",
+  "CALL_FIREMEN": "Call the fire department (193)",
+  "REPORT_ACCIDENTAL_SOS": "Report accidental SOS activation",
+  "REPORT_UNDUE_SOS": "Report undue SOS activation",
+  "REPORT_TEST_BY_CUSTOMER": "Report test run by the customer",
+  "REPORT_TEST_BY_THIRD_PARTIES": "Report test run by third parties",
+  "REPORT_FAILURE_TO_CONTACT_PRIORITY_PHONES": "Report failure to contact priority phones",
+  "OTHERS": "Other"
 }

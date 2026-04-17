@@ -29,19 +29,25 @@ export function translateDynamicLabel(
   const raw = value.trim();
   if (!raw) return fallback;
 
+  // Prefer the translator-owned `has()` check when next-intl exposes it.
   if (t && typeof t.has === 'function' && t.has(raw)) {
     return t(raw);
   }
 
-  if (isApiI18nKey(raw)) {
-    if (t) {
-      try {
-        const translated = t(raw);
-        if (translated && translated !== raw) return translated;
-      } catch {
-        // ignore and fallback
-      }
+  // Even without `has`, many API-provided enums live as plain top-level keys
+  // in the locale files (e.g. `CALL_CLIENT`, `REPORT_ACCIDENTAL_SOS`). Try
+  // the translator for any string; if it returns the raw key unchanged we
+  // fall through to the humanized heuristic.
+  if (t) {
+    try {
+      const translated = t(raw);
+      if (translated && translated !== raw) return translated;
+    } catch {
+      // ignore — fall through
     }
+  }
+
+  if (isApiI18nKey(raw)) {
     return fallbackFromKey(raw);
   }
 

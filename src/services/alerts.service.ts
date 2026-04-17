@@ -170,11 +170,17 @@ export const alertsService = {
 
   // ─── Helpers ──────────────────────────────────────────────
 
-  async getAttendanceTypes(): Promise<ApiSingleResponse<AttendanceType[]>> {
-    const { data } = await apiClient.get<ApiSingleResponse<AttendanceType[]>>(
+  /**
+   * Fetches the attendance type catalog. The legacy API returns
+   * `{ status, results: [{_id, name}] }` — NOT `{ status, result }` — so we
+   * normalize to a bare array and let callers consume it directly.
+   * Matches shieldgo-admin-web's Services.getAttendancesOptionsTypes.
+   */
+  async getAttendanceTypes(): Promise<AttendanceType[]> {
+    const { data } = await apiClient.get<{ status: number; results?: AttendanceType[] }>(
       endpoints.attendanceTypes,
     );
-    return data;
+    return Array.isArray(data?.results) ? data.results : [];
   },
 
   // ─── Charts ───────────────────────────────────────────────
