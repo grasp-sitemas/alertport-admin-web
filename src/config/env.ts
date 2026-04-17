@@ -37,7 +37,7 @@ export const env = {
   apiUrl: required(
     'NEXT_PUBLIC_API_URL',
     process.env.NEXT_PUBLIC_API_URL,
-    'https://api-homolog.shieldgo.com.br',
+    'https://api-hml.shieldgo.com.br',
   ),
 
   // ── Socket / Chat (ms-chat) ─────────────────────────────────────
