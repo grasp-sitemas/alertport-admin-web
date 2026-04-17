@@ -95,8 +95,7 @@ function ActivatePageContent() {
       <div className="absolute inset-0 bg-grid-pattern opacity-40 pointer-events-none" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-brand-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      <header className="relative z-10 flex items-center justify-between p-6">
-        <Logo size="md" />
+      <header className="relative z-10 flex items-center justify-end p-6">
         <LocaleSwitcher />
       </header>
 
@@ -104,13 +103,15 @@ function ActivatePageContent() {
         <div className="w-full max-w-md">
           <div className="rounded-3xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)] backdrop-blur-xl p-8 sm:p-10 shadow-[0_0_80px_rgba(179,38,30,0.08)]">
             <div className="flex flex-col items-center text-center mb-6">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-500/10 ring-1 ring-brand-500/20">
-                {done ? (
+              {done ? (
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/20">
                   <CheckCircle2 className="h-8 w-8 text-emerald-400" />
-                ) : (
-                  <ShieldCheck className="h-8 w-8 text-brand-400" />
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="mb-4">
+                  <Logo size="lg" showText={false} className="scale-125" />
+                </div>
+              )}
               <h1 className="text-xl font-semibold text-white">
                 {done ? t('signup.activation.doneTitle') : t('signup.activation.title')}
               </h1>
