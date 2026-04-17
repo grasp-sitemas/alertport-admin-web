@@ -49,12 +49,18 @@ export default function AttendancePage() {
     {
       key: 'timestamp',
       headerKey: 'attendance.timestamp',
-      render: (item) => new Date(item.timestamp).toLocaleString(),
+      render: (item) => formatTimestamp(item),
     },
     {
       key: 'user',
       headerKey: 'attendance.employee',
-      render: (item) => (item.user ? `${item.user.firstName} ${item.user.lastName}` : '—'),
+      render: (item) => {
+        if (!item.user) return '—';
+        const full =
+          item.user.fullName ??
+          `${item.user.firstName ?? ''} ${item.user.lastName ?? ''}`.trim();
+        return full || '—';
+      },
     },
     {
       key: 'eventType',
@@ -142,4 +148,16 @@ function last7DaysISO(): string {
 }
 function nowISO(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+/**
+ * Backend returns `createdAt` for time entries; legacy shieldgo mapped it to
+ * `timestamp` client-side. Accept both so the column never shows "Invalid Date".
+ */
+function formatTimestamp(item: TimeEntry): string {
+  const raw = item.createdAt ?? item.timestamp ?? item.createdDate;
+  if (!raw) return '—';
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleString();
 }

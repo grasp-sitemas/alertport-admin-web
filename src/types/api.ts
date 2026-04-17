@@ -330,8 +330,14 @@ export interface TimeEntry {
   site?: string | Company;
   equipment?: string | Equipment;
   eventType: TimeEntryType;
-  timestamp: string;
+  /** Present in legacy mapping; backend actually returns `createdAt`. Prefer `createdAt`. */
+  timestamp?: string;
+  createdAt?: string;
+  updatedAt?: string;
   createdDate?: string;
+  method?: 'PHOTO' | 'PIN';
+  source?: 'SHIELDGO' | 'ALERTPORT';
+  status?: EntityStatus;
 }
 
 // ─── Events / Patrol Actions ───────────────────────────────────
