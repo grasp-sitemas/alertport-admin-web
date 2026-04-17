@@ -26,15 +26,11 @@ import { toast } from 'sonner';
 import { getSocket, type IncomingCallPayload, type StartCallAck, type WebRtcSignalPayload } from '@/lib/socket';
 import { getWebRtcIceServers } from '@/lib/webrtc-ice';
 import { useAuth } from '@/hooks/use-auth';
-import {
-  createCallRecordingState,
-  setCallRecordingPolicy,
-  attachStreamToRecording,
-  startCallRecording,
-  stopCallRecordingAndUpload,
-  resetCallRecordingState,
-  type CallRecordingState,
-} from './call-recording';
+
+// Call recording is intentionally NOT wired into the frontend. Per product
+// decision (2026-04-17), the audit artifact should be produced on the backend
+// so the operator app stays oblivious. We keep `call-recording.ts` in the repo
+// as a reference implementation, but nothing here imports it.
 
 export type CallStatus =
   | 'idle'
@@ -100,42 +96,6 @@ export function useCall(): CallState & CallActions {
   const callModeRef = useRef<CallMode | null>(null);
   const initializedRef = useRef(false);
 
-  // ─── Call recording (account-gated via `callRecordingEnabled` on the
-  // server ack). Both the local mic and the remote peer stream are piped
-  // into a MediaRecorder and uploaded when the call ends. Essential for
-  // SILENT_LISTEN audits.
-  const recordingRef = useRef<CallRecordingState>(createCallRecordingState());
-  const callAccountRef = useRef<string | null>(null);
-
-  /**
-   * Captures a snapshot of the current call identity BEFORE resetCallState
-   * clears the refs, stops the MediaRecorder, and uploads the blob via the
-   * ms-chat `call:recording:upload` socket event. No-op when the recording
-   * state was never started (e.g. call recording disabled for the account).
-   * Fully async; callers don't need to await — it runs in the background.
-   */
-  const finalizeRecordingAndUpload = useCallback(() => {
-    const state = recordingRef.current;
-    if (!state.mediaRecorder) return;
-    const room = activeRoomIdRef.current;
-    const peer = peerUserIdRef.current;
-    const accountForUpload = callAccountRef.current;
-    const mode: CallMode = callModeRef.current ?? 'NORMAL';
-    const operatorId = user?._id;
-    if (!room || !operatorId) return;
-    const socket = getSocket();
-    void stopCallRecordingAndUpload(state, socket, {
-      roomId: room,
-      accountId: accountForUpload,
-      callMode: mode,
-      initiatedBy: callDirection === 'outgoing' ? operatorId : peer ?? '',
-      peerUserId: peer ?? '',
-      operatorUserId: operatorId,
-      startedAt: state.startedAt ?? undefined,
-    }).catch(() => {
-      /* upload is best-effort; never crash the UI on a failed save */
-    });
-  }, [user, callDirection]);
 
   const resetCallState = useCallback(() => {
     try {
@@ -163,12 +123,6 @@ export function useCall(): CallState & CallActions {
     activeRoomIdRef.current = null;
     peerUserIdRef.current = null;
     callModeRef.current = null;
-    callAccountRef.current = null;
-
-    // Drop any pending recording (if upload finished it's already reset; if
-    // not, this makes sure we don't keep the AudioContext open).
-    resetCallRecordingState(recordingRef.current);
-    recordingRef.current = createCallRecordingState();
 
     setRoomId(null);
     setPeerUserId(null);
@@ -208,11 +162,6 @@ export function useCall(): CallState & CallActions {
           // Autoplay policy may block — user must click page first.
         });
       }
-      // Hook the remote peer stream into the recording graph. Safe no-op
-      // when recording is disabled by policy.
-      if (remoteStream) {
-        attachStreamToRecording(recordingRef.current, remoteStream, 'remote');
-      }
     };
 
     pc.onconnectionstatechange = () => {
@@ -221,13 +170,6 @@ export function useCall(): CallState & CallActions {
       if (state === 'connected') {
         setStatus('connected');
         setStatusMessage('Chamada em andamento');
-        // Kick off the recording the first time the PC reaches "connected".
-        // Safe no-op if policy is disabled or recording already active.
-        try {
-          startCallRecording(recordingRef.current);
-        } catch {
-          /* ignore */
-        }
       } else if (state === 'failed' || state === 'disconnected' || state === 'closed') {
         // keep legacy behavior — cleanup on final
         if (state === 'failed') {
@@ -248,11 +190,6 @@ export function useCall(): CallState & CallActions {
     }
 
     stream.getTracks().forEach((t) => pc.addTrack(t, stream));
-
-    // Pipe the operator mic into the recording graph too — SILENT_LISTEN
-    // keeps the mic enabled=false but the tracks are still there, so the
-    // silent track is discarded automatically by the audio graph.
-    attachStreamToRecording(recordingRef.current, stream, 'local');
 
     return pc;
   }, []);
@@ -382,8 +319,6 @@ export function useCall(): CallState & CallActions {
           ? `Chamada encerrada (${payload.reason})`
           : 'Chamada encerrada',
       );
-      // Finalize audit recording BEFORE refs are cleared by resetCallState.
-      finalizeRecordingAndUpload();
       resetCallState();
     };
 
@@ -532,19 +467,27 @@ export function useCall(): CallState & CallActions {
 
           activeRoomIdRef.current = ack.roomId;
           peerUserIdRef.current = ack.to || to;
-          callAccountRef.current = accountId ?? null;
           setRoomId(ack.roomId);
           setPeerUserId(ack.to || to);
 
-          // Apply the account-level recording policy returned by the server.
-          setCallRecordingPolicy(recordingRef.current, !!ack.callRecordingEnabled);
-
           if (ack.targetOnline === false) {
-            const msg = ack.wakeupTriggered
-              ? 'Dispositivo offline — push de wake-up enviado. Aguarde o dispositivo acordar.'
-              : 'Dispositivo offline. Peça ao usuário para abrir o aplicativo e tente novamente.';
-            setStatusMessage(msg);
-            toast.warning(msg);
+            // Cross-tenant diagnostic from ms-chat: the device IS online but
+            // on a different account — multi-tenant isolation means the admin
+            // can't reach it. Clearer copy so the operator knows to move the
+            // device (scan QR on a site of their own account) rather than
+            // hunting for a crashed app.
+            if (ack.targetOnlineInOtherAccount) {
+              const msg =
+                'O dispositivo está online, porém registrado em outra empresa/conta. Reconfigure o aplicativo (QR Code) em um local da sua conta.';
+              setStatusMessage(msg);
+              toast.error(msg);
+            } else {
+              const msg = ack.wakeupTriggered
+                ? 'Dispositivo offline — push de wake-up enviado. Aguarde o dispositivo acordar.'
+                : 'Dispositivo offline. Peça ao usuário para abrir o aplicativo e tente novamente.';
+              setStatusMessage(msg);
+              toast.warning(msg);
+            }
           } else {
             setStatus('outgoing');
             setStatusMessage('Chamando...');
@@ -619,10 +562,8 @@ export function useCall(): CallState & CallActions {
     });
     setStatus('ended');
     setStatusMessage('Chamada encerrada');
-    // Finalize audit recording BEFORE refs are cleared.
-    finalizeRecordingAndUpload();
     resetCallState();
-  }, [user, finalizeRecordingAndUpload, resetCallState]);
+  }, [user, resetCallState]);
 
   const toggleMic = useCallback(() => {
     if (callModeRef.current === 'SILENT_LISTEN') return; // mic locked

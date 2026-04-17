@@ -62,6 +62,13 @@ export interface StartCallAck {
   toLabel?: string;
   to?: string;
   targetOnline?: boolean;
+  /**
+   * When `targetOnline` is false, ms-chat checks whether the user id is
+   * registered under a DIFFERENT account and sets this to true — lets the
+   * UI distinguish "device app closed" from "device logged into another
+   * tenant" (the legacy multi-tenant isolation rule).
+   */
+  targetOnlineInOtherAccount?: boolean;
   wakeupTriggered?: boolean;
   callRecordingEnabled?: boolean;
 }
