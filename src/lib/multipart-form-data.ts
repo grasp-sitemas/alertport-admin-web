@@ -14,12 +14,32 @@
  * This bug has bitten us twice (company.service.ts first, then
  * users.service.ts). Centralizing the helper stops the third occurrence.
  */
+export class EmptyFileUploadError extends Error {
+  constructor() {
+    super('empty.file.upload');
+    this.name = 'EmptyFileUploadError';
+  }
+}
+
 export function toMultipartFormData(payload: unknown, file?: File | null): FormData {
   const fd = new FormData();
-  // Only append when we have a real, non-empty File. Some mobile browsers
-  // surface Files with size=0 from canceled camera prompts — multer would
-  // persist those as empty uploads and crash with ENOENT on ephemeral dirs.
-  if (file && file.size > 0) fd.append('file', file);
+  // Triple-gate guard against empty files:
+  //   1. File exists at all (might be null/undefined)
+  //   2. File has size > 0 (mobile emulators sometimes return size=0)
+  //   3. Throw if a File was provided but is empty — so the caller can't
+  //      silently ship a 500 to the user.
+  if (file) {
+    if (file.size === 0) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[toMultipartFormData] Rejected empty file upload:',
+        file.name,
+        file.type,
+      );
+      throw new EmptyFileUploadError();
+    }
+    fd.append('file', file);
+  }
   fd.append('jsonData', JSON.stringify(payload));
   return fd;
 }

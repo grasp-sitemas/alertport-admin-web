@@ -201,6 +201,7 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
     onError: (err: Error) => {
       if (err.message === 'email') toast.error(t('collaborators.emailInUse'));
       else if (err.message === 'username') toast.error(t('collaborators.usernameInUse'));
+      else if (err.message === 'empty.file.upload') toast.error(t('common.fileEmpty'));
       else toast.error(t('notifications.errorOccurred'));
     },
   });

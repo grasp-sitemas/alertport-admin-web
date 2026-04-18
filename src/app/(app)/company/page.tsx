@@ -158,7 +158,13 @@ export default function CompanyPage() {
       setLogoFile(null);
       toast.success(t('company.updateSuccess'));
     },
-    onError: () => toast.error(t('notifications.errorOccurred')),
+    onError: (err: Error) => {
+      if (err?.message === 'empty.file.upload') {
+        toast.error(t('common.fileEmpty'));
+        return;
+      }
+      toast.error(t('notifications.errorOccurred'));
+    },
   });
 
   if (meQuery.isLoading) {

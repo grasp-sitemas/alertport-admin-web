@@ -180,6 +180,13 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
         toastTrialError(err, t);
         return;
       }
+      // Empty file selections (mobile emulator bug) throw a specific error
+      // from the multipart helper. Show a clear copy instead of the generic
+      // "Ocorreu um erro" toast.
+      if ((err as Error)?.message === 'empty.file.upload') {
+        toast.error(t('common.fileEmpty'));
+        return;
+      }
       toast.error(t('notifications.errorOccurred'));
     },
   });
