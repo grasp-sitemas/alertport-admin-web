@@ -193,6 +193,10 @@ export default function UsersPage() {
           onPageChange={pagination.setPage}
           onPageSizeChange={pagination.setPageSize}
           getRowKey={(item) => item._id}
+          onRowClick={(item) => {
+            setEditing(item);
+            setFormOpen(true);
+          }}
         />
 
         <UserFormDialog open={formOpen} onOpenChange={setFormOpen} user={editing} />

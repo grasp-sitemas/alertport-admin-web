@@ -159,8 +159,30 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
 
   useEffect(() => {
     if (open) {
+      // `reset(defaults)` reinitializes the whole form so every field —
+      // including the hierarchy triad — picks up the new user's values.
+      // Without `keepDefaultValues: false` (the default) RHF also swaps its
+      // internal `defaultValues`, which avoids "dirty" state lingering from
+      // a previous edit session.
       reset(defaults);
       setPhotoFile(null);
+
+      // Belt-and-suspenders: explicitly push account/client/site once more
+      // on the next tick. In practice the reset above is enough, but if a
+      // downstream controller (e.g. the account Select's `onValueChange`
+      // handler running on the first render after reset) happens to clear
+      // client/site by comparing against the stale `prevAccount` closure,
+      // this ensures the final state still matches the user being edited.
+      if (user) {
+        const accountId = getIdOrEmpty(user.account);
+        const clientId = getIdOrEmpty(user.client);
+        const siteId = getIdOrEmpty(user.site);
+        queueMicrotask(() => {
+          if (accountId) setValue('account', accountId, { shouldDirty: false });
+          if (clientId) setValue('client', clientId, { shouldDirty: false });
+          if (siteId) setValue('site', siteId, { shouldDirty: false });
+        });
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, user?._id]);
