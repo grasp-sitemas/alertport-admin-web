@@ -60,6 +60,39 @@ function getIdOrEmpty(v: unknown): string {
   return '';
 }
 
+/**
+ * If the user row already carries a populated account/client/site object
+ * (id + name), return it as a { _id, name } tuple so we can force it into
+ * the Select options. Returns null if the field is a bare string id or
+ * missing.
+ */
+function extractLookupOption(v: unknown): { _id: string; name: string } | null {
+  if (!v || typeof v !== 'object') return null;
+  const obj = v as { _id?: unknown; name?: unknown };
+  const id = typeof obj._id === 'string' ? obj._id : '';
+  const name = typeof obj.name === 'string' ? obj.name : '';
+  if (!id) return null;
+  return { _id: id, name: name || id };
+}
+
+/**
+ * Merge an optional "preferred" option into a list of lookup results. Used
+ * so that the Account/Client/Site <Select> always has a SelectItem matching
+ * the current form value — critical for edit mode, since Radix Select only
+ * renders the trigger label when a matching child is mounted. Without this,
+ * the trigger shows the placeholder until the lookup query resolves (and
+ * stays empty forever if the item isn't in the first page of results or if
+ * it's archived and therefore filtered out server-side).
+ */
+function mergeOption<T extends { _id: string; name: string }>(
+  list: T[],
+  preferred: { _id: string; name: string } | null,
+): Array<{ _id: string; name: string }> {
+  if (!preferred) return list;
+  if (list.some((item) => item._id === preferred._id)) return list;
+  return [preferred, ...list];
+}
+
 export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps) {
   const t = useTranslations();
   const queryClient = useQueryClient();
@@ -139,6 +172,24 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
   const accountsLookup = useAccountsLookup();
   const clientsLookup = useClientsLookup(accountWatched || undefined);
   const sitesLookup = useSitesLookup(clientWatched || undefined);
+
+  // When editing, the user row ships the hierarchy embedded (account, client,
+  // site as { _id, name, ... } objects). Merge those into the Select options
+  // so the trigger always finds a matching SelectItem and displays the name
+  // even before the lookup queries resolve — or when the referenced entity
+  // is archived/out-of-page and therefore absent from the active list.
+  const accountOptions = mergeOption(
+    accountsLookup.data?.results ?? [],
+    extractLookupOption(user?.account),
+  );
+  const clientOptions = mergeOption(
+    clientsLookup.data?.results ?? [],
+    extractLookupOption(user?.client),
+  );
+  const siteOptions = mergeOption(
+    sitesLookup.data?.results ?? [],
+    extractLookupOption(user?.site),
+  );
 
   const cep = useCepLookup(setValue, 'address');
 
@@ -302,7 +353,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
                         <SelectValue placeholder={t('common.selectOption')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {(accountsLookup.data?.results ?? []).map((a) => (
+                        {accountOptions.map((a) => (
                           <SelectItem key={a._id} value={a._id}>
                             {a.name}
                           </SelectItem>
@@ -335,7 +386,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
                         <SelectValue placeholder={t('common.selectOption')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {(clientsLookup.data?.results ?? []).map((c) => (
+                        {clientOptions.map((c) => (
                           <SelectItem key={c._id} value={c._id}>
                             {c.name}
                           </SelectItem>
@@ -362,7 +413,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
                         <SelectValue placeholder={t('common.selectOption')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {(sitesLookup.data?.results ?? []).map((s) => (
+                        {siteOptions.map((s) => (
                           <SelectItem key={s._id} value={s._id}>
                             {s.name}
                           </SelectItem>
