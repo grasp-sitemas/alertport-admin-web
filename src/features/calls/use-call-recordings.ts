@@ -11,6 +11,9 @@ export interface CallRecordingRow {
   operatorUserId: string;
   peerLabel?: string;
   operatorLabel?: string;
+  accountId?: string | null;
+  clientId?: string | null;
+  clientName?: string;
   siteId?: string | null;
   siteName?: string;
   startedAt: string | null;
@@ -35,33 +38,48 @@ interface UrlAck {
   error?: string;
 }
 
-interface Filter {
-  roomId?: string;
+export interface RecordingsFilter {
+  accountId?: string;
+  clientId?: string;
   siteId?: string;
+  roomId?: string;
+  callMode?: 'NORMAL' | 'SILENT_LISTEN' | '';
+  startDate?: string;
+  endDate?: string;
   limit?: number;
 }
 
 /**
  * Paginated recordings list. The backend returns an opaque `nextCursor` based
  * on createdAt+_id; we feed it back to fetch the next page. Server scopes the
- * query by the caller's accountId automatically.
+ * query by the caller's accountId by default; SUPER_ADMIN_MASTER can override
+ * via the `accountId` filter to audit other tenants.
  *
  * `refresh()` resets the list and pulls the first page again — used for the
  * refresh button and whenever the filter changes.
  * `loadMore()` appends the next page; no-ops when there is nothing more.
  */
-export function useCallRecordings(filter: Filter = {}) {
+export function useCallRecordings(filter: RecordingsFilter = {}) {
   const [recordings, setRecordings] = useState<CallRecordingRow[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { roomId, siteId, limit = 50 } = filter;
+  const { accountId, clientId, siteId, roomId, callMode, startDate, endDate, limit = 50 } = filter;
   // Snapshot of the latest filter values so callbacks aren't stale when the
   // consumer mutates them mid-flight. Strings-only so equality is trivial.
-  const filterRef = useRef<Filter>({ roomId, siteId, limit });
-  filterRef.current = { roomId, siteId, limit };
+  const filterRef = useRef<RecordingsFilter>({
+    accountId,
+    clientId,
+    siteId,
+    roomId,
+    callMode,
+    startDate,
+    endDate,
+    limit,
+  });
+  filterRef.current = { accountId, clientId, siteId, roomId, callMode, startDate, endDate, limit };
 
   const fetchPage = useCallback(
     (cursor: string | null, mode: 'replace' | 'append') => {
@@ -71,29 +89,35 @@ export function useCallRecordings(filter: Filter = {}) {
       setError(null);
 
       const current = filterRef.current;
-      socket.emit(
-        'call:recordings:list',
-        {
-          roomId: current.roomId,
-          siteId: current.siteId,
-          limit: current.limit,
-          cursor,
-        },
-        (ack: ListAck) => {
-          if (mode === 'replace') setLoading(false);
-          else setLoadingMore(false);
+      const payload: Record<string, unknown> = {
+        limit: current.limit,
+        cursor,
+      };
+      // Only send filter keys the user actually set — the backend treats
+      // missing keys as "no filter", so this keeps the payload small and
+      // the Heroku logs readable.
+      if (current.accountId) payload.accountId = current.accountId;
+      if (current.clientId) payload.clientId = current.clientId;
+      if (current.siteId) payload.siteId = current.siteId;
+      if (current.roomId) payload.roomId = current.roomId;
+      if (current.callMode) payload.callMode = current.callMode;
+      if (current.startDate) payload.startDate = current.startDate;
+      if (current.endDate) payload.endDate = current.endDate;
 
-          if (!ack?.ok) {
-            setError(ack?.error ?? 'ERROR');
-            if (mode === 'replace') setRecordings([]);
-            return;
-          }
+      socket.emit('call:recordings:list', payload, (ack: ListAck) => {
+        if (mode === 'replace') setLoading(false);
+        else setLoadingMore(false);
 
-          const incoming = ack.recordings ?? [];
-          setRecordings((prev) => (mode === 'replace' ? incoming : [...prev, ...incoming]));
-          setNextCursor(ack.nextCursor ?? null);
-        },
-      );
+        if (!ack?.ok) {
+          setError(ack?.error ?? 'ERROR');
+          if (mode === 'replace') setRecordings([]);
+          return;
+        }
+
+        const incoming = ack.recordings ?? [];
+        setRecordings((prev) => (mode === 'replace' ? incoming : [...prev, ...incoming]));
+        setNextCursor(ack.nextCursor ?? null);
+      });
     },
     [],
   );
@@ -112,7 +136,7 @@ export function useCallRecordings(filter: Filter = {}) {
     // calls happen inside the socket ack callback, not synchronously here.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
-  }, [roomId, siteId, limit, refresh]);
+  }, [accountId, clientId, siteId, roomId, callMode, startDate, endDate, limit, refresh]);
 
   const getSignedUrl = useCallback((recordingId: string): Promise<string | null> => {
     const socket = getSocket();

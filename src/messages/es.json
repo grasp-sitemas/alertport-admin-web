@@ -434,7 +434,8 @@
       "play": "Escuchar",
       "pageTitle": "Grabaciones",
       "pageDescription": "Las llamadas de escucha silenciosa quedan disponibles para reproducción.",
-      "loadMore": "Cargar más"
+      "loadMore": "Cargar más",
+      "mode": "Tipo de llamada"
     },
     "silentListenBanner": {
       "title": "Escucha silenciosa en curso",

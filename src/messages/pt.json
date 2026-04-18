@@ -434,7 +434,8 @@
       "play": "Ouvir",
       "pageTitle": "Gravações",
       "pageDescription": "Chamadas de escuta ativa concluídas ficam disponíveis para reprodução.",
-      "loadMore": "Carregar mais"
+      "loadMore": "Carregar mais",
+      "mode": "Tipo de chamada"
     },
     "silentListenBanner": {
       "title": "Escuta ativa em andamento",

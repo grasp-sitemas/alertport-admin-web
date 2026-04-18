@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Play, RefreshCw, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import { useCallRecordings } from './use-call-recordings';
+import { useCallRecordings, type RecordingsFilter } from './use-call-recordings';
 
 function formatDuration(sec: number): string {
   if (!Number.isFinite(sec) || sec <= 0) return '0:00';
@@ -22,8 +22,14 @@ function formatBytes(bytes: number): string {
 }
 
 interface Props {
+  /** Full filter object. Defaults to limit=50 when no other fields are set. */
+  filter?: RecordingsFilter;
+  /** Shortcut for `{ roomId }` — kept for callers embedding the panel inline. */
   roomId?: string;
+  /** Shortcut for `{ limit }`. */
   limit?: number;
+  /** Hide the "Gravações" heading (useful when the page already owns the title). */
+  hideTitle?: boolean;
 }
 
 /**
@@ -31,8 +37,16 @@ interface Props {
  * account. Clicking Play fetches a short-lived signed S3 URL and streams it
  * inline — no download buttons, consistent with the legacy monitor UX.
  */
-export function CallRecordingsPanel({ roomId, limit = 50 }: Props) {
+export function CallRecordingsPanel({ filter, roomId, limit = 50, hideTitle = false }: Props) {
   const t = useTranslations();
+  // Merge shorthand props into the filter object. When `filter` is supplied
+  // it wins; roomId/limit are handy for existing call-sites that don't need
+  // the full filter payload.
+  const effectiveFilter: RecordingsFilter = {
+    limit,
+    ...(roomId ? { roomId } : {}),
+    ...filter,
+  };
   const {
     recordings,
     loading,
@@ -42,7 +56,7 @@ export function CallRecordingsPanel({ roomId, limit = 50 }: Props) {
     refresh,
     loadMore,
     getSignedUrl,
-  } = useCallRecordings({ roomId, limit });
+  } = useCallRecordings(effectiveFilter);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [playingUrl, setPlayingUrl] = useState<string | null>(null);
 
@@ -57,10 +71,14 @@ export function CallRecordingsPanel({ roomId, limit = 50 }: Props) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-          <Mic className="h-4 w-4 text-brand-500" />
-          {t('calls.recordings.title')}
-        </h3>
+        {hideTitle ? (
+          <span />
+        ) : (
+          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+            <Mic className="h-4 w-4 text-brand-500" />
+            {t('calls.recordings.title')}
+          </h3>
+        )}
         <Button type="button" variant="ghost" size="sm" onClick={refresh} disabled={loading}>
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           {t('common.refresh')}

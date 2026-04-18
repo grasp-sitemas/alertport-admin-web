@@ -434,7 +434,8 @@
       "play": "Listen",
       "pageTitle": "Recordings",
       "pageDescription": "Completed silent-listen calls become available for playback.",
-      "loadMore": "Load more"
+      "loadMore": "Load more",
+      "mode": "Call type"
     },
     "silentListenBanner": {
       "title": "Silent listen in progress",

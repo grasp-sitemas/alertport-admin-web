@@ -434,7 +434,8 @@
       "play": "再生",
       "pageTitle": "録音",
       "pageDescription": "サイレントリッスン通話は終了後に再生できます。",
-      "loadMore": "もっと見る"
+      "loadMore": "もっと見る",
+      "mode": "通話の種類"
     },
     "silentListenBanner": {
       "title": "サイレントリッスン中",
