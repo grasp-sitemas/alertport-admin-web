@@ -433,8 +433,15 @@
       "empty": "No recordings available.",
       "play": "Listen",
       "pageTitle": "Recordings",
-      "pageDescription": "Completed silent-listen calls become available for playback."
-    }
+      "pageDescription": "Completed silent-listen calls become available for playback.",
+      "loadMore": "Load more"
+    },
+    "silentListenBanner": {
+      "title": "Silent listen in progress",
+      "description": "Microphone locked. Device audio is being recorded and will be available under Recordings.",
+      "autoEndNotice": "Silent listen auto-ends after up to 3 minutes."
+    },
+    "endReasonMaxDuration": "Silent listen auto-ended after 3 minutes"
   },
   "clients": {
     "title": "Clients",

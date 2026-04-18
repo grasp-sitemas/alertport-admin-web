@@ -33,7 +33,16 @@ interface Props {
  */
 export function CallRecordingsPanel({ roomId, limit = 50 }: Props) {
   const t = useTranslations();
-  const { recordings, loading, error, refresh, getSignedUrl } = useCallRecordings({ roomId, limit });
+  const {
+    recordings,
+    loading,
+    loadingMore,
+    error,
+    hasMore,
+    refresh,
+    loadMore,
+    getSignedUrl,
+  } = useCallRecordings({ roomId, limit });
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [playingUrl, setPlayingUrl] = useState<string | null>(null);
 
@@ -84,8 +93,10 @@ export function CallRecordingsPanel({ roomId, limit = 50 }: Props) {
                   <p className="text-sm text-white truncate">
                     {new Date(r.createdAt).toLocaleString()}
                   </p>
-                  <p className="text-xs text-text-muted">
+                  <p className="text-xs text-text-muted truncate">
                     {formatDuration(r.durationSec)} · {formatBytes(r.bytes)} · {r.callMode}
+                    {r.siteName ? ` · ${r.siteName}` : ''}
+                    {r.peerLabel ? ` · ${r.peerLabel}` : ''}
                   </p>
                 </div>
                 <Button
@@ -106,6 +117,21 @@ export function CallRecordingsPanel({ roomId, limit = 50 }: Props) {
               )}
             </div>
           ))}
+
+          {hasMore && (
+            <div className="flex justify-center pt-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={loadMore}
+                disabled={loadingMore}
+              >
+                {loadingMore ? <Spinner size="sm" /> : null}
+                {t('calls.recordings.loadMore')}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

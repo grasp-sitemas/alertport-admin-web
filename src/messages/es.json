@@ -433,8 +433,15 @@
       "empty": "No hay grabaciones disponibles.",
       "play": "Escuchar",
       "pageTitle": "Grabaciones",
-      "pageDescription": "Las llamadas de escucha silenciosa quedan disponibles para reproducción."
-    }
+      "pageDescription": "Las llamadas de escucha silenciosa quedan disponibles para reproducción.",
+      "loadMore": "Cargar más"
+    },
+    "silentListenBanner": {
+      "title": "Escucha silenciosa en curso",
+      "description": "Micrófono bloqueado. El audio del dispositivo se está grabando y estará disponible en Grabaciones.",
+      "autoEndNotice": "La escucha silenciosa termina automáticamente en hasta 3 minutos."
+    },
+    "endReasonMaxDuration": "Escucha silenciosa finalizada tras 3 minutos"
   },
   "clients": {
     "title": "Clientes",

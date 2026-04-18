@@ -433,8 +433,15 @@
       "empty": "Nenhuma gravação disponível.",
       "play": "Ouvir",
       "pageTitle": "Gravações",
-      "pageDescription": "Chamadas de escuta ativa concluídas ficam disponíveis para reprodução."
-    }
+      "pageDescription": "Chamadas de escuta ativa concluídas ficam disponíveis para reprodução.",
+      "loadMore": "Carregar mais"
+    },
+    "silentListenBanner": {
+      "title": "Escuta ativa em andamento",
+      "description": "Microfone bloqueado. O áudio do dispositivo está sendo gravado e ficará disponível em Gravações.",
+      "autoEndNotice": "A escuta ativa é encerrada automaticamente em até 3 minutos."
+    },
+    "endReasonMaxDuration": "Escuta ativa encerrada após 3 minutos (limite automático)"
   },
   "clients": {
     "title": "Clientes",

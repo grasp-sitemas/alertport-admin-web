@@ -433,8 +433,15 @@
       "empty": "暂无录音。",
       "play": "播放",
       "pageTitle": "录音",
-      "pageDescription": "静听通话结束后可供回放。"
-    }
+      "pageDescription": "静听通话结束后可供回放。",
+      "loadMore": "加载更多"
+    },
+    "silentListenBanner": {
+      "title": "静听进行中",
+      "description": "麦克风已锁定。设备音频正在录制,将在“录音”中提供。",
+      "autoEndNotice": "静听最多在 3 分钟后自动结束。"
+    },
+    "endReasonMaxDuration": "静听在 3 分钟后自动结束"
   },
   "clients": {
     "title": "客户",

@@ -7,6 +7,7 @@ import { Header } from './header';
 import { useAuth } from '@/hooks/use-auth';
 import { Spinner } from '@/components/ui/spinner';
 import { CallProvider } from '@/features/calls/call-context';
+import { SilentListenBanner } from '@/features/calls/silent-listen-banner';
 import { TrialBanner } from '@/components/trial/trial-banner';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -42,6 +43,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex flex-1 flex-col lg:ml-0 min-w-0">
           <Header onMenuClick={() => setSidebarOpen(true)} />
           <TrialBanner />
+          <SilentListenBanner />
 
           <main className="flex-1 overflow-y-auto">
             <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">{children}</div>

@@ -433,8 +433,15 @@
       "empty": "録音はありません。",
       "play": "再生",
       "pageTitle": "録音",
-      "pageDescription": "サイレントリッスン通話は終了後に再生できます。"
-    }
+      "pageDescription": "サイレントリッスン通話は終了後に再生できます。",
+      "loadMore": "もっと見る"
+    },
+    "silentListenBanner": {
+      "title": "サイレントリッスン中",
+      "description": "マイクはロックされています。端末の音声は録音されており、[録音] で再生できます。",
+      "autoEndNotice": "サイレントリッスンは最大 3 分で自動終了します。"
+    },
+    "endReasonMaxDuration": "サイレントリッスンは 3 分で自動終了しました"
   },
   "clients": {
     "title": "クライアント",
