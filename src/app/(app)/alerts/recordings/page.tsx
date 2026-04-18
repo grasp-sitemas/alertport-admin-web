@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/shared/page-header';
 import { FilterPanel } from '@/components/shared/filter-panel';
@@ -23,49 +23,57 @@ interface RecordingsPageFilters extends Record<string, unknown> {
 }
 
 /**
- * Initial filter shape. `callMode=''` means "any" on the client side and is
- * dropped from the payload before hitting the socket. We default to the
- * SILENT_LISTEN mode because that's the primary flow that produces
- * recordings; operators can still switch to "Todas" or "NORMAL".
+ * Initial filters. All empty so the first fetch returns everything the
+ * backend can see for this session (server-side scoped by accountId).
+ *
+ * Previously we defaulted callMode to SILENT_LISTEN, but that silently hid
+ * NORMAL recordings uploaded by the shieldgo flow and caused confusion
+ * ("as gravações sumiram"). The user can still filter to one mode via the
+ * dropdown.
  */
 const initialFilters: RecordingsPageFilters = {
-  callMode: 'SILENT_LISTEN',
+  callMode: '',
   startDate: '',
   endDate: '',
 };
 
 export default function RecordingsPage() {
   const t = useTranslations();
-  // `useFilters` is untyped (Record<string, unknown>) so we cast at the read
-  // boundary; the shape is fully owned by this page anyway.
   const { filters, setFilter, clearFilters } = useFilters({ initialFilters });
   const typedFilters = filters as RecordingsPageFilters;
-  const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
-  const [activeFilters, setActiveFilters] = useState<RecordingsPageFilters>(initialFilters);
-  const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
 
-  const handleSearch = () => {
-    setActiveFilters(typedFilters);
-    setActiveHierarchy(hierarchy);
-  };
+  const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
+
+  // Filters apply **live** — we used to mirror the shieldgo pattern of a
+  // "Filtrar" button that commits filters via a separate `activeFilters`
+  // state, but that added one more render cycle and a bug where the panel
+  // briefly showed empty state between the initial fetch and the committed
+  // fetch. Applying live means one source of truth and one fetch per real
+  // filter change. The "Filtrar" button stays as a convenience (triggers a
+  // refresh) and "Limpar filtros" resets state.
+  const recordingsFilter: RecordingsFilter = useMemo(
+    () => ({
+      limit: 100,
+      ...(hierarchy.account ? { accountId: hierarchy.account } : {}),
+      ...(hierarchy.client ? { clientId: hierarchy.client } : {}),
+      ...(hierarchy.site ? { siteId: hierarchy.site } : {}),
+      ...(typedFilters.callMode ? { callMode: typedFilters.callMode } : {}),
+      ...(typedFilters.startDate ? { startDate: typedFilters.startDate } : {}),
+      ...(typedFilters.endDate ? { endDate: typedFilters.endDate } : {}),
+    }),
+    [
+      hierarchy.account,
+      hierarchy.client,
+      hierarchy.site,
+      typedFilters.callMode,
+      typedFilters.startDate,
+      typedFilters.endDate,
+    ],
+  );
 
   const handleClear = () => {
     clearFilters();
-    setActiveFilters(initialFilters);
     setHierarchy({});
-    setActiveHierarchy({});
-  };
-
-  // Compose the final filter we feed to the hook. Empty strings become
-  // undefined so the hook's "only send keys the user set" rule kicks in.
-  const recordingsFilter: RecordingsFilter = {
-    limit: 100,
-    ...(activeHierarchy.account ? { accountId: activeHierarchy.account } : {}),
-    ...(activeHierarchy.client ? { clientId: activeHierarchy.client } : {}),
-    ...(activeHierarchy.site ? { siteId: activeHierarchy.site } : {}),
-    ...(activeFilters.callMode ? { callMode: activeFilters.callMode } : {}),
-    ...(activeFilters.startDate ? { startDate: activeFilters.startDate } : {}),
-    ...(activeFilters.endDate ? { endDate: activeFilters.endDate } : {}),
   };
 
   return (
@@ -95,7 +103,10 @@ export default function RecordingsPage() {
           ]}
           values={filters}
           onChange={setFilter}
-          onSearch={handleSearch}
+          // Filters apply live; the search button is just a visual affordance.
+          // We wire it to a no-op so the UI remains consistent with the other
+          // CRUD pages.
+          onSearch={() => {}}
           onClear={handleClear}
         />
 

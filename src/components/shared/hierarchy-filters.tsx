@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Select,
@@ -16,6 +16,32 @@ import {
 } from '@/features/shared/use-hierarchy-lookups';
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
+
+/**
+ * Pull `{ _id, name }` out of a session field that can be a populated Company
+ * object, a bare id string, or missing entirely. Returns null when we can't
+ * form a useful option.
+ */
+function extractSessionOption(v: unknown): { _id: string; name: string } | null {
+  if (!v) return null;
+  if (typeof v === 'object' && v !== null && '_id' in v) {
+    const obj = v as { _id?: unknown; name?: unknown };
+    const id = typeof obj._id === 'string' ? obj._id : '';
+    const name = typeof obj.name === 'string' ? obj.name : id;
+    return id ? { _id: id, name: name || id } : null;
+  }
+  return null;
+}
+
+/** Prepend `preferred` to `list` when missing — keeps React keys stable. */
+function mergeSessionOption<T extends { _id: string; name: string }>(
+  list: T[],
+  preferred: { _id: string; name: string } | null,
+): Array<{ _id: string; name: string }> {
+  if (!preferred) return list;
+  if (list.some((item) => item._id === preferred._id)) return list;
+  return [preferred, ...list];
+}
 
 export interface HierarchyFiltersValue {
   account?: string;
@@ -52,12 +78,28 @@ export function HierarchyFilters({
   showClient = true,
 }: HierarchyFiltersProps) {
   const t = useTranslations();
-  const { userSubtype } = useAuth();
+  const { userSubtype, user: sessionUser } = useAuth();
   const canSelectAccount = isSuperAdminMaster(userSubtype);
 
   const accountsLookup = useAccountsLookup();
   const clientsLookup = useClientsLookup(value.account || undefined);
   const sitesLookup = useSitesLookup(value.client || undefined);
+
+  // Merge the session's own hierarchy (account/client/site) as a fallback
+  // option. Reason: for non-SUPER_ADMIN roles the backend
+  // `/api/company/filter/v1/` endpoint can return an empty list — either
+  // because the api-gateway auto-scopes too aggressively or because the
+  // user doesn't have permission to list siblings. In that case the
+  // dropdown would be empty and the user couldn't even pick their own
+  // scope. Merging the session object guarantees at least one entry so
+  // the filter remains usable.
+  const sessionAccount = useMemo(() => extractSessionOption(sessionUser?.account), [sessionUser?.account]);
+  const sessionClient = useMemo(() => extractSessionOption(sessionUser?.client), [sessionUser?.client]);
+  const sessionSite = useMemo(() => extractSessionOption(sessionUser?.site), [sessionUser?.site]);
+
+  const accountOptions = mergeSessionOption(accountsLookup.data?.results ?? [], sessionAccount);
+  const clientOptions = mergeSessionOption(clientsLookup.data?.results ?? [], sessionClient);
+  const siteOptions = mergeSessionOption(sitesLookup.data?.results ?? [], sessionSite);
 
   // Auto-clear child filters when parent changes to an empty/different value
   useEffect(() => {
@@ -83,7 +125,7 @@ export function HierarchyFilters({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">{t('common.all')}</SelectItem>
-              {(accountsLookup.data?.results ?? []).map((a) => (
+              {accountOptions.map((a) => (
                 <SelectItem key={a._id} value={a._id}>
                   {a.name}
                 </SelectItem>
@@ -110,7 +152,7 @@ export function HierarchyFilters({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">{t('common.all')}</SelectItem>
-              {(clientsLookup.data?.results ?? []).map((c) => (
+              {clientOptions.map((c) => (
                 <SelectItem key={c._id} value={c._id}>
                   {c.name}
                 </SelectItem>
@@ -137,7 +179,7 @@ export function HierarchyFilters({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">{t('common.all')}</SelectItem>
-              {(sitesLookup.data?.results ?? []).map((s) => (
+              {siteOptions.map((s) => (
                 <SelectItem key={s._id} value={s._id}>
                   {s.name}
                 </SelectItem>
