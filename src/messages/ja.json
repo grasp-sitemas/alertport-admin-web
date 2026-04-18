@@ -506,11 +506,23 @@
     "limits": {
       "users": "ユーザー",
       "devices": "デバイス",
-      "sites": "サイト",
+      "sites": "拠点",
       "clients": "クライアント",
       "incidents": "インシデント",
       "integrations": "統合",
       "reportsPerMonth": "レポート / 月"
+    },
+    "featuresList": {
+      "users": "ユーザー",
+      "devices": "デバイス",
+      "sites": "拠点",
+      "clients": "クライアント",
+      "incidents": "インシデント",
+      "integrations": "統合",
+      "reports_export": "レポートのエクスポート",
+      "monitor_realtime": "リアルタイム監視",
+      "chat": "チャット",
+      "analytics_advanced": "高度な分析"
     }
   },
   "signup": {

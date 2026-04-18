@@ -4,7 +4,7 @@
       "type": {
         "reports": {
           "performance": {
-            "local": "Performance de locais"
+            "local": "Performance de postos"
           },
           "patrols": "Rondas",
           "alert": {
@@ -506,11 +506,23 @@
     "limits": {
       "users": "Usuários",
       "devices": "Dispositivos",
-      "sites": "Locais",
+      "sites": "Postos",
       "clients": "Clientes",
       "incidents": "Incidentes",
       "integrations": "Integrações",
       "reportsPerMonth": "Relatórios / mês"
+    },
+    "featuresList": {
+      "users": "Usuários",
+      "devices": "Dispositivos",
+      "sites": "Postos",
+      "clients": "Clientes",
+      "incidents": "Incidentes",
+      "integrations": "Integrações",
+      "reports_export": "Exportação de relatórios",
+      "monitor_realtime": "Monitor em tempo real",
+      "chat": "Chat",
+      "analytics_advanced": "Análises avançadas"
     }
   },
   "signup": {

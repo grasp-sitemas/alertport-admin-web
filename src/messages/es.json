@@ -506,11 +506,23 @@
     "limits": {
       "users": "Usuarios",
       "devices": "Dispositivos",
-      "sites": "Sitios",
+      "sites": "Puestos",
       "clients": "Clientes",
       "incidents": "Incidentes",
       "integrations": "Integraciones",
       "reportsPerMonth": "Informes / mes"
+    },
+    "featuresList": {
+      "users": "Usuarios",
+      "devices": "Dispositivos",
+      "sites": "Puestos",
+      "clients": "Clientes",
+      "incidents": "Incidentes",
+      "integrations": "Integraciones",
+      "reports_export": "Exportación de informes",
+      "monitor_realtime": "Monitor en tiempo real",
+      "chat": "Chat",
+      "analytics_advanced": "Análisis avanzados"
     }
   },
   "signup": {

@@ -511,6 +511,18 @@
       "incidents": "Incidents",
       "integrations": "Integrations",
       "reportsPerMonth": "Reports / month"
+    },
+    "featuresList": {
+      "users": "Users",
+      "devices": "Devices",
+      "sites": "Sites",
+      "clients": "Clients",
+      "incidents": "Incidents",
+      "integrations": "Integrations",
+      "reports_export": "Reports export",
+      "monitor_realtime": "Real-time monitor",
+      "chat": "Chat",
+      "analytics_advanced": "Advanced analytics"
     }
   },
   "signup": {

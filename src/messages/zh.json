@@ -511,6 +511,18 @@
       "incidents": "事件",
       "integrations": "集成",
       "reportsPerMonth": "报表 / 月"
+    },
+    "featuresList": {
+      "users": "用户",
+      "devices": "设备",
+      "sites": "站点",
+      "clients": "客户",
+      "incidents": "事件",
+      "integrations": "集成",
+      "reports_export": "报表导出",
+      "monitor_realtime": "实时监控",
+      "chat": "聊天",
+      "analytics_advanced": "高级分析"
     }
   },
   "signup": {

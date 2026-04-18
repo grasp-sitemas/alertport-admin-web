@@ -115,19 +115,31 @@ export default function PlanPage() {
             {t('plan.features')}
           </h3>
           <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {Object.entries(features).map(([key, enabled]) => (
-              <li
-                key={key}
-                className={`flex items-center gap-2 text-sm ${
-                  enabled ? 'text-white' : 'text-text-muted line-through'
-                }`}
-              >
-                <Check
-                  className={`h-4 w-4 ${enabled ? 'text-emerald-400' : 'text-text-muted/40'}`}
-                />
-                <span className="capitalize">{key.replace(/\./g, ' ')}</span>
-              </li>
-            ))}
+            {Object.entries(features).map(([key, enabled]) => {
+              // Backend emits keys like "users", "reports.export",
+              // "monitor.realtime". Map dots to colons so they can live in
+              // the `plan.featuresList` namespace without breaking intl's
+              // nested-key lookup. Fall back to a humanized version if the
+              // translation is missing.
+              const translationKey = `plan.featuresList.${key.replace(/\./g, '_')}`;
+              const humanFallback = key
+                .split('.')
+                .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+                .join(' ');
+              return (
+                <li
+                  key={key}
+                  className={`flex items-center gap-2 text-sm ${
+                    enabled ? 'text-white' : 'text-text-muted line-through'
+                  }`}
+                >
+                  <Check
+                    className={`h-4 w-4 ${enabled ? 'text-emerald-400' : 'text-text-muted/40'}`}
+                  />
+                  <span>{t.has(translationKey) ? t(translationKey) : humanFallback}</span>
+                </li>
+              );
+            })}
           </ul>
         </section>
       </div>
