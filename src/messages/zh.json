@@ -320,11 +320,23 @@
       "missingReference": "无法识别日程或发生。请刷新重试。"
     },
     "editOccurrenceTitle": "编辑发生",
-    "editOccurrenceDescription": "仅调整所选日期,不更改系列。"
+    "editOccurrenceDescription": "仅调整所选日期,不更改系列。",
+    "realtime": {
+      "sosIncoming": "收到新的SOS告警,请立即核查。",
+      "timeEntryRegistered": "已登记新的考勤记录。",
+      "attendanceStarted": "处置已开始",
+      "attendanceStartedDescription": "操作员开始处置一项事件。",
+      "attendanceClosed": "处置已结束",
+      "attendanceClosedDescription": "一项处置已完成。",
+      "newEvents": "{count} 个新",
+      "newEntries": "{count} 个新"
+    }
   },
   "attendance": {
     "title": "考勤管理",
     "timeEntries": "考勤记录",
+    "timeEntry": "考勤记录",
+    "noTimeEntries": "期间内无考勤记录",
     "clockIn": "签到",
     "clockOut": "签退",
     "breakStart": "开始休息",
@@ -440,6 +452,9 @@
     "toggleRemote": "切换音频",
     "micLocked": "麦克风锁定（静默监听）",
     "silentListen": "静默监听 (SOS)",
+    "recording": "录制中",
+    "startRecording": "开始录制",
+    "stopRecording": "停止录制",
     "callNormal": "呼叫",
     "mode": {
       "silentListen": "静默监听",

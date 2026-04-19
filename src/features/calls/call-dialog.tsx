@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Radio, PhoneIncoming } from 'lucide-react';
+import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Radio, PhoneIncoming, Circle, StopCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,8 @@ import { cn } from '@/lib/utils';
 import type { CallActions, CallState } from './use-call';
 
 interface CallDialogProps extends CallState, CallActions {}
+
+const MAX_RECORDING_DURATION_SEC = 180;
 
 function formatDuration(seconds: number): string {
   const s = Math.max(0, Math.floor(seconds || 0));
@@ -35,11 +37,15 @@ export function CallDialog(props: CallDialogProps) {
     remoteAudioRef,
     micMuted,
     remoteMuted,
+    isRecording,
+    recordingDurationSec,
+    canRecord,
     acceptCall,
     rejectCall,
     endCall,
     toggleMic,
     toggleRemoteAudio,
+    toggleRecording,
   } = props;
 
   const isOpen =
@@ -102,6 +108,15 @@ export function CallDialog(props: CallDialogProps) {
                 )}
                 {isConnected && (
                   <Badge variant="success">{formatDuration(callDurationSec)}</Badge>
+                )}
+                {isRecording && (
+                  <Badge variant="danger" className="gap-1.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                    </span>
+                    {t('calls.recording')} {formatDuration(recordingDurationSec)} / {formatDuration(MAX_RECORDING_DURATION_SEC)}
+                  </Badge>
                 )}
               </div>
             </div>
@@ -170,6 +185,26 @@ export function CallDialog(props: CallDialogProps) {
                     <Volume2 className="h-5 w-5" />
                   )}
                 </Button>
+
+                {isConnected && canRecord && !isSilent && (
+                  <Button
+                    variant={isRecording ? 'destructive' : 'secondary'}
+                    size="icon"
+                    className={cn(
+                      'rounded-full h-12 w-12',
+                      isRecording && 'ring-2 ring-red-500/70 ring-offset-2 ring-offset-background animate-pulse',
+                    )}
+                    onClick={toggleRecording}
+                    aria-label={isRecording ? t('calls.stopRecording') : t('calls.startRecording')}
+                    title={isRecording ? t('calls.stopRecording') : t('calls.startRecording')}
+                  >
+                    {isRecording ? (
+                      <StopCircle className="h-5 w-5" />
+                    ) : (
+                      <Circle className="h-5 w-5 text-red-500 fill-red-500" />
+                    )}
+                  </Button>
+                )}
               </>
             )}
           </div>

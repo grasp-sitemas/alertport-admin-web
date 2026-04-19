@@ -320,11 +320,23 @@
       "missingReference": "Could not identify the schedule or occurrence. Refresh and try again."
     },
     "editOccurrenceTitle": "Edit occurrence",
-    "editOccurrenceDescription": "Adjust just the selected day without changing the series."
+    "editOccurrenceDescription": "Adjust just the selected day without changing the series.",
+    "realtime": {
+      "sosIncoming": "A new SOS just came in. Check immediately.",
+      "timeEntryRegistered": "A new time-entry was just registered.",
+      "attendanceStarted": "Attendance started",
+      "attendanceStartedDescription": "An operator just opened an occurrence attendance.",
+      "attendanceClosed": "Attendance closed",
+      "attendanceClosedDescription": "An attendance was just finalized.",
+      "newEvents": "{count} new",
+      "newEntries": "{count} new"
+    }
   },
   "attendance": {
     "title": "Attendance Control",
     "timeEntries": "Time Entries",
+    "timeEntry": "Time Entry",
+    "noTimeEntries": "No time entries in the period",
     "clockIn": "Clock In",
     "clockOut": "Clock Out",
     "breakStart": "Break Start",
@@ -440,6 +452,9 @@
     "toggleRemote": "Toggle remote audio",
     "micLocked": "Microphone locked (silent listen)",
     "silentListen": "Silent listen (SOS)",
+    "recording": "Recording",
+    "startRecording": "Start recording",
+    "stopRecording": "Stop recording",
     "callNormal": "Call",
     "mode": {
       "silentListen": "Silent listen",

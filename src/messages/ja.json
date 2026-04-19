@@ -320,11 +320,23 @@
       "missingReference": "スケジュールまたは発生を識別できませんでした。再読み込みしてもう一度お試しください。"
     },
     "editOccurrenceTitle": "発生を編集",
-    "editOccurrenceDescription": "シリーズを変更せずに選択した日のみを調整します。"
+    "editOccurrenceDescription": "シリーズを変更せずに選択した日のみを調整します。",
+    "realtime": {
+      "sosIncoming": "新しいSOSを受信しました。直ちに確認してください。",
+      "timeEntryRegistered": "新しい勤怠記録が登録されました。",
+      "attendanceStarted": "対応を開始しました",
+      "attendanceStartedDescription": "オペレーターが対応を開始しました。",
+      "attendanceClosed": "対応を終了しました",
+      "attendanceClosedDescription": "対応が完了しました。",
+      "newEvents": "新着 {count} 件",
+      "newEntries": "新着 {count} 件"
+    }
   },
   "attendance": {
     "title": "勤怠管理",
     "timeEntries": "勤怠記録",
+    "timeEntry": "勤怠記録",
+    "noTimeEntries": "該当期間の勤怠記録はありません",
     "clockIn": "出勤",
     "clockOut": "退勤",
     "breakStart": "休憩開始",
@@ -440,6 +452,9 @@
     "toggleRemote": "音声の切替",
     "micLocked": "マイクロック（サイレント）",
     "silentListen": "サイレント聞き取り (SOS)",
+    "recording": "録音中",
+    "startRecording": "録音開始",
+    "stopRecording": "録音停止",
     "callNormal": "通話",
     "mode": {
       "silentListen": "サイレント聞き取り",

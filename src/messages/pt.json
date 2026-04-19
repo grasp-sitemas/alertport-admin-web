@@ -320,11 +320,23 @@
       "missingReference": "Não foi possível identificar a agenda ou ocorrência. Recarregue e tente novamente."
     },
     "editOccurrenceTitle": "Editar ocorrência",
-    "editOccurrenceDescription": "Ajuste apenas o dia selecionado sem alterar a série."
+    "editOccurrenceDescription": "Ajuste apenas o dia selecionado sem alterar a série.",
+    "realtime": {
+      "sosIncoming": "Um novo SOS foi recebido. Verifique imediatamente.",
+      "timeEntryRegistered": "Um novo registro de ponto foi lançado.",
+      "attendanceStarted": "Atendimento iniciado",
+      "attendanceStartedDescription": "Um operador começou o atendimento de uma ocorrência.",
+      "attendanceClosed": "Atendimento encerrado",
+      "attendanceClosedDescription": "Um atendimento foi finalizado.",
+      "newEvents": "{count} novo(s)",
+      "newEntries": "{count} novo(s)"
+    }
   },
   "attendance": {
     "title": "Controle de Presença",
     "timeEntries": "Registros de Ponto",
+    "timeEntry": "Registro de Ponto",
+    "noTimeEntries": "Nenhum registro de ponto no período",
     "clockIn": "Entrada",
     "clockOut": "Saída",
     "breakStart": "Início do Intervalo",
@@ -440,6 +452,9 @@
     "toggleRemote": "Ativar/desativar áudio",
     "micLocked": "Microfone bloqueado (escuta ativa)",
     "silentListen": "Escuta ativa (SOS)",
+    "recording": "Gravando",
+    "startRecording": "Iniciar gravação",
+    "stopRecording": "Parar gravação",
     "callNormal": "Ligar",
     "mode": {
       "silentListen": "Escuta ativa",

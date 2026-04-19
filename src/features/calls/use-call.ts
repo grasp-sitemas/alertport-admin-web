@@ -40,6 +40,22 @@ import { useAuth } from '@/hooks/use-auth';
  * ms-chat/services/callRecordingService.js: base64-encoded WebM blob + roomId
  * + timestamps. Server-side persistence to S3 + Mongo already exists.
  */
+/**
+ * Operator-initiated call recording (NORMAL mode).
+ *
+ * For NORMAL calls the operator toggles recording manually via the REC
+ * button in the call dialog. The MediaRecorder captures a mixed stream
+ * combining the operator's microphone and the remote peer's audio so
+ * the saved file contains both sides of the conversation.
+ *
+ * A hard 3-minute limit auto-finalizes and uploads the recording while
+ * the call continues uninterrupted — the operator may start a new
+ * recording afterwards if they need to keep capturing. We chose 3 min
+ * to match ms-chat's SILENT_LISTEN auto-finalize ceiling and keep the
+ * base64 upload payload bounded (~2–3 MB for WebM/Opus).
+ */
+const MAX_RECORDING_DURATION_SEC = 180;
+
 function pickSupportedMimeType(): string {
   if (typeof MediaRecorder === 'undefined') return '';
   const candidates = [
@@ -92,6 +108,16 @@ export interface CallState {
    * registration.
    */
   socketReady: boolean;
+  /**
+   * Recording state. For SILENT_LISTEN the recording auto-starts as soon
+   * as the remote audio track arrives. For NORMAL calls the operator
+   * toggles recording manually via `toggleRecording()` — `canRecord`
+   * gates the button's availability (mirrors the server-side
+   * callRecordingEnabled flag from company-settings).
+   */
+  isRecording: boolean;
+  recordingDurationSec: number;
+  canRecord: boolean;
   onlineUsers: string[];
   // Active call
   roomId: string | null;
@@ -114,6 +140,7 @@ export interface CallActions {
   endCall: () => void;
   toggleMic: () => void;
   toggleRemoteAudio: () => void;
+  toggleRecording: () => void;
 }
 
 export function useCall(): CallState & CallActions {
@@ -131,9 +158,13 @@ export function useCall(): CallState & CallActions {
   const [callDirection, setCallDirection] = useState<'incoming' | 'outgoing' | null>(null);
   const [micMuted, setMicMuted] = useState(false);
   const [remoteMuted, setRemoteMuted] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingDurationSec, setRecordingDurationSec] = useState(0);
+  const [canRecord, setCanRecord] = useState(false);
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const pendingOfferRef = useRef<WebRtcSignalPayload | null>(null);
   const pendingIceRef = useRef<WebRtcSignalPayload[]>([]);
@@ -142,18 +173,57 @@ export function useCall(): CallState & CallActions {
   const callModeRef = useRef<CallMode | null>(null);
   const initializedRef = useRef(false);
 
-  // Silent-listen transparent recording
+  // Recording (SILENT_LISTEN auto / NORMAL operator-initiated)
   const recorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   const recorderMimeRef = useRef<string>('');
   const recordingStartedAtRef = useRef<Date | null>(null);
+  const recordingModeRef = useRef<CallMode | null>(null);
+  const recordingStreamRef = useRef<MediaStream | null>(null);
+  const recordingAudioCtxRef = useRef<AudioContext | null>(null);
+  const recordingTickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const recordingLimitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const callRecordingEnabledRef = useRef<boolean>(false);
 
+
+  const clearRecordingTimers = useCallback(() => {
+    if (recordingTickerRef.current) {
+      clearInterval(recordingTickerRef.current);
+      recordingTickerRef.current = null;
+    }
+    if (recordingLimitTimeoutRef.current) {
+      clearTimeout(recordingLimitTimeoutRef.current);
+      recordingLimitTimeoutRef.current = null;
+    }
+  }, []);
+
+  const releaseRecordingResources = useCallback(() => {
+    clearRecordingTimers();
+    recordingStreamRef.current?.getTracks().forEach((t) => {
+      try {
+        t.stop();
+      } catch {
+        /* ignore */
+      }
+    });
+    recordingStreamRef.current = null;
+    if (recordingAudioCtxRef.current) {
+      try {
+        void recordingAudioCtxRef.current.close();
+      } catch {
+        /* ignore */
+      }
+      recordingAudioCtxRef.current = null;
+    }
+  }, [clearRecordingTimers]);
 
   const finalizeRecording = useCallback(async () => {
     const recorder = recorderRef.current;
     if (!recorder) return;
     recorderRef.current = null;
+    clearRecordingTimers();
+
+    const mode = recordingModeRef.current;
 
     try {
       await new Promise<void>((resolve) => {
@@ -192,7 +262,7 @@ export function useCall(): CallState & CallActions {
       socket.emit('call:recording:upload', {
         roomId: activeRoomIdRef.current,
         accountId,
-        callMode: 'SILENT_LISTEN',
+        callMode: mode || callModeRef.current || 'NORMAL',
         initiatedBy: user?._id,
         peerUserId: peerUserIdRef.current,
         startedAt: startedAt?.toISOString(),
@@ -203,8 +273,115 @@ export function useCall(): CallState & CallActions {
       });
     } catch {
       // best-effort
+    } finally {
+      releaseRecordingResources();
+      recordingModeRef.current = null;
+      setIsRecording(false);
+      setRecordingDurationSec(0);
     }
-  }, [user]);
+  }, [user, clearRecordingTimers, releaseRecordingResources]);
+
+  /**
+   * Build a mixed MediaStream from local mic + remote peer audio using
+   * an AudioContext. Needed for NORMAL calls where the saved recording
+   * must contain both sides. SILENT_LISTEN only records the remote
+   * stream (the operator's mic is always muted in that mode).
+   *
+   * If either side is missing or the browser doesn't support the
+   * required APIs we fall back to the remote stream alone — one side
+   * is always better than dropping the recording entirely.
+   */
+  const createMixedStream = useCallback((): MediaStream | null => {
+    const remote = remoteStreamRef.current;
+    const local = localStreamRef.current;
+    if (!remote && !local) return null;
+
+    const AudioCtx: typeof AudioContext | undefined =
+      typeof window !== 'undefined'
+        ? (window.AudioContext ||
+            (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)
+        : undefined;
+
+    if (!AudioCtx || !remote || !local) {
+      return remote || local || null;
+    }
+
+    try {
+      const ctx = new AudioCtx();
+      const destination = ctx.createMediaStreamDestination();
+      const localSource = ctx.createMediaStreamSource(local);
+      const remoteSource = ctx.createMediaStreamSource(remote);
+      localSource.connect(destination);
+      remoteSource.connect(destination);
+      recordingAudioCtxRef.current = ctx;
+      return destination.stream;
+    } catch {
+      return remote || local || null;
+    }
+  }, []);
+
+  const startRecording = useCallback(
+    (mode: CallMode) => {
+      if (recorderRef.current) return;
+      if (typeof MediaRecorder === 'undefined') return;
+      if (!callRecordingEnabledRef.current) return;
+
+      const stream =
+        mode === 'SILENT_LISTEN' ? remoteStreamRef.current : createMixedStream();
+      if (!stream) return;
+
+      try {
+        const mime = pickSupportedMimeType();
+        const recorder = mime
+          ? new MediaRecorder(stream, { mimeType: mime })
+          : new MediaRecorder(stream);
+        recorderMimeRef.current = mime || recorder.mimeType || 'audio/webm';
+        recordedChunksRef.current = [];
+        recorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) {
+            recordedChunksRef.current.push(e.data);
+          }
+        };
+        recorder.start(1000);
+        recorderRef.current = recorder;
+        recordingModeRef.current = mode;
+        recordingStreamRef.current = stream;
+        recordingStartedAtRef.current = new Date();
+        setRecordingDurationSec(0);
+        setIsRecording(true);
+
+        recordingTickerRef.current = setInterval(() => {
+          const startedAt = recordingStartedAtRef.current;
+          if (!startedAt) return;
+          const elapsed = Math.floor((Date.now() - startedAt.getTime()) / 1000);
+          setRecordingDurationSec(Math.min(elapsed, MAX_RECORDING_DURATION_SEC));
+        }, 500);
+
+        // Hard 3-min cap: finalize + upload, then the call continues.
+        // The operator may press Record again for another segment.
+        recordingLimitTimeoutRef.current = setTimeout(() => {
+          void finalizeRecording();
+        }, MAX_RECORDING_DURATION_SEC * 1000);
+      } catch {
+        recorderRef.current = null;
+        recordingStreamRef.current = null;
+        recordingModeRef.current = null;
+        setIsRecording(false);
+        setRecordingDurationSec(0);
+      }
+    },
+    [createMixedStream, finalizeRecording],
+  );
+
+  const toggleRecording = useCallback(() => {
+    if (!callRecordingEnabledRef.current) return;
+    if (callModeRef.current !== 'NORMAL') return; // SILENT_LISTEN auto-records
+    if (recorderRef.current) {
+      void finalizeRecording();
+    } else {
+      startRecording('NORMAL');
+    }
+  }, [finalizeRecording, startRecording]);
 
   const resetCallState = useCallback(() => {
     try {
@@ -222,6 +399,8 @@ export function useCall(): CallState & CallActions {
       }
     });
     localStreamRef.current = null;
+    remoteStreamRef.current = null;
+    releaseRecordingResources();
 
     if (remoteAudioRef.current) {
       remoteAudioRef.current.srcObject = null;
@@ -241,7 +420,10 @@ export function useCall(): CallState & CallActions {
     setCallDirection(null);
     setMicMuted(false);
     setRemoteMuted(false);
-  }, []);
+    setIsRecording(false);
+    setRecordingDurationSec(0);
+    setCanRecord(false);
+  }, [releaseRecordingResources]);
 
   const ensurePeerConnection = useCallback(async (): Promise<RTCPeerConnection> => {
     if (pcRef.current) return pcRef.current;
@@ -265,40 +447,23 @@ export function useCall(): CallState & CallActions {
 
     pc.ontrack = (ev) => {
       const [remoteStream] = ev.streams;
-      if (remoteStream && remoteAudioRef.current) {
+      if (!remoteStream) return;
+      remoteStreamRef.current = remoteStream;
+      if (remoteAudioRef.current) {
         remoteAudioRef.current.srcObject = remoteStream;
         remoteAudioRef.current.play().catch(() => {
           // Autoplay policy may block — user must click page first.
         });
       }
-      // Silent-listen: start transparent recording as soon as remote audio
-      // arrives. Guarded so we only create the MediaRecorder once per call.
+      // SILENT_LISTEN: transparent auto-record the moment the remote
+      // audio track lands. NORMAL: operator toggles manually via
+      // toggleRecording(); startRecording() handles mic+remote mixing.
       if (
-        remoteStream &&
         callModeRef.current === 'SILENT_LISTEN' &&
         callRecordingEnabledRef.current &&
-        !recorderRef.current &&
-        typeof MediaRecorder !== 'undefined'
+        !recorderRef.current
       ) {
-        try {
-          const mime = pickSupportedMimeType();
-          const recorder = mime
-            ? new MediaRecorder(remoteStream, { mimeType: mime })
-            : new MediaRecorder(remoteStream);
-          recorderMimeRef.current = mime || recorder.mimeType || 'audio/webm';
-          recordedChunksRef.current = [];
-          recorder.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) {
-              recordedChunksRef.current.push(e.data);
-            }
-          };
-          recorder.start(1000);
-          recorderRef.current = recorder;
-          recordingStartedAtRef.current = new Date();
-        } catch {
-          // Silently drop — recording is best-effort; never break the call.
-          recorderRef.current = null;
-        }
+        startRecording('SILENT_LISTEN');
       }
     };
 
@@ -330,7 +495,7 @@ export function useCall(): CallState & CallActions {
     stream.getTracks().forEach((t) => pc.addTrack(t, stream));
 
     return pc;
-  }, []);
+  }, [startRecording]);
 
   const processQueuedSignals = useCallback(async () => {
     const pc = pcRef.current;
@@ -429,6 +594,9 @@ export function useCall(): CallState & CallActions {
         recorderRef.current = null;
         recordedChunksRef.current = [];
         recordingStartedAtRef.current = null;
+        recordingModeRef.current = null;
+        setIsRecording(false);
+        setRecordingDurationSec(0);
         resetCallState();
       }
     };
@@ -443,7 +611,12 @@ export function useCall(): CallState & CallActions {
       activeRoomIdRef.current = payload.roomId;
       peerUserIdRef.current = payload.from;
       callModeRef.current = payload.callMode;
-      callRecordingEnabledRef.current = payload.callMode === 'SILENT_LISTEN';
+      // Incoming path lacks the server's explicit `callRecordingEnabled`
+      // ack — trust the call-mode contract: SILENT_LISTEN is always
+      // recorded; NORMAL recording is a local operator decision and the
+      // server gate is re-checked on upload by ms-chat anyway.
+      callRecordingEnabledRef.current = true;
+      setCanRecord(payload.callMode === 'NORMAL');
 
       setRoomId(payload.roomId);
       setPeerUserId(payload.from);
@@ -625,8 +798,11 @@ export function useCall(): CallState & CallActions {
 
           activeRoomIdRef.current = ack.roomId;
           peerUserIdRef.current = ack.to || to;
-          callRecordingEnabledRef.current =
-            mode === 'SILENT_LISTEN' && ack.callRecordingEnabled !== false;
+          // Server ack's whether recording is enabled for the tenant.
+          // SILENT_LISTEN always records when allowed; NORMAL requires
+          // the same flag to surface the operator toggle.
+          callRecordingEnabledRef.current = ack.callRecordingEnabled !== false;
+          setCanRecord(mode === 'NORMAL' && ack.callRecordingEnabled !== false);
           setRoomId(ack.roomId);
           setPeerUserId(ack.to || to);
 
@@ -754,6 +930,9 @@ export function useCall(): CallState & CallActions {
     statusMessage,
     socketConnected,
     socketReady,
+    isRecording,
+    recordingDurationSec,
+    canRecord,
     onlineUsers,
     roomId,
     peerUserId,
@@ -770,5 +949,6 @@ export function useCall(): CallState & CallActions {
     endCall,
     toggleMic,
     toggleRemoteAudio,
+    toggleRecording,
   };
 }

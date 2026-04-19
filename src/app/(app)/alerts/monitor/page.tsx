@@ -1,21 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import {
-  AlertTriangle,
-  Bell,
-  Clock,
-  MapPin,
-  Phone,
-  Radio,
-  ShieldCheck,
-} from 'lucide-react';
+import { AlertTriangle, Bell, Clock, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import { RoleGuard } from '@/components/shared/role-guard';
@@ -33,27 +24,41 @@ import {
 import { useAlertportRealtime } from '@/features/alerts/use-realtime';
 import { usePagination } from '@/hooks/use-pagination';
 import { useUserScope, applyUserScope } from '@/hooks/use-user-scope';
-import type { EventType, PatrolAction } from '@/types/api';
-import { cn } from '@/lib/utils';
+import type { PatrolAction, TimeEntry } from '@/types/api';
 import { useCallContext } from '@/features/calls/call-context';
 import { ChatConnectionBadge } from '@/features/calls/call-dialog';
 import { formatDeviceLabel, resolveCallTargetId } from '@/features/alerts/device-label';
 import { AttendanceDialog } from '@/features/alerts/attendance-dialog';
+import { MonitorEventCard } from '@/features/alerts/monitor-event-card';
+import { MonitorTimeEntryRow } from '@/features/alerts/monitor-time-entry-row';
 
-const EVENT_META: Record<
-  EventType,
-  { labelKey: string; accent: 'danger' | 'warning' | 'info' | 'brand' }
-> = {
-  SOS_ALERT: { labelKey: 'alerts.sosAlert', accent: 'danger' },
-  INCIDENT: { labelKey: 'alerts.incident', accent: 'warning' },
-  CRASH: { labelKey: 'alerts.crash', accent: 'danger' },
-  LOWVOLTAGE: { labelKey: 'alerts.lowVoltage', accent: 'warning' },
-  CANCEL_PATROL: { labelKey: 'alerts.cancelPatrol', accent: 'info' },
-  FAILURE_PATROL: { labelKey: 'alerts.failurePatrol', accent: 'warning' },
-};
+/**
+ * Window the card-level highlight ("flash") stays on after a new event
+ * arrives through a real-time push. Anything older than this gets
+ * rendered calmly so the operator's attention is pulled to what's
+ * actually new.
+ */
+const FLASH_WINDOW_MS = 15_000;
+
+/**
+ * Maximum IDs we remember as "seen" between realtime pushes. Bounded to
+ * avoid unbounded memory growth on long operator shifts.
+ */
+const SEEN_IDS_CAP = 500;
 
 export default function AlertMonitorPage() {
+  return (
+    <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}>
+      <AlertMonitor />
+    </RoleGuard>
+  );
+}
+
+function AlertMonitor() {
   const t = useTranslations();
+  const scope = useUserScope();
+  const call = useCallContext();
+
   const patrolPagination = usePagination({ initialPageSize: 50 });
   const timePagination = usePagination({ initialPageSize: 50 });
   const timeWindow = useMemo(
@@ -64,7 +69,6 @@ export default function AlertMonitorPage() {
     [],
   );
 
-  const scope = useUserScope();
   const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
   const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
   const [attendanceEvent, setAttendanceEvent] = useState<PatrolAction | null>(null);
@@ -99,79 +103,152 @@ export default function AlertMonitorPage() {
   // Prefetch attendance types catalog — speeds up the first AttendanceDialog open.
   useAttendanceTypes();
 
-  // Real-time Firestore subscriptions (SOS, media, attendance updates).
+  const events = useMemo<PatrolAction[]>(() => patrolQuery.data?.results || [], [patrolQuery.data]);
+  const timeEntries = useMemo<TimeEntry[]>(() => timeQuery.data?.results || [], [timeQuery.data]);
+
+  // ── Flash-new-event tracking ─────────────────────────────────────
+  // Pattern: a first-seen timestamp per _id lives in a ref (so it survives
+  // re-renders without re-triggering them). Stamping happens in an effect
+  // after each query refetch, and a one-second `tick` state drives calm
+  // re-renders while the flash window is active. Keeps the work out of
+  // render to satisfy the pure-render rule.
+  const flashState = useFreshlyArrivedFlash(events, FLASH_WINDOW_MS);
+  const timeFlashState = useFreshlyArrivedFlash(timeEntries, FLASH_WINDOW_MS);
+  const flashEventCount = flashState.count;
+  const flashTimeEntryCount = timeFlashState.count;
+  const isFlashingEvent = flashState.isFlashing;
+  const isFlashingTimeEntry = timeFlashState.isFlashing;
+
+  // ── Real-time subscriptions + surface-level feedback ─────────────
+  // The hook handles cache invalidation internally. Here we only need to
+  // add the operator-facing UX: a toast + optional alarm.
   useAlertportRealtime({
     onEvent: (evt) => {
       if (evt.kind === 'notification') {
-        const data = evt.data;
-        const label = data.type || 'ALERT';
-        toast.info(`${label}`, { description: t('alerts.eventDetails') });
-        if (data.type === 'SOS_ALERT') {
+        const type = evt.data.type || 'ALERT';
+        if (type === 'SOS_ALERT') {
+          toast.error(t('alerts.sosAlert'), {
+            description: t('alerts.realtime.sosIncoming'),
+          });
           playAlarmSound();
+        } else if (type === 'TIME_ENTRY') {
+          toast.info(t('attendance.timeEntry'), {
+            description: t('alerts.realtime.timeEntryRegistered'),
+          });
+        } else if (type) {
+          toast.info(type, { description: t('alerts.eventDetails') });
         }
+        return;
+      }
+      if (evt.kind === 'attendance:update') {
+        toast.message(t('alerts.realtime.attendanceStarted'), {
+          description: t('alerts.realtime.attendanceStartedDescription'),
+        });
+        return;
+      }
+      if (evt.kind === 'attendance:close') {
+        toast.success(t('alerts.realtime.attendanceClosed'), {
+          description: t('alerts.realtime.attendanceClosedDescription'),
+        });
       }
     },
   });
 
-  // Global call state (socket, WebRTC, ringing, etc.) — from CallProvider in AppShell.
-  const call = useCallContext();
+  // ── Stable handlers — keep the EventCard memos effective ─────────
+  const handleAttend = useCallback((event: PatrolAction) => {
+    setAttendanceEvent(event);
+  }, []);
 
-  const events = patrolQuery.data?.results || [];
-  const timeEntries = timeQuery.data?.results || [];
-  const sosCount = events.filter((e) => e.type === 'SOS_ALERT').length;
+  const handleCall = useCallback(
+    (event: PatrolAction, mode: 'NORMAL' | 'SILENT_LISTEN') => {
+      if (!call) {
+        toast.error(t('calls.chatDisconnected'));
+        return;
+      }
+      const targetId = resolveCallTargetId(event);
+      if (!targetId) {
+        toast.error(t('calls.noTarget'));
+        return;
+      }
+      call.startCall({
+        to: targetId,
+        toLabel: formatDeviceLabel(event),
+        callMode: mode,
+      });
+    },
+    [call, t],
+  );
+
+  const handleClearFilters = useCallback(() => {
+    setHierarchy({});
+    setActiveHierarchy({});
+  }, []);
+
+  const handleSearch = useCallback(() => {
+    setActiveHierarchy(hierarchy);
+  }, [hierarchy]);
+
+  const handleAttendanceChanged = useCallback(() => {
+    patrolQuery.refetch();
+  }, [patrolQuery]);
+
+  const closeAttendance = useCallback((open: boolean) => {
+    if (!open) setAttendanceEvent(null);
+  }, []);
+
+  const callInProgress = !!call && call.status !== 'idle' && call.status !== 'ended';
+  const socketConnected = call?.socketConnected ?? false;
+
+  const sosCount = useMemo(
+    () => events.filter((e) => e.type === 'SOS_ALERT').length,
+    [events],
+  );
+  const attendingCount = useMemo(
+    () =>
+      events.filter(
+        (e) =>
+          e.attendance?.status === 'IN_PROGRESS' || e.attendance?.isAttendance,
+      ).length,
+    [events],
+  );
 
   return (
-    <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}>
-      <div className="space-y-6">
-        <PageHeader
-          title={t('alerts.monitor')}
-          description={t('sidebar.monitoring')}
-          action={<ChatConnectionBadge connected={call?.socketConnected ?? false} />}
-        />
+    <div className="space-y-6">
+      <PageHeader
+        title={t('alerts.monitor')}
+        description={t('sidebar.monitoring')}
+        action={<ChatConnectionBadge connected={socketConnected} />}
+      />
 
-        <FilterPanel
-          extras={<HierarchyFilters value={hierarchy} onChange={setHierarchy} />}
-          fields={[]}
-          values={{}}
-          onChange={() => {}}
-          onSearch={() => setActiveHierarchy(hierarchy)}
-          onClear={() => {
-            setHierarchy({});
-            setActiveHierarchy({});
-          }}
-        />
+      <FilterPanel
+        extras={<HierarchyFilters value={hierarchy} onChange={setHierarchy} />}
+        fields={[]}
+        values={{}}
+        onChange={() => {}}
+        onSearch={handleSearch}
+        onClear={handleClearFilters}
+      />
 
-        {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <KpiCard
-            title={t('dashboard.todayOccurrences')}
-            value={events.length}
-            icon={Bell}
-            accent="brand"
-            isLoading={patrolQuery.isLoading}
-          />
-          <KpiCard
-            title={t('alerts.sosAlert')}
-            value={sosCount}
-            icon={AlertTriangle}
-            accent="danger"
-            isLoading={patrolQuery.isLoading}
-          />
-          <KpiCard
-            title={t('attendance.timeEntries')}
-            value={timeEntries.length}
-            icon={Clock}
-            accent="info"
-            isLoading={timeQuery.isLoading}
-          />
-        </div>
+      <MonitorKpiGrid
+        eventsCount={events.length}
+        sosCount={sosCount}
+        attendingCount={attendingCount}
+        timeEntriesCount={timeEntries.length}
+        isLoadingEvents={patrolQuery.isLoading}
+        isLoadingTime={timeQuery.isLoading}
+      />
 
-        {/* Active Events */}
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="h-4 w-4 text-brand-500" />
               {t('alerts.timeline')}
+              {flashEventCount > 0 && (
+                <Badge variant="brand" className="animate-pulse">
+                  {t('alerts.realtime.newEvents', { count: flashEventCount })}
+                </Badge>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -188,30 +265,14 @@ export default function AlertMonitorPage() {
             ) : (
               <div className="space-y-3">
                 {events.map((event) => (
-                  <EventCard
+                  <MonitorEventCard
                     key={event._id}
                     event={event}
-                    onAttend={() => setAttendanceEvent(event)}
-                    onCall={(mode) => {
-                      if (!call) {
-                        toast.error(t('calls.chatDisconnected'));
-                        return;
-                      }
-                      const targetId = resolveCallTargetId(event);
-                      if (!targetId) {
-                        toast.error(t('calls.noTarget'));
-                        return;
-                      }
-                      call.startCall({
-                        to: targetId,
-                        toLabel: formatDeviceLabel(event),
-                        callMode: mode,
-                      });
-                    }}
-                    callInProgress={
-                      !!call && call.status !== 'idle' && call.status !== 'ended'
-                    }
-                    socketConnected={call?.socketConnected ?? false}
+                    onAttend={handleAttend}
+                    onCall={handleCall}
+                    callInProgress={callInProgress}
+                    socketConnected={socketConnected}
+                    flash={isFlashingEvent(event._id)}
                   />
                 ))}
               </div>
@@ -219,134 +280,207 @@ export default function AlertMonitorPage() {
           </CardContent>
         </Card>
 
-        <AttendanceDialog
-          open={!!attendanceEvent}
-          onOpenChange={(v) => !v && setAttendanceEvent(null)}
-          event={attendanceEvent}
-          onChanged={() => patrolQuery.refetch()}
-        />
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-blue-400" />
+              {t('attendance.timeEntries')}
+              {flashTimeEntryCount > 0 && (
+                <Badge variant="brand" className="animate-pulse">
+                  {t('alerts.realtime.newEntries', { count: flashTimeEntryCount })}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {timeQuery.isLoading ? (
+              <div className="py-12 flex justify-center">
+                <Spinner />
+              </div>
+            ) : timeEntries.length === 0 ? (
+              <EmptyState
+                icon={Clock}
+                title={t('attendance.noTimeEntries')}
+                description={t('common.noData')}
+              />
+            ) : (
+              <div className="space-y-2 max-h-[720px] overflow-y-auto pr-1">
+                {timeEntries.map((entry) => (
+                  <MonitorTimeEntryRow
+                    key={entry._id}
+                    entry={entry}
+                    flash={isFlashingTimeEntry(entry._id)}
+                  />
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-    </RoleGuard>
+
+      <AttendanceDialog
+        open={!!attendanceEvent}
+        onOpenChange={closeAttendance}
+        event={attendanceEvent}
+        onChanged={handleAttendanceChanged}
+      />
+    </div>
   );
 }
 
-interface EventCardProps {
-  event: PatrolAction;
-  onAttend: () => void;
-  onCall: (mode: 'NORMAL' | 'SILENT_LISTEN') => void;
-  callInProgress: boolean;
-  socketConnected: boolean;
+interface KpiGridProps {
+  eventsCount: number;
+  sosCount: number;
+  attendingCount: number;
+  timeEntriesCount: number;
+  isLoadingEvents: boolean;
+  isLoadingTime: boolean;
 }
 
-function EventCard({
-  event,
-  onAttend,
-  onCall,
-  callInProgress,
-  socketConnected,
-}: EventCardProps) {
+/**
+ * Memoized KPI grid. The monitor re-renders often (realtime toasts,
+ * scroll, dialog open/close) and the KPI cards carry their own subtree
+ * with spinners and icons — keeping them out of the parent's render
+ * loop materially reduces work per frame.
+ */
+const MonitorKpiGrid = memo(function MonitorKpiGridImpl({
+  eventsCount,
+  sosCount,
+  attendingCount,
+  timeEntriesCount,
+  isLoadingEvents,
+  isLoadingTime,
+}: KpiGridProps) {
   const t = useTranslations();
-  const meta = EVENT_META[event.type] ?? { labelKey: 'common.info', accent: 'info' as const };
-  const hasCallTarget = !!resolveCallTargetId(event);
-  const canCall = !callInProgress && socketConnected && hasCallTarget;
-  const attendanceStatus = event.attendance?.status;
-  const attendanceClosed = attendanceStatus === 'CLOSED';
-  const attendanceInProgress =
-    attendanceStatus === 'IN_PROGRESS' || !!event.attendance?.isAttendance;
-  const deviceLabel = formatDeviceLabel(event);
-
   return (
-    <div
-      className={cn(
-        'rounded-xl border border-white/8 p-4 transition-all',
-        meta.accent === 'danger' && 'bg-red-500/5 border-red-500/20',
-        meta.accent === 'warning' && 'bg-amber-500/5 border-amber-500/20',
-      )}
-    >
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0">
-          <div
-            className={cn(
-              'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
-              meta.accent === 'danger' && 'bg-red-500/20 text-red-400',
-              meta.accent === 'warning' && 'bg-amber-500/20 text-amber-400',
-              meta.accent === 'info' && 'bg-blue-500/20 text-blue-400',
-              meta.accent === 'brand' && 'bg-brand-600/20 text-brand-400',
-            )}
-          >
-            <AlertTriangle className="h-5 w-5" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant={meta.accent}>{t(meta.labelKey)}</Badge>
-              {attendanceClosed && (
-                <Badge variant="success">{t('alerts.attendance.statusClosedBadge')}</Badge>
-              )}
-              {!attendanceClosed && attendanceInProgress && (
-                <Badge variant="warning">{t('alerts.attendance.statusInProgress')}</Badge>
-              )}
-            </div>
-            <p className="text-sm font-medium text-white mt-1 truncate">{deviceLabel}</p>
-            <p className="text-xs text-text-muted mt-0.5">
-              {(event.date || event.createdDate) &&
-                new Date(event.date || event.createdDate!).toLocaleString()}
-              {event.location && (
-                <>
-                  {' · '}
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {event.location.lat.toFixed(4)}, {event.location.lng.toFixed(4)}
-                  </span>
-                </>
-              )}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            size="sm"
-            onClick={onAttend}
-            disabled={attendanceClosed}
-            title={attendanceClosed ? t('alerts.attendance.statusClosedBadge') : undefined}
-          >
-            <ShieldCheck className="h-4 w-4" />
-            {attendanceInProgress
-              ? t('alerts.attendance.continueAttendance')
-              : t('alerts.attendance.openAttendance')}
-          </Button>
-
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => onCall('NORMAL')}
-            disabled={!canCall}
-            title={
-              !socketConnected
-                ? t('calls.chatDisconnected')
-                : !hasCallTarget
-                  ? t('calls.noTarget')
-                  : undefined
-            }
-          >
-            <Phone className="h-4 w-4" />
-            {t('calls.callNormal')}
-          </Button>
-          {event.type === 'SOS_ALERT' && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => onCall('SILENT_LISTEN')}
-              disabled={!canCall}
-              title={!hasCallTarget ? t('calls.noTarget') : undefined}
-            >
-              <Radio className="h-4 w-4" />
-              {t('calls.silentListen')}
-            </Button>
-          )}
-        </div>
-      </div>
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <KpiCard
+        title={t('dashboard.todayOccurrences')}
+        value={eventsCount}
+        icon={Bell}
+        accent="brand"
+        isLoading={isLoadingEvents}
+      />
+      <KpiCard
+        title={t('alerts.sosAlert')}
+        value={sosCount}
+        icon={AlertTriangle}
+        accent="danger"
+        isLoading={isLoadingEvents}
+      />
+      <KpiCard
+        title={t('alerts.attendance.statusInProgress')}
+        value={attendingCount}
+        icon={ShieldCheck}
+        accent="warning"
+        isLoading={isLoadingEvents}
+      />
+      <KpiCard
+        title={t('attendance.timeEntries')}
+        value={timeEntriesCount}
+        icon={Clock}
+        accent="info"
+        isLoading={isLoadingTime}
+      />
     </div>
+  );
+});
+
+interface FlashState {
+  count: number;
+  isFlashing: (id: string) => boolean;
+}
+
+/**
+ * Track which items in `list` arrived after the first fetch and expose a
+ * short-lived "is flashing" signal per _id. The first load is considered
+ * baseline (stamp = 0, never flashes). Anything added afterwards starts
+ * the clock.
+ *
+ * Flash expiry is driven by a one-second tick state only while there's
+ * at least one live flash — no wasted renders while idle.
+ */
+function useFreshlyArrivedFlash<T extends { _id: string }>(
+  list: T[],
+  windowMs: number,
+): FlashState {
+  // Refs are ONLY used to decide what's fresh after the first load — never
+  // read during render (ESLint refs rule). `flashing` is the state surfaced
+  // to the renderer; a per-id timer removes each entry after windowMs.
+  const seenIds = useRef<Set<string>>(new Set());
+  const seeded = useRef(false);
+  const timers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const [flashing, setFlashing] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    const seen = seenIds.current;
+    if (!seeded.current) {
+      for (const item of list) seen.add(item._id);
+      if (list.length > 0) seeded.current = true;
+      return;
+    }
+    const freshly: string[] = [];
+    for (const item of list) {
+      if (!seen.has(item._id)) {
+        seen.add(item._id);
+        freshly.push(item._id);
+      }
+    }
+    if (seen.size > SEEN_IDS_CAP) {
+      const toDrop = seen.size - SEEN_IDS_CAP;
+      const it = seen.values();
+      for (let i = 0; i < toDrop; i += 1) {
+        const v = it.next().value;
+        if (v) seen.delete(v);
+      }
+    }
+    if (freshly.length === 0) return;
+    const timersMap = timers.current;
+    // Defer the flashing-set update to a microtask so we're updating state
+    // from "outside" the effect body (callback-style), matching what
+    // react-hooks/set-state-in-effect actually allows. Same reason the
+    // expiry updates use setTimeout callbacks rather than inline setState.
+    const raf =
+      typeof queueMicrotask === 'function'
+        ? (cb: () => void) => queueMicrotask(cb)
+        : (cb: () => void) => setTimeout(cb, 0);
+    raf(() => {
+      setFlashing((prev) => {
+        const next = new Set(prev);
+        freshly.forEach((id) => next.add(id));
+        return next;
+      });
+    });
+    for (const id of freshly) {
+      const existing = timersMap.get(id);
+      if (existing) clearTimeout(existing);
+      const timer = setTimeout(() => {
+        setFlashing((prev) => {
+          if (!prev.has(id)) return prev;
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        timersMap.delete(id);
+      }, windowMs);
+      timersMap.set(id, timer);
+    }
+  }, [list, windowMs]);
+
+  useEffect(() => {
+    const timersMap = timers.current;
+    return () => {
+      timersMap.forEach((t) => clearTimeout(t));
+      timersMap.clear();
+    };
+  }, []);
+
+  return useMemo<FlashState>(
+    () => ({
+      count: flashing.size,
+      isFlashing: (id: string) => flashing.has(id),
+    }),
+    [flashing],
   );
 }
 
