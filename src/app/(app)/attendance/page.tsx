@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/shared/page-header';
 import { FilterPanel } from '@/components/shared/filter-panel';
 import { DataTable, type Column } from '@/components/shared/data-table';
@@ -37,7 +39,7 @@ export default function AttendancePage() {
     ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
   };
 
-  const { data, isLoading } = useTimeEntries(queryParams);
+  const { data, isLoading, isError, error, refetch } = useTimeEntries(queryParams);
   const results = data?.results || [];
   const totalCount = data?.totalCount || 0;
 
@@ -125,18 +127,35 @@ export default function AttendancePage() {
         onClear={handleClear}
       />
 
-      <DataTable
-        columns={columns}
-        data={results}
-        isLoading={isLoading}
-        page={pagination.page}
-        pageSize={pagination.pageSize}
-        totalCount={pagination.totalCount}
-        totalPages={pagination.totalPages}
-        onPageChange={pagination.setPage}
-        onPageSizeChange={pagination.setPageSize}
-        getRowKey={(item) => item._id}
-      />
+      {isError ? (
+        <div className="flex flex-col items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/5 px-4 py-4 text-sm text-red-200">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">{t('notifications.errorOccurred')}</p>
+              {error instanceof Error && error.message && (
+                <p className="text-xs text-red-200/80 mt-0.5">{error.message}</p>
+              )}
+            </div>
+          </div>
+          <Button size="sm" variant="secondary" onClick={() => refetch()}>
+            {t('common.refresh')}
+          </Button>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={results}
+          isLoading={isLoading}
+          page={pagination.page}
+          pageSize={pagination.pageSize}
+          totalCount={pagination.totalCount}
+          totalPages={pagination.totalPages}
+          onPageChange={pagination.setPage}
+          onPageSizeChange={pagination.setPageSize}
+          getRowKey={(item) => item._id}
+        />
+      )}
     </div>
   );
 }

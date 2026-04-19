@@ -65,6 +65,8 @@
     "no": "いいえ",
     "confirm": "確認",
     "close": "閉じる",
+    "show": "表示",
+    "hide": "非表示",
     "back": "戻る",
     "next": "次へ",
     "previous": "前へ",
@@ -279,6 +281,7 @@
     "cancelPatrol": "パトロールキャンセル",
     "failurePatrol": "パトロール失敗",
     "maxDateRange": "最大日付範囲は30日間です",
+    "deleteSuccess": "スケジュールを削除しました",
     "attendance": {
       "openAttendance": "対応を開始",
       "continueAttendance": "対応を続ける",

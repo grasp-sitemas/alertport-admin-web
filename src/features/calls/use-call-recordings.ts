@@ -97,10 +97,29 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
     endDate,
     limit,
   });
-  filterRef.current = { accountId, clientId, siteId, roomId, callMode, startDate, endDate, limit };
+  useEffect(() => {
+    filterRef.current = {
+      accountId,
+      clientId,
+      siteId,
+      roomId,
+      callMode,
+      startDate,
+      endDate,
+      limit,
+    };
+  }, [accountId, clientId, siteId, roomId, callMode, startDate, endDate, limit]);
 
   const retryCountRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Self-reference for the retry loop: the useCallback closure technically
+  // sees `fetchPage` from the outer scope, but react-hooks/immutability
+  // rightly flags the forward-reference. Storing the current implementation
+  // on a ref makes the retry path explicit and resilient to future edits
+  // that might change fetchPage's deps.
+  const fetchPageRef = useRef<
+    ((cursor: string | null, mode: 'replace' | 'append') => void) | null
+  >(null);
 
   const fetchPage = useCallback(
     (cursor: string | null, mode: 'replace' | 'append') => {
@@ -133,7 +152,10 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
           if (retryCountRef.current < MAX_TRANSIENT_RETRIES) {
             retryCountRef.current += 1;
             if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-            retryTimerRef.current = setTimeout(() => fetchPage(cursor, mode), RETRY_DELAY_MS);
+            retryTimerRef.current = setTimeout(
+              () => fetchPageRef.current?.(cursor, mode),
+              RETRY_DELAY_MS,
+            );
             return;
           }
           // Exhausted retries — fall through to the real-error branch below.
@@ -156,6 +178,13 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
     },
     [],
   );
+  // Keep the ref pointing at the current implementation so the retry
+  // timer always calls the latest version of fetchPage. With `[]` deps
+  // this is a no-op refresh, but future edits that add deps get safe
+  // retry behavior for free.
+  useEffect(() => {
+    fetchPageRef.current = fetchPage;
+  }, [fetchPage]);
 
   const refresh = useCallback(() => {
     if (!socketReady) {
@@ -174,10 +203,14 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
 
   useEffect(() => {
     // Initial fetch on mount + re-fetch when filter changes OR socketReady
-    // flips true. The setState calls happen inside the socket ack callback,
-    // not synchronously here.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    refresh();
+    // flips true. `refresh()` either fires the socket RPC (setState happens
+    // in the ack callback — not synchronous) or, when socketReady is false,
+    // flips loading=true so the UI parks until registration lands. The
+    // second branch IS a synchronous setState, so defer it to a microtask
+    // to satisfy react-hooks/set-state-in-effect without a disable comment.
+    queueMicrotask(() => {
+      refresh();
+    });
   }, [accountId, clientId, siteId, roomId, callMode, startDate, endDate, limit, socketReady, refresh]);
 
   // Cleanup any pending retry when the hook unmounts or filter changes.

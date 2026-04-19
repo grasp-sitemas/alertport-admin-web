@@ -30,7 +30,6 @@ export function toMultipartFormData(payload: unknown, file?: File | null): FormD
   //      silently ship a 500 to the user.
   if (file) {
     if (file.size === 0) {
-      // eslint-disable-next-line no-console
       console.warn(
         '[toMultipartFormData] Rejected empty file upload:',
         file.name,
