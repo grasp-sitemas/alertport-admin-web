@@ -329,6 +329,13 @@
     },
     "editOccurrenceTitle": "Edit occurrence",
     "editOccurrenceDescription": "Adjust just the selected day without changing the series.",
+    "sosBanner": {
+      "claim": "Attend now",
+      "dismiss": "Dismiss",
+      "more": "more alerts",
+      "description": "Tap Attend now to open the attendance and access the call actions.",
+      "enableDesktopAlerts": "Enable desktop alerts"
+    },
     "realtime": {
       "sosIncoming": "A new SOS just came in. Check immediately.",
       "timeEntryRegistered": "A new time-entry was just registered.",

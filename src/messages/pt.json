@@ -329,6 +329,13 @@
     },
     "editOccurrenceTitle": "Editar ocorrência",
     "editOccurrenceDescription": "Ajuste apenas o dia selecionado sem alterar a série.",
+    "sosBanner": {
+      "claim": "Atender agora",
+      "dismiss": "Dispensar",
+      "more": "mais alertas",
+      "description": "Toque em Atender agora para iniciar o atendimento e abrir as ações de ligação.",
+      "enableDesktopAlerts": "Ativar alertas na área de trabalho"
+    },
     "realtime": {
       "sosIncoming": "Um novo SOS foi recebido. Verifique imediatamente.",
       "timeEntryRegistered": "Um novo registro de ponto foi lançado.",

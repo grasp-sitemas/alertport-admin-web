@@ -329,6 +329,13 @@
     },
     "editOccurrenceTitle": "発生を編集",
     "editOccurrenceDescription": "シリーズを変更せずに選択した日のみを調整します。",
+    "sosBanner": {
+      "claim": "今すぐ対応",
+      "dismiss": "閉じる",
+      "more": "件の追加アラート",
+      "description": "「今すぐ対応」を押して対応を開始し、通話アクションを表示します。",
+      "enableDesktopAlerts": "デスクトップ通知を有効にする"
+    },
     "realtime": {
       "sosIncoming": "新しいSOSを受信しました。直ちに確認してください。",
       "timeEntryRegistered": "新しい勤怠記録が登録されました。",

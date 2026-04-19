@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { AlertTriangle, Bell, Clock, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
@@ -21,7 +22,6 @@ import {
   useTimeEntries,
   useAttendanceTypes,
 } from '@/features/alerts/use-occurrences';
-import { useAlertportRealtime } from '@/features/alerts/use-realtime';
 import { usePagination } from '@/hooks/use-pagination';
 import { useUserScope, applyUserScope } from '@/hooks/use-user-scope';
 import { useAuth } from '@/hooks/use-auth';
@@ -134,40 +134,10 @@ function AlertMonitor() {
   const isFlashingEvent = flashState.isFlashing;
   const isFlashingTimeEntry = timeFlashState.isFlashing;
 
-  // ── Real-time subscriptions + surface-level feedback ─────────────
-  // The hook handles cache invalidation internally. Here we only need to
-  // add the operator-facing UX: a toast + optional alarm.
-  useAlertportRealtime({
-    onEvent: (evt) => {
-      if (evt.kind === 'notification') {
-        const type = evt.data.type || 'ALERT';
-        if (type === 'SOS_ALERT') {
-          toast.error(t('alerts.sosAlert'), {
-            description: t('alerts.realtime.sosIncoming'),
-          });
-          playAlarmSound();
-        } else if (type === 'TIME_ENTRY') {
-          toast.info(t('attendance.timeEntry'), {
-            description: t('alerts.realtime.timeEntryRegistered'),
-          });
-        } else if (type) {
-          toast.info(type, { description: t('alerts.eventDetails') });
-        }
-        return;
-      }
-      if (evt.kind === 'attendance:update') {
-        toast.message(t('alerts.realtime.attendanceStarted'), {
-          description: t('alerts.realtime.attendanceStartedDescription'),
-        });
-        return;
-      }
-      if (evt.kind === 'attendance:close') {
-        toast.success(t('alerts.realtime.attendanceClosed'), {
-          description: t('alerts.realtime.attendanceClosedDescription'),
-        });
-      }
-    },
-  });
+  // Realtime: handled globally by SosNotificationProvider. Having a
+  // second listener here would race on the Firestore doc-deletion
+  // pattern and produce duplicate toasts — we deliberately don't
+  // call useAlertportRealtime inside the page anymore.
 
   // ── Stable handlers — keep the EventCard memos effective ─────────
   const handleAttend = useCallback((event: PatrolAction) => {
@@ -210,6 +180,60 @@ function AlertMonitor() {
   const closeAttendance = useCallback((open: boolean) => {
     if (!open) setAttendanceEvent(null);
   }, []);
+
+  // ── Deep link handling: /alerts/monitor?patrolAction=<id>&autoClaim=1 ──
+  // When the SosNotificationProvider's global banner fires a claim(),
+  // the operator lands here with query params that identify the target
+  // event. We resolve it against the freshly-fetched patrol-actions
+  // list, then let the AttendanceDialog's existing auto-open effect
+  // claim the attendance. The params are stripped immediately after
+  // consumption so a refresh doesn't re-trigger the flow.
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const deepLinkPatrolActionId = searchParams?.get('patrolAction') ?? null;
+  const deepLinkAutoClaim = searchParams?.get('autoClaim') === '1';
+  const consumedDeepLinkRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!deepLinkPatrolActionId && !deepLinkAutoClaim) return;
+    if (patrolQuery.isLoading) return;
+    if (consumedDeepLinkRef.current === deepLinkPatrolActionId) return;
+
+    let target: PatrolAction | null = null;
+    if (deepLinkPatrolActionId) {
+      target = events.find((e) => e._id === deepLinkPatrolActionId) ?? null;
+    }
+    // Fallback: no hint or hint missed — grab the newest SOS that's
+    // still available for attendance. Better than dead-ending the
+    // operator on an empty monitor.
+    if (!target && deepLinkAutoClaim) {
+      target =
+        events.find(
+          (e) =>
+            e.type === 'SOS_ALERT' &&
+            classifyAttendance(e, currentUserId) === 'AVAILABLE',
+        ) ?? null;
+    }
+
+    if (target) {
+      consumedDeepLinkRef.current = deepLinkPatrolActionId ?? target._id;
+      const claimedTarget = target;
+      // Defer state updates to a microtask so we're updating "from
+      // outside" the effect body (callback-style), matching what
+      // react-hooks/set-state-in-effect allows.
+      queueMicrotask(() => {
+        setAttendanceEvent(claimedTarget);
+        router.replace('/alerts/monitor');
+      });
+    }
+  }, [
+    deepLinkPatrolActionId,
+    deepLinkAutoClaim,
+    events,
+    patrolQuery.isLoading,
+    currentUserId,
+    router,
+  ]);
 
   const callInProgress = !!call && call.status !== 'idle' && call.status !== 'ended';
   const socketConnected = call?.socketConnected ?? false;
@@ -538,21 +562,3 @@ function nowISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function playAlarmSound() {
-  try {
-    const AudioContextCtor =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const ctx = new AudioContextCtor();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.connect(g);
-    g.connect(ctx.destination);
-    o.frequency.value = 880;
-    g.gain.value = 0.1;
-    o.start();
-    o.stop(ctx.currentTime + 0.5);
-  } catch {
-    /* ignore */
-  }
-}

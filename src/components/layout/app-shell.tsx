@@ -9,6 +9,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { CallProvider } from '@/features/calls/call-context';
 import { SilentListenBanner } from '@/features/calls/silent-listen-banner';
 import { TrialBanner } from '@/components/trial/trial-banner';
+import { SosNotificationProvider } from '@/features/alerts/sos-notification-context';
+import { SosBanner } from '@/features/alerts/sos-banner';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -37,19 +39,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <CallProvider>
-      <div className="flex min-h-screen bg-app-gradient">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <SosNotificationProvider>
+        <div className="flex min-h-screen bg-app-gradient">
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <div className="flex flex-1 flex-col lg:ml-0 min-w-0">
-          <Header onMenuClick={() => setSidebarOpen(true)} />
-          <TrialBanner />
-          <SilentListenBanner />
+          <div className="flex flex-1 flex-col lg:ml-0 min-w-0">
+            <Header onMenuClick={() => setSidebarOpen(true)} />
+            <TrialBanner />
+            <SilentListenBanner />
 
-          <main className="flex-1 overflow-y-auto">
-            <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">{children}</div>
-          </main>
+            <main className="flex-1 overflow-y-auto">
+              <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">{children}</div>
+            </main>
+          </div>
+
+          {/* Global SOS banner — shown on any page. Provider owns the
+              Firestore subscription; banner is pure presentation. */}
+          <SosBanner />
         </div>
-      </div>
+      </SosNotificationProvider>
     </CallProvider>
   );
 }

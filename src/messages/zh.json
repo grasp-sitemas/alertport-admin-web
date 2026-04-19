@@ -329,6 +329,13 @@
     },
     "editOccurrenceTitle": "编辑发生",
     "editOccurrenceDescription": "仅调整所选日期,不更改系列。",
+    "sosBanner": {
+      "claim": "立即处理",
+      "dismiss": "关闭",
+      "more": "条更多告警",
+      "description": "点击立即处理以开始处置并打开通话操作。",
+      "enableDesktopAlerts": "启用桌面通知"
+    },
     "realtime": {
       "sosIncoming": "收到新的SOS告警,请立即核查。",
       "timeEntryRegistered": "已登记新的考勤记录。",

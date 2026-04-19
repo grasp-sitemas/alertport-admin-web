@@ -329,6 +329,13 @@
     },
     "editOccurrenceTitle": "Editar ocurrencia",
     "editOccurrenceDescription": "Ajuste solo el día seleccionado sin cambiar la serie.",
+    "sosBanner": {
+      "claim": "Atender ahora",
+      "dismiss": "Descartar",
+      "more": "más alertas",
+      "description": "Pulsa Atender ahora para iniciar la atención y acceder a las acciones de llamada.",
+      "enableDesktopAlerts": "Habilitar alertas de escritorio"
+    },
     "realtime": {
       "sosIncoming": "Llegó un nuevo SOS. Verifique inmediatamente.",
       "timeEntryRegistered": "Se registró un nuevo fichaje.",
