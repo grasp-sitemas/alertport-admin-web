@@ -96,8 +96,8 @@ export default function RecordingsPage() {
               labelKey: 'calls.recordings.mode',
               type: 'select',
               options: [
-                { value: 'SILENT_LISTEN', label: t('calls.silentListen') },
-                { value: 'NORMAL', label: t('calls.callNormal') },
+                { value: 'SILENT_LISTEN', label: t('calls.mode.silentListen') },
+                { value: 'NORMAL', label: t('calls.mode.normal') },
               ],
             },
           ]}

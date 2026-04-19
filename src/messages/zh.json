@@ -423,6 +423,11 @@
     "micLocked": "麦克风锁定（静默监听）",
     "silentListen": "静默监听 (SOS)",
     "callNormal": "呼叫",
+    "mode": {
+      "silentListen": "静默监听",
+      "normal": "普通通话",
+      "unknown": "未知"
+    },
     "chatConnected": "聊天已连接",
     "chatDisconnected": "聊天已断开",
     "noTarget": "没有呼叫目标",

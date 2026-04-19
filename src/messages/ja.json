@@ -423,6 +423,11 @@
     "micLocked": "マイクロック（サイレント）",
     "silentListen": "サイレント聞き取り (SOS)",
     "callNormal": "通話",
+    "mode": {
+      "silentListen": "サイレント聞き取り",
+      "normal": "通常通話",
+      "unknown": "不明"
+    },
     "chatConnected": "チャット接続中",
     "chatDisconnected": "チャット切断",
     "noTarget": "通話先がありません",

@@ -423,6 +423,11 @@
     "micLocked": "Micrófono bloqueado (escucha activa)",
     "silentListen": "Escucha activa (SOS)",
     "callNormal": "Llamar",
+    "mode": {
+      "silentListen": "Escucha activa",
+      "normal": "Llamada normal",
+      "unknown": "Desconocido"
+    },
     "chatConnected": "Chat conectado",
     "chatDisconnected": "Chat desconectado",
     "noTarget": "Sin destinatario",

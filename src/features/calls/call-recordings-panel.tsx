@@ -22,6 +22,17 @@ function formatBytes(bytes: number): string {
 }
 
 /**
+ * Localized label for a recording's call mode. Keeps the wire-level enum
+ * ('SILENT_LISTEN' / 'NORMAL') out of the UI — the server contract stays
+ * stable but the operator never sees the raw token.
+ */
+function mapCallModeKey(mode: string | undefined): string {
+  if (mode === 'SILENT_LISTEN') return 'calls.mode.silentListen';
+  if (mode === 'NORMAL') return 'calls.mode.normal';
+  return 'calls.mode.unknown';
+}
+
+/**
  * Translate server error codes into i18n keys. Anything the server could
  * plausibly send should have a friendly copy; unknown codes fall back to the
  * generic error message so we never render a raw code like NOT_REGISTERED.
@@ -137,7 +148,7 @@ export function CallRecordingsPanel({ filter, roomId, limit = 50, hideTitle = fa
                     {new Date(r.createdAt).toLocaleString()}
                   </p>
                   <p className="text-xs text-text-muted truncate">
-                    {formatDuration(r.durationSec)} · {formatBytes(r.bytes)} · {r.callMode}
+                    {formatDuration(r.durationSec)} · {formatBytes(r.bytes)} · {t(mapCallModeKey(r.callMode))}
                     {r.siteName ? ` · ${r.siteName}` : ''}
                     {r.peerLabel ? ` · ${r.peerLabel}` : ''}
                   </p>
