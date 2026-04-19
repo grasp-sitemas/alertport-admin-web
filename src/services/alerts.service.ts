@@ -26,6 +26,30 @@ export const alertsService = {
     return normalizePage(data);
   },
 
+  /**
+   * Fetches the FULL schedule doc by _id. The calendar endpoint
+   * (appointments/filter/v2) returns an appointment-shape row that may
+   * omit or differently-format series-wide fields (name, endDate,
+   * frequency, weeklyDays, alertConfig). We need the raw schedule to
+   * rehydrate the edit form cleanly.
+   */
+  async getScheduleById(id: string): Promise<AlertSchedule | null> {
+    if (!id) return null;
+    const { data } = await apiClient.get<
+      | ApiSingleResponse<AlertSchedule>
+      | { status: number; result?: AlertSchedule; results?: AlertSchedule[] }
+    >(endpoints.scheduleById(id));
+    // Legacy endpoint sometimes returns `result`, sometimes `results[0]`,
+    // sometimes a top-level doc — normalize both shapes.
+    if (data && typeof data === 'object') {
+      if ('result' in data && data.result) return data.result as AlertSchedule;
+      if ('results' in data && Array.isArray(data.results) && data.results[0]) {
+        return data.results[0] as AlertSchedule;
+      }
+    }
+    return null;
+  },
+
   async createSchedule(
     scheduleData: AlertScheduleFormData,
   ): Promise<ApiSingleResponse<AlertSchedule>> {

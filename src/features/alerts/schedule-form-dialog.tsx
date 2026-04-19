@@ -5,7 +5,7 @@ import { Controller, useWatch } from 'react-hook-form';
 import { useAppForm } from '@/hooks/use-app-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Trash2 } from 'lucide-react';
 import {
@@ -96,6 +96,37 @@ function extractDayPart(row: AlertSchedule | undefined): string {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * Normalize whatever the backend sent (YYYY-MM-DD OR full ISO datetime
+ * OR null) to the YYYY-MM-DD format that `<input type="date">` expects.
+ * Without this, a series edit on an appointment-shape row gets an ISO
+ * string and the native input silently refuses to render it.
+ */
+function normalizeDatePart(raw: string | null | undefined): string {
+  if (!raw) return '';
+  if (raw.length === 10) return raw;
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Read the schedule name from wherever it's available on the incoming
+ * row. The calendar filter returns the appointment shape — `name` lives
+ * at the top level there. But defensively support a nested `schedule`
+ * object for robustness.
+ */
+function extractScheduleName(row: AlertSchedule | undefined): string {
+  if (!row) return '';
+  if (typeof row.name === 'string' && row.name.trim()) return row.name;
+  const nested = (row as { schedule?: unknown }).schedule;
+  if (nested && typeof nested === 'object' && 'name' in nested) {
+    const n = (nested as { name?: unknown }).name;
+    if (typeof n === 'string' && n.trim()) return n;
+  }
+  return '';
+}
+
 function extractHourPart(raw: string | undefined, fallback: string): string {
   if (!raw) return fallback;
   if (raw.length <= 5) return raw;
@@ -153,24 +184,73 @@ export function ScheduleFormDialog({
   // is the scope) and frequency controls are hidden entirely.
   const pinnedDay = schedule ? extractDayPart(schedule) : '';
 
-  const defaults: AlertScheduleFormValues = schedule
+  // Fetch the FULL schedule doc on edit. The calendar returns an
+  // appointment-shape row that's great for painting events but misses
+  // (or reformats) series-wide fields like `name`, `endDate`,
+  // `frequency`, `weeklyDays`, `frequencyMonth/Year`, and `alertConfig`.
+  // Without this fetch the edit form shows half-empty fields on every
+  // series open. Fires only for edit modes + once the dialog is open so
+  // we don't prefetch a schedule the user never edits.
+  const scheduleIdToFetch = !isCreate ? resolveScheduleId(schedule) : '';
+  const scheduleQuery = useQuery({
+    queryKey: ['schedule-full', scheduleIdToFetch],
+    queryFn: () => alertsService.getScheduleById(scheduleIdToFetch),
+    enabled: open && !isCreate && !!scheduleIdToFetch,
+    staleTime: 30 * 1000,
+  });
+  const fullSchedule = scheduleQuery.data ?? null;
+
+  // Merge order: DEFAULTS < calendar row < full-schedule fetch. The
+  // full schedule wins for series-wide fields; the calendar row wins
+  // for the appointment-specific date/time displayed in the header.
+  const mergedSource: AlertSchedule | undefined = schedule
+    ? ({ ...(fullSchedule ?? {}), ...schedule } as AlertSchedule)
+    : undefined;
+  // `name`, `frequency`, `weeklyDays`, `frequencyMonth/Year`,
+  // `alertConfig`, `endDate` come from the full schedule when
+  // available — the appointment row tends to blank those out.
+  const nameSource = extractScheduleName(fullSchedule ?? schedule);
+  const seriesBeginDate = normalizeDatePart(
+    (fullSchedule as AlertSchedule | null)?.beginDate ?? schedule?.beginDate,
+  );
+  const seriesEndDate = normalizeDatePart(
+    (fullSchedule as AlertSchedule | null)?.endDate ?? schedule?.endDate,
+  );
+
+  const defaults: AlertScheduleFormValues = mergedSource
     ? {
         ...DEFAULT_ALERT_SCHEDULE,
-        ...schedule,
-        account: getIdOrEmpty(schedule.account) || (canSelectAccount ? '' : sessionAccountId || ''),
-        client: getIdOrEmpty(schedule.client),
-        site: getIdOrEmpty(schedule.site),
-        equipment: getIdOrEmpty(schedule.equipment),
-        beginDate: isOccurrenceEdit ? pinnedDay : schedule.beginDate || pinnedDay,
-        endDate: isOccurrenceEdit ? pinnedDay : schedule.endDate || '',
-        beginHour: extractHourPart(schedule.beginHour || schedule.startHour, '08:00'),
-        endHour: extractHourPart(schedule.endHour, '18:00'),
-        weeklyDays: schedule.weeklyDays ?? [],
-        frequencyMonth: schedule.frequencyMonth ?? { day: '' },
-        frequencyYear: schedule.frequencyYear ?? { month: '', day: '' },
+        ...mergedSource,
+        name: nameSource,
+        account: getIdOrEmpty(mergedSource.account) || (canSelectAccount ? '' : sessionAccountId || ''),
+        client: getIdOrEmpty(mergedSource.client),
+        site: getIdOrEmpty(mergedSource.site),
+        equipment: getIdOrEmpty(mergedSource.equipment),
+        beginDate: isOccurrenceEdit ? pinnedDay : seriesBeginDate || pinnedDay,
+        endDate: isOccurrenceEdit ? pinnedDay : seriesEndDate,
+        beginHour: extractHourPart(mergedSource.beginHour || mergedSource.startHour, '08:00'),
+        endHour: extractHourPart(mergedSource.endHour, '18:00'),
+        weeklyDays:
+          (fullSchedule as AlertSchedule | null)?.weeklyDays ?? mergedSource.weeklyDays ?? [],
+        frequencyMonth:
+          (fullSchedule as AlertSchedule | null)?.frequencyMonth ??
+          mergedSource.frequencyMonth ?? { day: '' },
+        frequencyYear:
+          (fullSchedule as AlertSchedule | null)?.frequencyYear ??
+          mergedSource.frequencyYear ?? { month: '', day: '' },
         // Single-day edits are always NOT_REPEAT from the schema's PoV;
         // the backend rebuilds just this appointment anyway.
-        frequency: isOccurrenceEdit ? 'NOT_REPEAT' : schedule.frequency || 'DAILY',
+        frequency: isOccurrenceEdit
+          ? 'NOT_REPEAT'
+          : (fullSchedule as AlertSchedule | null)?.frequency ?? mergedSource.frequency ?? 'DAILY',
+        alertConfig:
+          (fullSchedule as AlertSchedule | null)?.alertConfig ??
+          mergedSource.alertConfig ??
+          DEFAULT_ALERT_SCHEDULE.alertConfig,
+        status:
+          (fullSchedule as AlertSchedule | null)?.status ??
+          mergedSource.status ??
+          'ACTIVE',
       }
     : {
         ...DEFAULT_ALERT_SCHEDULE,
@@ -190,9 +270,14 @@ export function ScheduleFormDialog({
   });
 
   useEffect(() => {
+    // Reset fires on: dialog open, source row swap, mode change, OR
+    // when the async full-schedule fetch settles. The last one is
+    // critical — without it the form would render once with the
+    // half-filled calendar row and never re-hydrate when the complete
+    // schedule arrives a few hundred ms later.
     if (open) reset(defaults);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, schedule?._id, mode]);
+  }, [open, schedule?._id, mode, scheduleQuery.dataUpdatedAt]);
 
   const accountWatched = useWatch({ control, name: 'account' });
   const clientWatched = useWatch({ control, name: 'client' });
