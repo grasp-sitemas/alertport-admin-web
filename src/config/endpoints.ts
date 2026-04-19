@@ -76,6 +76,10 @@ export const endpoints = {
   // AlertPort-specific schedule endpoints
   alertportScheduleCreate: url('/api/schedules/alertport/v1/'),
   alertportScheduleUpdate: url('/api/schedules/alertport/update/v1/'),
+  // Series-wide update (legacy "update the whole schedule from startDate
+  // forward"). Mirror of POST /api/schedules/update/v1/ used by the
+  // shieldgo-admin-web AlertOccurrence modal.
+  scheduleSeriesUpdate: url('/api/schedules/update/v1/'),
 
   // ─── Alert Occurrences ───────────────────────────────────
   occurrencesFilter: url('/api/schedules/occurences/filter/v1/'),
@@ -90,6 +94,16 @@ export const endpoints = {
   appointments: url('/api/schedules/appointments/v1/'),
   appointmentUpdate: (id: string) => url(`/api/schedules/appointments/update/v1/${id}`),
   deleteAppointment: url('/api/schedules/appointments/delete/v1/'),
+  // Single-occurrence update: patches just one day of a recurring schedule
+  // without touching the series. Backend rewires the appointment + its
+  // alert-occurrences on this date only.
+  appointmentUpdateOccurrence: url('/api/schedules/appointments/update/occurrence/v1/'),
+  // Cancel the series from a startDate forward (archives the schedule and
+  // deletes all appointments/alert-occurrences from that date on).
+  appointmentCancelSeries: url('/api/schedules/appointments/cancel/series/v1/'),
+  // Cancel a single occurrence (deletes just that appointment + related
+  // alert-occurrences + firestore events).
+  appointmentCancelOccurrence: url('/api/schedules/appointments/cancel/occurrence/v1/'),
 
   // ─── Events / Patrol Actions ─────────────────────────────
   eventsFilter: url('/api/schedules/events/filter/v1/'),

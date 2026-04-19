@@ -115,7 +115,8 @@
     "fileTooLarge": "文件超过 {size}",
     "fileTypeInvalid": "不支持的文件类型",
     "fileEmpty": "空文件。请选择有效的图片。",
-    "photoUploadHint": "最大 {size} 的图片 (JPG, PNG 等)"
+    "photoUploadHint": "最大 {size} 的图片 (JPG, PNG 等)",
+    "filters": "筛选"
   },
   "auth": {
     "login": "登录",
@@ -302,7 +303,24 @@
       "closedToast": "处理已成功结束",
       "typeRequired": "请选择处理类型",
       "operatorOnly": "仅操作员角色可以开始和结束处理。其他角色只能查看记录。"
-    }
+    },
+    "scope": {
+      "editTitle": "要编辑什么?",
+      "editDescription": "选择是仅更改此次发生还是更改整个重复系列。",
+      "deleteTitle": "要删除什么?",
+      "deleteDescription": "选择是仅删除此次发生还是整个重复系列。",
+      "editOccurrence": "编辑此次发生",
+      "editSeries": "编辑整个系列",
+      "deleteOccurrence": "删除此次发生",
+      "deleteSeries": "删除整个系列",
+      "occurrenceHint": "仅应用于所选日期。",
+      "seriesHint": "从此日期开始应用于每次发生。"
+    },
+    "errors": {
+      "missingReference": "无法识别日程或发生。请刷新重试。"
+    },
+    "editOccurrenceTitle": "编辑发生",
+    "editOccurrenceDescription": "仅调整所选日期,不更改系列。"
   },
   "attendance": {
     "title": "考勤管理",
@@ -666,5 +684,12 @@
   "REPORT_TEST_BY_CUSTOMER": "报告客户进行的测试",
   "REPORT_TEST_BY_THIRD_PARTIES": "报告第三方进行的测试",
   "REPORT_FAILURE_TO_CONTACT_PRIORITY_PHONES": "报告优先电话联系失败",
-  "OTHERS": "其他"
+  "OTHERS": "其他",
+  "calendar": {
+    "today": "今天",
+    "month": "月",
+    "week": "周",
+    "day": "日",
+    "list": "列表"
+  }
 }

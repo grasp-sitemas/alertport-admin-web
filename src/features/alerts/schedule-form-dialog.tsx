@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -41,10 +42,28 @@ import {
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
 
+export type ScheduleFormMode = 'create' | 'edit-series' | 'edit-occurrence';
+
 interface ScheduleFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Source row the form is editing. Ignored when mode='create'. */
   schedule?: AlertSchedule;
+  /** Distinguishes the three CRUD paths this dialog drives. */
+  mode?: ScheduleFormMode;
+  /**
+   * Fired when the user clicks the Delete button inside the form. The
+   * parent is expected to open the scope dialog (series vs occurrence)
+   * and handle the actual mutation. The form itself never deletes — it
+   * just asks the parent to start the delete flow.
+   */
+  onDeleteRequest?: () => void;
+  /**
+   * Optional callback fired after a successful save. The parent can use
+   * this to invalidate its own query cache. The form invalidates the
+   * shared `alert-schedules` + `alert-schedule-events` keys by default.
+   */
+  onSaved?: () => void;
 }
 
 function getIdOrEmpty(v: unknown): string {
@@ -57,14 +76,82 @@ function getIdOrEmpty(v: unknown): string {
   return '';
 }
 
-export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFormDialogProps) {
+/**
+ * Pull the YYYY-MM-DD piece out of whatever datetime string the backend
+ * shipped. FullCalendar occurrences arrive as `start`/`startDate` (ISO),
+ * plain schedules arrive as `beginDate` (already date-only).
+ */
+function extractDayPart(row: AlertSchedule | undefined): string {
+  const raw =
+    row?.startDate ??
+    row?.start ??
+    row?.appointment?.startDate ??
+    row?.appointment?.start ??
+    row?.beginDate ??
+    '';
+  if (!raw) return new Date().toISOString().slice(0, 10);
+  if (raw.length === 10) return raw; // already YYYY-MM-DD
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return new Date().toISOString().slice(0, 10);
+  return d.toISOString().slice(0, 10);
+}
+
+function extractHourPart(raw: string | undefined, fallback: string): string {
+  if (!raw) return fallback;
+  if (raw.length <= 5) return raw;
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return fallback;
+  const h = String(d.getHours()).padStart(2, '0');
+  const m = String(d.getMinutes()).padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+/**
+ * Resolve the schedule's stable _id regardless of which shape the row
+ * arrived in. Calendar appointments nest it under `schedule`; plain
+ * schedule rows expose it directly as `_id`.
+ */
+function resolveScheduleId(row: AlertSchedule | undefined): string {
+  if (!row) return '';
+  const ref = (row as { schedule?: unknown }).schedule;
+  if (typeof ref === 'string') return ref;
+  if (ref && typeof ref === 'object' && '_id' in ref) {
+    const id = (ref as { _id?: unknown })._id;
+    if (typeof id === 'string') return id;
+  }
+  return row._id || '';
+}
+
+function resolveAppointmentId(row: AlertSchedule | undefined): string {
+  if (!row) return '';
+  // Appointment-shape row: `row._id` might be the appointment's own id
+  // (some v2 responses flatten it), plus `row.appointment._id` in others.
+  const nested = (row as { appointment?: { _id?: string } }).appointment?._id;
+  if (nested) return nested;
+  return row.id || row._id || '';
+}
+
+export function ScheduleFormDialog({
+  open,
+  onOpenChange,
+  schedule,
+  mode = schedule ? 'edit-series' : 'create',
+  onDeleteRequest,
+  onSaved,
+}: ScheduleFormDialogProps) {
   const t = useTranslations();
   const queryClient = useQueryClient();
   const { userSubtype, user: sessionUser } = useAuth();
-  const isEdit = !!schedule?._id;
+  const isCreate = mode === 'create';
+  const isOccurrenceEdit = mode === 'edit-occurrence';
   const canSelectAccount = isSuperAdminMaster(userSubtype);
   const sessionAccountId =
     typeof sessionUser?.account === 'object' ? sessionUser.account?._id : undefined;
+
+  // For an occurrence edit we pin the calendar date to the clicked day.
+  // The date inputs become read-only (visual hint that "this day only"
+  // is the scope) and frequency controls are hidden entirely.
+  const pinnedDay = schedule ? extractDayPart(schedule) : '';
 
   const defaults: AlertScheduleFormValues = schedule
     ? {
@@ -74,10 +161,16 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
         client: getIdOrEmpty(schedule.client),
         site: getIdOrEmpty(schedule.site),
         equipment: getIdOrEmpty(schedule.equipment),
-        endDate: schedule.endDate || '',
+        beginDate: isOccurrenceEdit ? pinnedDay : schedule.beginDate || pinnedDay,
+        endDate: isOccurrenceEdit ? pinnedDay : schedule.endDate || '',
+        beginHour: extractHourPart(schedule.beginHour || schedule.startHour, '08:00'),
+        endHour: extractHourPart(schedule.endHour, '18:00'),
         weeklyDays: schedule.weeklyDays ?? [],
         frequencyMonth: schedule.frequencyMonth ?? { day: '' },
         frequencyYear: schedule.frequencyYear ?? { month: '', day: '' },
+        // Single-day edits are always NOT_REPEAT from the schema's PoV;
+        // the backend rebuilds just this appointment anyway.
+        frequency: isOccurrenceEdit ? 'NOT_REPEAT' : schedule.frequency || 'DAILY',
       }
     : {
         ...DEFAULT_ALERT_SCHEDULE,
@@ -99,7 +192,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
   useEffect(() => {
     if (open) reset(defaults);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, schedule?._id]);
+  }, [open, schedule?._id, mode]);
 
   const accountWatched = useWatch({ control, name: 'account' });
   const clientWatched = useWatch({ control, name: 'client' });
@@ -109,7 +202,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
 
   const accountsLookup = useAccountsLookup();
   const clientsLookup = useClientsLookup(accountWatched || undefined);
-  const sitesLookup = useSitesLookup(clientWatched || undefined);
+  const sitesLookup = useSitesLookup(clientWatched || undefined, accountWatched || undefined);
   const equipmentsLookup = useEquipmentsBySiteLookup({
     account: accountWatched || undefined,
     client: clientWatched || undefined,
@@ -118,12 +211,9 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
 
   const mutation = useMutation({
     mutationFn: async (data: AlertScheduleFormValues) => {
-      // Coerce string numbers from month/day back to numbers for the backend
-      const payload: AlertScheduleFormValues = {
+      const normalized: AlertScheduleFormValues = {
         ...data,
-        frequencyMonth: data.frequencyMonth
-          ? { day: data.frequencyMonth.day ?? '' }
-          : { day: '' },
+        frequencyMonth: data.frequencyMonth ? { day: data.frequencyMonth.day ?? '' } : { day: '' },
         frequencyYear: data.frequencyYear
           ? {
               month: data.frequencyYear.month ?? '',
@@ -131,21 +221,71 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
             }
           : { month: '', day: '' },
       };
-      if (isEdit && schedule?._id) {
-        return alertsService.updateSchedule(payload);
+
+      if (mode === 'create') {
+        return alertsService.createSchedule(normalized);
       }
-      return alertsService.createSchedule(payload);
+
+      const scheduleId = resolveScheduleId(schedule);
+      if (!scheduleId) throw new Error('MISSING_SCHEDULE_ID');
+
+      if (mode === 'edit-occurrence') {
+        const appointmentId = resolveAppointmentId(schedule);
+        if (!appointmentId) throw new Error('MISSING_APPOINTMENT_ID');
+        return alertsService.updateAppointmentOccurrence({
+          schedule: scheduleId,
+          appointment: appointmentId,
+          name: normalized.name,
+          account: normalized.account,
+          client: normalized.client,
+          site: normalized.site,
+          equipment: normalized.equipment,
+          category: 'ALERT_CHECK',
+          beginDate: pinnedDay || normalized.beginDate,
+          endDate: pinnedDay || normalized.endDate,
+          beginHour: normalized.beginHour,
+          endHour: normalized.endHour,
+          alertConfig: normalized.alertConfig,
+        });
+      }
+
+      // edit-series: scheduleId goes on `schedule` (NOT `_id`) because
+      // ms-schedule's updateSchedule controller reads it from there.
+      return alertsService.updateScheduleSeries({
+        ...normalized,
+        schedule: scheduleId,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['alert-schedules'] });
+      queryClient.invalidateQueries({ queryKey: ['alert-schedule-events'] });
       toast.success(t('notifications.savedSuccessfully'));
       onOpenChange(false);
       reset(DEFAULT_ALERT_SCHEDULE);
+      onSaved?.();
     },
-    onError: () => toast.error(t('notifications.errorOccurred')),
+    onError: (err) => {
+      const code = (err as Error)?.message || 'UNKNOWN';
+      if (code === 'MISSING_SCHEDULE_ID' || code === 'MISSING_APPOINTMENT_ID') {
+        toast.error(t('alerts.errors.missingReference'));
+        return;
+      }
+      toast.error(t('notifications.errorOccurred'));
+    },
   });
 
-  // Track previous values for cascade reset
+  const titleKey =
+    mode === 'create'
+      ? 'alerts.createSchedule'
+      : mode === 'edit-occurrence'
+        ? 'alerts.editOccurrenceTitle'
+        : 'alerts.editSchedule';
+  const descriptionKey =
+    mode === 'edit-occurrence' ? 'alerts.editOccurrenceDescription' : 'alerts.scheduling';
+
+  // Track previous cascade values locally — they get reinitialized on
+  // every render, which is fine since the cascade resets only run inside
+  // the onValueChange callbacks.
   let prevAccount = defaults.account ?? '';
   let prevClient = defaults.client ?? '';
   let prevSite = defaults.site ?? '';
@@ -154,17 +294,12 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {isEdit ? t('alerts.editSchedule') : t('alerts.createSchedule')}
-          </DialogTitle>
-          <DialogDescription>{t('alerts.scheduling')}</DialogDescription>
+          <DialogTitle>{t(titleKey)}</DialogTitle>
+          <DialogDescription>{t(descriptionKey)}</DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit((data) => mutation.mutate(data))}
-          className="space-y-4"
-        >
-          {/* Account / Client / Site cascade */}
+        <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
+          {/* Account / Client / Site / Equipment cascade */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {canSelectAccount && (
               <div className="space-y-2 sm:col-span-3">
@@ -184,6 +319,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                           prevAccount = val;
                         }
                       }}
+                      disabled={isOccurrenceEdit}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t('common.selectOption')} />
@@ -217,6 +353,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                         prevClient = val;
                       }
                     }}
+                    disabled={isOccurrenceEdit}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={t('common.selectOption')} />
@@ -251,6 +388,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                         prevSite = val;
                       }
                     }}
+                    disabled={isOccurrenceEdit}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={t('common.selectOption')} />
@@ -276,7 +414,11 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                 control={control}
                 name="equipment"
                 render={({ field }) => (
-                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value ?? ''}
+                    onValueChange={field.onChange}
+                    disabled={isOccurrenceEdit}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder={t('common.selectOption')} />
                     </SelectTrigger>
@@ -298,7 +440,6 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
 
           <div className="h-px bg-white/10 my-2" />
 
-          {/* Name / Frequency / Status */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2 sm:col-span-3">
               <Label>{t('alerts.scheduleName')}</Label>
@@ -308,39 +449,40 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label>{t('alerts.frequency')}</Label>
-              <Controller
-                control={control}
-                name="frequency"
-                render={({ field }) => (
-                  <Select
-                    value={field.value ?? 'DAILY'}
-                    onValueChange={(val) => {
-                      field.onChange(val);
-                      // Reset frequency-specific fields on change
-                      setValue('weeklyDays', []);
-                      setValue('frequencyMonth', { day: '' });
-                      setValue('frequencyYear', { month: '', day: '' });
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="NOT_REPEAT">{t('alerts.notRepeat')}</SelectItem>
-                      <SelectItem value="DAILY">{t('alerts.daily')}</SelectItem>
-                      <SelectItem value="EVERY_OTHER_DAY">
-                        {t('alerts.everyOtherDay')}
-                      </SelectItem>
-                      <SelectItem value="WEEKLY">{t('alerts.weekly')}</SelectItem>
-                      <SelectItem value="MONTHLY">{t('alerts.monthly')}</SelectItem>
-                      <SelectItem value="YEARLY">{t('alerts.yearly')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
+            {!isOccurrenceEdit && (
+              <div className="space-y-2">
+                <Label>{t('alerts.frequency')}</Label>
+                <Controller
+                  control={control}
+                  name="frequency"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value ?? 'DAILY'}
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        setValue('weeklyDays', []);
+                        setValue('frequencyMonth', { day: '' });
+                        setValue('frequencyYear', { month: '', day: '' });
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NOT_REPEAT">{t('alerts.notRepeat')}</SelectItem>
+                        <SelectItem value="DAILY">{t('alerts.daily')}</SelectItem>
+                        <SelectItem value="EVERY_OTHER_DAY">
+                          {t('alerts.everyOtherDay')}
+                        </SelectItem>
+                        <SelectItem value="WEEKLY">{t('alerts.weekly')}</SelectItem>
+                        <SelectItem value="MONTHLY">{t('alerts.monthly')}</SelectItem>
+                        <SelectItem value="YEARLY">{t('alerts.yearly')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>{t('common.status')}</Label>
@@ -348,7 +490,11 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
                 control={control}
                 name="status"
                 render={({ field }) => (
-                  <Select value={field.value ?? 'ACTIVE'} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value ?? 'ACTIVE'}
+                    onValueChange={field.onChange}
+                    disabled={isOccurrenceEdit}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -362,15 +508,14 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
             </div>
           </div>
 
-          {/* Dates & hours */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label>{t('alerts.beginDate')}</Label>
-              <Input type="date" {...register('beginDate')} />
+              <Input type="date" {...register('beginDate')} disabled={isOccurrenceEdit} />
             </div>
             <div className="space-y-2">
               <Label>{t('alerts.endDate')}</Label>
-              <Input type="date" {...register('endDate')} />
+              <Input type="date" {...register('endDate')} disabled={isOccurrenceEdit} />
             </div>
             <div className="space-y-2">
               <Label>{t('alerts.beginHour')}</Label>
@@ -382,8 +527,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
             </div>
           </div>
 
-          {/* Weekly days */}
-          {frequency === 'WEEKLY' && (
+          {!isOccurrenceEdit && frequency === 'WEEKLY' && (
             <div className="space-y-2">
               <Label>{t('alerts.weeklyDays')}</Label>
               <Controller
@@ -429,21 +573,14 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
             </div>
           )}
 
-          {/* Monthly day */}
-          {frequency === 'MONTHLY' && (
+          {!isOccurrenceEdit && frequency === 'MONTHLY' && (
             <div className="space-y-2 max-w-[200px]">
               <Label>{t('alerts.frequencyMonthDay')}</Label>
-              <Input
-                type="number"
-                min={1}
-                max={31}
-                {...register('frequencyMonth.day')}
-              />
+              <Input type="number" min={1} max={31} {...register('frequencyMonth.day')} />
             </div>
           )}
 
-          {/* Yearly month + day */}
-          {frequency === 'YEARLY' && (
+          {!isOccurrenceEdit && frequency === 'YEARLY' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
               <div className="space-y-2">
                 <Label>{t('alerts.frequencyYearMonth')}</Label>
@@ -484,12 +621,7 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
               </div>
               <div className="space-y-2">
                 <Label>{t('alerts.frequencyYearDay')}</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={31}
-                  {...register('frequencyYear.day')}
-                />
+                <Input type="number" min={1} max={31} {...register('frequencyYear.day')} />
               </div>
             </div>
           )}
@@ -569,18 +701,33 @@ export function ScheduleFormDialog({ open, onOpenChange, schedule }: ScheduleFor
             </div>
           </div>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting || mutation.isPending}
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button type="submit" disabled={isSubmitting || mutation.isPending}>
-              {isSubmitting || mutation.isPending ? t('common.loading') : t('common.save')}
-            </Button>
+          <DialogFooter className="sm:justify-between">
+            <div>
+              {!isCreate && onDeleteRequest && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => onDeleteRequest()}
+                  disabled={isSubmitting || mutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {t('common.delete')}
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting || mutation.isPending}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button type="submit" disabled={isSubmitting || mutation.isPending}>
+                {isSubmitting || mutation.isPending ? t('common.loading') : t('common.save')}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>

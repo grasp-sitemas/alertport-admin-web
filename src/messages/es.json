@@ -115,7 +115,8 @@
     "fileTooLarge": "Archivo mayor que {size}",
     "fileTypeInvalid": "Tipo de archivo no permitido",
     "fileEmpty": "Archivo vacío. Por favor selecciona una imagen válida.",
-    "photoUploadHint": "Imágenes hasta {size}. JPG, PNG o similar."
+    "photoUploadHint": "Imágenes hasta {size}. JPG, PNG o similar.",
+    "filters": "Filtros"
   },
   "auth": {
     "login": "Ingresar",
@@ -302,7 +303,24 @@
       "closedToast": "Atención cerrada con éxito",
       "typeRequired": "Selecciona un tipo de atención",
       "operatorOnly": "Solo usuarios con perfil OPERADOR pueden abrir y cerrar atenciones. Los registros son de solo lectura para tu perfil."
-    }
+    },
+    "scope": {
+      "editTitle": "¿Qué desea editar?",
+      "editDescription": "Elija si desea cambiar solo esta ocurrencia o toda la serie recurrente.",
+      "deleteTitle": "¿Qué desea eliminar?",
+      "deleteDescription": "Elija si desea eliminar solo esta ocurrencia o toda la serie recurrente.",
+      "editOccurrence": "Editar esta ocurrencia",
+      "editSeries": "Editar toda la serie",
+      "deleteOccurrence": "Eliminar esta ocurrencia",
+      "deleteSeries": "Eliminar toda la serie",
+      "occurrenceHint": "Aplica solo al día seleccionado.",
+      "seriesHint": "Se aplica a todas las ocurrencias desde esta fecha en adelante."
+    },
+    "errors": {
+      "missingReference": "No se pudo identificar la agenda u ocurrencia. Recargue e inténtelo de nuevo."
+    },
+    "editOccurrenceTitle": "Editar ocurrencia",
+    "editOccurrenceDescription": "Ajuste solo el día seleccionado sin cambiar la serie."
   },
   "attendance": {
     "title": "Control de Presencia",
@@ -666,5 +684,12 @@
   "REPORT_TEST_BY_CUSTOMER": "Informar prueba realizada por el cliente",
   "REPORT_TEST_BY_THIRD_PARTIES": "Informar prueba realizada por terceros",
   "REPORT_FAILURE_TO_CONTACT_PRIORITY_PHONES": "Informar fallo en contacto con teléfonos prioritarios",
-  "OTHERS": "Otros"
+  "OTHERS": "Otros",
+  "calendar": {
+    "today": "Hoy",
+    "month": "Mes",
+    "week": "Semana",
+    "day": "Día",
+    "list": "Lista"
+  }
 }

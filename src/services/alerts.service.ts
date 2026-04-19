@@ -46,6 +46,91 @@ export const alertsService = {
     return data;
   },
 
+  /**
+   * Update the entire series from a start date forward. Wipes appointments
+   * and alert-occurrences >= beginDate for the schedule and regenerates
+   * them with the new config. Mirrors the "Edit Series" modal in
+   * shieldgo-admin-web's AlertOccurrence calendar.
+   *
+   * Required payload fields: `schedule` (the schedule _id — NOT `_id`),
+   * beginDate (first day of the new series), and every other field the
+   * backend needs to rebuild the schedule. The controller
+   * ctr.updateSchedule() in ms-schedule reads `schedule` as the target id.
+   */
+  async updateScheduleSeries(
+    payload: AlertScheduleFormData & { schedule: string; alertOccurrence?: boolean },
+  ): Promise<ApiSingleResponse<AlertSchedule>> {
+    const { data } = await apiClient.post<ApiSingleResponse<AlertSchedule>>(
+      endpoints.scheduleSeriesUpdate,
+      { alertOccurrence: true, ...payload },
+    );
+    return data;
+  },
+
+  /**
+   * Update a single appointment (single-day occurrence) of a recurring
+   * schedule. Rebuilds just that one appointment + its alert-occurrences
+   * without touching the rest of the series. Used for "this day only"
+   * edits on the calendar.
+   *
+   * Payload carries both the schedule id and the target appointment id.
+   */
+  async updateAppointmentOccurrence(payload: {
+    schedule: string;
+    appointment: string;
+    name?: string;
+    account?: string;
+    client?: string;
+    site?: string;
+    equipment?: string;
+    category: 'ALERT_CHECK';
+    beginDate: string;
+    endDate: string;
+    beginHour: string;
+    endHour: string;
+    alertConfig?: AlertScheduleFormData['alertConfig'];
+    alertOccurrence?: boolean;
+  }): Promise<ApiSingleResponse<unknown>> {
+    const { data } = await apiClient.post<ApiSingleResponse<unknown>>(
+      endpoints.appointmentUpdateOccurrence,
+      { alertOccurrence: true, ...payload },
+    );
+    return data;
+  },
+
+  /**
+   * Cancel the entire series starting from a given date. Archives the
+   * schedule and deletes future appointments + alert-occurrences.
+   */
+  async cancelAppointmentSeries(payload: {
+    schedule: string;
+    startDate: string;
+    alertOccurrence?: boolean;
+  }): Promise<ApiSingleResponse<unknown>> {
+    const { data } = await apiClient.post<ApiSingleResponse<unknown>>(
+      endpoints.appointmentCancelSeries,
+      { alertOccurrence: true, ...payload },
+    );
+    return data;
+  },
+
+  /**
+   * Cancel a single appointment (one day). Keeps the series running on
+   * other days. Deletes the appointment + its alert-occurrences +
+   * firestore events.
+   */
+  async cancelAppointmentOccurrence(payload: {
+    appointment: string;
+    schedule?: string;
+    alertOccurrence?: boolean;
+  }): Promise<ApiSingleResponse<unknown>> {
+    const { data } = await apiClient.post<ApiSingleResponse<unknown>>(
+      endpoints.appointmentCancelOccurrence,
+      { alertOccurrence: true, ...payload },
+    );
+    return data;
+  },
+
   // ─── Alert Occurrences ────────────────────────────────────
 
   async filterOccurrences(params: FilterParams): Promise<NormalizedPage<AlertOccurrence>> {
