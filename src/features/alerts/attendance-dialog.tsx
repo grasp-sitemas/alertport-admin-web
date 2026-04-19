@@ -36,6 +36,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { translateDynamicLabel } from '@/lib/i18n-labels';
 import type { PatrolAction } from '@/types/api';
 import { cn } from '@/lib/utils';
+import { classifyAttendance, extractAttendanceOwner } from './attendance-state';
 
 interface AttendanceDialogProps {
   open: boolean;
@@ -122,8 +123,17 @@ export function AttendanceDialog({
   // now normalizes to a bare array.
   const attendanceTypes = typesQuery.data ?? [];
   const records = recordsQuery.data?.results ?? [];
-  const attendanceIsOpen =
-    event?.attendance?.status === 'IN_PROGRESS' || !!event?.attendance?.isAttendance;
+
+  // ── Ownership gate (critical for avoiding takeover) ─────────────
+  // The backend `attendanceEvent` DAO uses `$set: { attendance: ... }` which
+  // BLINDLY overwrites any existing attendance object — it's effectively a
+  // takeover endpoint. The legacy shieldgo-admin-web guards against this in
+  // the UI (only the operator who opened it may edit/close); we mirror that
+  // contract here. See attendance-state.ts for the full lifecycle semantics.
+  const state = classifyAttendance(event, operatorId || undefined);
+  const owner = extractAttendanceOwner(event?.attendance);
+  const ownerName = owner.name || t('alerts.attendance.anotherOperator');
+  const isLocked = state === 'IN_PROGRESS_BY_OTHER';
 
   // ─── Form state (add new record) ───────────────────────────────
   const [type, setType] = useState<string>('');
@@ -221,20 +231,29 @@ export function AttendanceDialog({
     onError: () => toast.error(t('notifications.errorOccurred')),
   });
 
-  // Auto-open the attendance flag when the dialog first appears for an event
-  // that doesn't have it yet — saves the operator one click. Only OPERATOR
-  // role may open/close (the backend returns `invalid.user.role` for other
-  // roles), so we skip the auto-trigger entirely in that case.
+  // Auto-open the attendance flag when the dialog first appears for an
+  // AVAILABLE event — saves the operator one click. Critical guards:
+  //   • Only OPERATOR role may open/close (backend returns 401
+  //     `invalid.user.role` otherwise).
+  //   • Skip if the event is already claimed (by anyone) — opening would
+  //     overwrite the owner's record via the DAO's `$set`. This is THE
+  //     rule that prevents two operators from claiming the same event.
+  //   • Skip if CLOSED — don't re-open a historical attendance.
   useEffect(() => {
     if (!open || !event || !operatorId) return;
     if (!isOperator) return;
-    if (attendanceIsOpen) return;
+    if (state !== 'AVAILABLE') return;
     if (openMutation.isPending || openMutation.isSuccess) return;
     openMutation.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, eventId, isOperator]);
+  }, [open, eventId, isOperator, state]);
 
-  const canClose = records.length > 0 && attendanceIsOpen && isOperator && !closeMutation.isPending;
+  const canClose =
+    records.length > 0 &&
+    state === 'IN_PROGRESS_BY_ME' &&
+    isOperator &&
+    !closeMutation.isPending;
+  const canAddRecord = state === 'IN_PROGRESS_BY_ME' && isOperator;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -257,14 +276,27 @@ export function AttendanceDialog({
 
         <div className="px-6 pb-6 sm:px-8 space-y-5">
           {/* Status pill */}
-          <div className="flex items-center gap-2 text-xs">
-            <Badge variant={attendanceIsOpen ? 'warning' : 'brand'}>
-              {attendanceIsOpen
-                ? t('alerts.attendance.statusInProgress')
-                : openMutation.isPending
+          <div className="flex items-center gap-2 text-xs flex-wrap">
+            {state === 'AVAILABLE' && (
+              <Badge variant="brand">
+                {openMutation.isPending
                   ? t('common.loading')
                   : t('alerts.attendance.statusNotStarted')}
-            </Badge>
+              </Badge>
+            )}
+            {state === 'IN_PROGRESS_BY_ME' && (
+              <Badge variant="warning">
+                {t('alerts.attendance.statusInProgressByYou')}
+              </Badge>
+            )}
+            {state === 'IN_PROGRESS_BY_OTHER' && (
+              <Badge variant="warning">
+                {t('alerts.attendance.statusInProgressByOther', { name: ownerName })}
+              </Badge>
+            )}
+            {state === 'CLOSED' && (
+              <Badge variant="success">{t('alerts.attendance.statusClosedBadge')}</Badge>
+            )}
             {event?.attendance?.openedDate && (
               <span className="text-text-muted">
                 · {t('alerts.attendance.openedAt')}{' '}
@@ -272,6 +304,15 @@ export function AttendanceDialog({
               </span>
             )}
           </div>
+
+          {/* Locked — another operator already claimed this event. Prevents
+              the takeover that the backend's blind $set would allow. */}
+          {isLocked && (
+            <div className="flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <span>{t('alerts.attendance.lockedDescription', { name: ownerName })}</span>
+            </div>
+          )}
 
           {/* Form: add a new record */}
           <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
@@ -332,7 +373,12 @@ export function AttendanceDialog({
                 type="button"
                 size="sm"
                 onClick={() => addRecordMutation.mutate()}
-                disabled={!type || addRecordMutation.isPending || !attendanceIsOpen}
+                disabled={!type || addRecordMutation.isPending || !canAddRecord}
+                title={
+                  isLocked
+                    ? t('alerts.attendance.lockedBy', { name: ownerName })
+                    : undefined
+                }
               >
                 {addRecordMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -409,8 +455,8 @@ export function AttendanceDialog({
               <span>{t('alerts.attendance.operatorOnly')}</span>
             </div>
           )}
-          {/* Close attendance hint */}
-          {isOperator && !canClose && attendanceIsOpen && records.length === 0 && (
+          {/* Close attendance hint — only meaningful for the owner. */}
+          {state === 'IN_PROGRESS_BY_ME' && isOperator && records.length === 0 && (
             <div className="flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200">
               <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
               <span>{t('alerts.attendance.mustAddRecord')}</span>

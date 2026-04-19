@@ -2,12 +2,17 @@
 
 import { memo } from 'react';
 import { useTranslations } from 'next-intl';
-import { AlertTriangle, MapPin, Phone, Radio, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Circle, Lock, MapPin, Phone, Radio, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { EventType, PatrolAction } from '@/types/api';
 import { formatDeviceLabel, resolveCallTargetId } from './device-label';
+import {
+  classifyAttendance,
+  extractAttendanceOwner,
+  type AttendanceState,
+} from './attendance-state';
 
 const EVENT_META: Record<
   EventType,
@@ -23,6 +28,10 @@ const EVENT_META: Record<
 
 interface Props {
   event: PatrolAction;
+  /** ID of the logged-in operator. Required to decide ownership states. */
+  currentUserId: string | undefined;
+  /** True when the logged-in user has the OPERATOR role (others can't open attendance). */
+  isOperator: boolean;
   onAttend: (event: PatrolAction) => void;
   onCall: (event: PatrolAction, mode: 'NORMAL' | 'SILENT_LISTEN') => void;
   callInProgress: boolean;
@@ -32,13 +41,19 @@ interface Props {
 }
 
 /**
- * Memoized event card. Isolates its render cost to a single row so that
- * parent re-renders (KPI tick, filters) don't sweep the whole timeline.
- * The parent passes stable callbacks (useCallback) so shallow-equal
- * props keep the memo effective.
+ * Single event row on the monitor. Isolates render cost to one row via
+ * React.memo + stable callback references from the parent.
+ *
+ * The visual distinction between "disponível para atendimento" (fresh),
+ * "em andamento por fulano" (claimed by another operator — locked for
+ * the current user), "em andamento por você" and "encerrado" is driven
+ * entirely by {@link classifyAttendance} so every surface tells the
+ * same story.
  */
 function MonitorEventCardImpl({
   event,
+  currentUserId,
+  isOperator,
   onAttend,
   onCall,
   callInProgress,
@@ -49,10 +64,9 @@ function MonitorEventCardImpl({
   const meta = EVENT_META[event.type] ?? { labelKey: 'common.info', accent: 'info' as const };
   const hasCallTarget = !!resolveCallTargetId(event);
   const canCall = !callInProgress && socketConnected && hasCallTarget;
-  const attendanceStatus = event.attendance?.status;
-  const attendanceClosed = attendanceStatus === 'CLOSED';
-  const attendanceInProgress =
-    attendanceStatus === 'IN_PROGRESS' || !!event.attendance?.isAttendance;
+  const state = classifyAttendance(event, currentUserId);
+  const owner = extractAttendanceOwner(event.attendance);
+  const ownerName = owner.name || t('alerts.attendance.anotherOperator');
   const deviceLabel = formatDeviceLabel(event);
 
   return (
@@ -61,6 +75,11 @@ function MonitorEventCardImpl({
         'rounded-xl border border-white/8 p-4 transition-all',
         meta.accent === 'danger' && 'bg-red-500/5 border-red-500/20',
         meta.accent === 'warning' && 'bg-amber-500/5 border-amber-500/20',
+        // Fresh events get a calm breathing outline so the operator's eye
+        // is drawn to actionable items without the noise of a full pulse
+        // animation on every card.
+        state === 'AVAILABLE' && 'ring-1 ring-emerald-500/30',
+        state === 'IN_PROGRESS_BY_OTHER' && 'opacity-90',
         flash && 'ring-2 ring-brand-500/60 ring-offset-2 ring-offset-background animate-pulse',
       )}
     >
@@ -80,12 +99,7 @@ function MonitorEventCardImpl({
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant={meta.accent}>{t(meta.labelKey)}</Badge>
-              {attendanceClosed && (
-                <Badge variant="success">{t('alerts.attendance.statusClosedBadge')}</Badge>
-              )}
-              {!attendanceClosed && attendanceInProgress && (
-                <Badge variant="warning">{t('alerts.attendance.statusInProgress')}</Badge>
-              )}
+              <AttendanceStateBadge state={state} ownerName={ownerName} />
             </div>
             <p className="text-sm font-medium text-white mt-1 truncate">{deviceLabel}</p>
             <p className="text-xs text-text-muted mt-0.5">
@@ -100,22 +114,26 @@ function MonitorEventCardImpl({
                   </span>
                 </>
               )}
+              {state === 'IN_PROGRESS_BY_OTHER' && (
+                <>
+                  {' · '}
+                  <span className="inline-flex items-center gap-1 text-amber-300/80">
+                    <Lock className="h-3 w-3" />
+                    {t('alerts.attendance.lockedBy', { name: ownerName })}
+                  </span>
+                </>
+              )}
             </p>
           </div>
         </div>
 
         <div className="flex gap-2 flex-wrap">
-          <Button
-            size="sm"
+          <AttendanceActionButton
+            state={state}
+            ownerName={ownerName}
+            isOperator={isOperator}
             onClick={() => onAttend(event)}
-            disabled={attendanceClosed}
-            title={attendanceClosed ? t('alerts.attendance.statusClosedBadge') : undefined}
-          >
-            <ShieldCheck className="h-4 w-4" />
-            {attendanceInProgress
-              ? t('alerts.attendance.continueAttendance')
-              : t('alerts.attendance.openAttendance')}
-          </Button>
+          />
 
           <Button
             size="sm"
@@ -148,6 +166,102 @@ function MonitorEventCardImpl({
         </div>
       </div>
     </div>
+  );
+}
+
+function AttendanceStateBadge({
+  state,
+  ownerName,
+}: {
+  state: AttendanceState;
+  ownerName: string;
+}) {
+  const t = useTranslations();
+  if (state === 'AVAILABLE') {
+    return (
+      <Badge variant="success" className="gap-1">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+        </span>
+        {t('alerts.attendance.statusAvailable')}
+      </Badge>
+    );
+  }
+  if (state === 'CLOSED') {
+    return <Badge variant="success">{t('alerts.attendance.statusClosedBadge')}</Badge>;
+  }
+  if (state === 'IN_PROGRESS_BY_ME') {
+    return (
+      <Badge variant="warning">
+        {t('alerts.attendance.statusInProgressByYou')}
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="warning" className="gap-1">
+      <Lock className="h-3 w-3" />
+      {t('alerts.attendance.statusInProgressByOther', { name: ownerName })}
+    </Badge>
+  );
+}
+
+function AttendanceActionButton({
+  state,
+  ownerName,
+  isOperator,
+  onClick,
+}: {
+  state: AttendanceState;
+  ownerName: string;
+  isOperator: boolean;
+  onClick: () => void;
+}) {
+  const t = useTranslations();
+
+  if (state === 'CLOSED') {
+    return (
+      <Button size="sm" variant="ghost" onClick={onClick}>
+        <ShieldCheck className="h-4 w-4" />
+        {t('alerts.attendance.viewHistory')}
+      </Button>
+    );
+  }
+
+  if (state === 'IN_PROGRESS_BY_OTHER') {
+    return (
+      <Button
+        size="sm"
+        variant="secondary"
+        disabled
+        title={t('alerts.attendance.lockedBy', { name: ownerName })}
+      >
+        <Lock className="h-4 w-4" />
+        {t('alerts.attendance.inProgressByOtherShort')}
+      </Button>
+    );
+  }
+
+  if (state === 'IN_PROGRESS_BY_ME') {
+    return (
+      <Button size="sm" onClick={onClick}>
+        <ShieldCheck className="h-4 w-4" />
+        {t('alerts.attendance.continueAttendance')}
+      </Button>
+    );
+  }
+
+  // AVAILABLE
+  return (
+    <Button
+      size="sm"
+      onClick={onClick}
+      disabled={!isOperator}
+      title={!isOperator ? t('alerts.attendance.operatorOnly') : undefined}
+    >
+      <Circle className="h-4 w-4" />
+      {t('alerts.attendance.openAttendance')}
+    </Button>
   );
 }
 

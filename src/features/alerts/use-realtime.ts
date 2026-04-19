@@ -4,6 +4,21 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { subscribeToAlertportRealtime, type AlertportRealtimeEvent } from './realtime';
 import { useUserScope } from '@/hooks/use-user-scope';
+import type { PatrolAction } from '@/types/api';
+
+/**
+ * Firestore `updateAttendanceEvent/{siteGroupId}` carries the attendance
+ * + operator objects as JSON strings (see ms-user ctr-patrol-actions.js).
+ * Parse defensively so a mangled payload doesn't break cache patching.
+ */
+function tryParseJson<T>(raw: unknown): T | null {
+  if (typeof raw !== 'string' || !raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Hook that wires Firestore real-time subscriptions for the currently logged-in user.
@@ -54,7 +69,41 @@ export function useAlertportRealtime(options?: {
             }
             break;
           case 'attendance:update':
-          case 'attendance:close':
+          case 'attendance:close': {
+            // Optimistic cache patch: merge the new attendance object into
+            // the matching patrol-action row across every `patrol-actions`
+            // query in the cache. Critical UX: another operator claiming
+            // an event locks the card on this user's screen before the
+            // next refetch round-trip, preventing the race where both
+            // operators see "Abrir atendimento" for the same event.
+            const doc = evt.data as {
+              attendance?: string;
+              operator?: string;
+              patrolActionId?: string;
+            };
+            const patrolActionId = doc?.patrolActionId;
+            const attendance =
+              tryParseJson<NonNullable<PatrolAction['attendance']>>(doc?.attendance);
+            if (patrolActionId && attendance) {
+              const caches = queryClient.getQueriesData<{
+                results?: PatrolAction[];
+              }>({ queryKey: ['patrol-actions'] });
+              for (const [key, value] of caches) {
+                if (!value?.results) continue;
+                let changed = false;
+                const next = value.results.map((row) => {
+                  if (row._id !== patrolActionId) return row;
+                  changed = true;
+                  return { ...row, attendance };
+                });
+                if (changed) {
+                  queryClient.setQueryData(key, { ...value, results: next });
+                }
+              }
+            }
+            queryClient.invalidateQueries({ queryKey: ['patrol-actions'] });
+            break;
+          }
           case 'attendance:report':
           case 'media':
             queryClient.invalidateQueries({ queryKey: ['patrol-actions'] });

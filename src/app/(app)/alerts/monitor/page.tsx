@@ -24,6 +24,7 @@ import {
 import { useAlertportRealtime } from '@/features/alerts/use-realtime';
 import { usePagination } from '@/hooks/use-pagination';
 import { useUserScope, applyUserScope } from '@/hooks/use-user-scope';
+import { useAuth } from '@/hooks/use-auth';
 import type { PatrolAction, TimeEntry } from '@/types/api';
 import { useCallContext } from '@/features/calls/call-context';
 import { ChatConnectionBadge } from '@/features/calls/call-dialog';
@@ -31,6 +32,7 @@ import { formatDeviceLabel, resolveCallTargetId } from '@/features/alerts/device
 import { AttendanceDialog } from '@/features/alerts/attendance-dialog';
 import { MonitorEventCard } from '@/features/alerts/monitor-event-card';
 import { MonitorTimeEntryRow } from '@/features/alerts/monitor-time-entry-row';
+import { classifyAttendance } from '@/features/alerts/attendance-state';
 
 /**
  * Window the card-level highlight ("flash") stays on after a new event
@@ -58,6 +60,9 @@ function AlertMonitor() {
   const t = useTranslations();
   const scope = useUserScope();
   const call = useCallContext();
+  const { user } = useAuth();
+  const currentUserId = user?._id;
+  const isOperator = user?.companyUser?.subtype === 'OPERATOR';
 
   const patrolPagination = usePagination({ initialPageSize: 50 });
   const timePagination = usePagination({ initialPageSize: 50 });
@@ -105,6 +110,16 @@ function AlertMonitor() {
 
   const events = useMemo<PatrolAction[]>(() => patrolQuery.data?.results || [], [patrolQuery.data]);
   const timeEntries = useMemo<TimeEntry[]>(() => timeQuery.data?.results || [], [timeQuery.data]);
+
+  // When another operator claims/closes the event this dialog is showing,
+  // the `events` list refreshes but the `attendanceEvent` state still holds
+  // the old snapshot — the dialog would keep its old "available" button
+  // and the lock-out would not kick in. Rebind to the live row so the
+  // dialog's state-derived UI stays in sync with the realtime feed.
+  const liveAttendanceEvent = useMemo(() => {
+    if (!attendanceEvent) return null;
+    return events.find((e) => e._id === attendanceEvent._id) || attendanceEvent;
+  }, [attendanceEvent, events]);
 
   // ── Flash-new-event tracking ─────────────────────────────────────
   // Pattern: a first-seen timestamp per _id lives in a ref (so it survives
@@ -203,13 +218,23 @@ function AlertMonitor() {
     () => events.filter((e) => e.type === 'SOS_ALERT').length,
     [events],
   );
+  // Counts keyed to the classifier so the KPIs tell the same story the
+  // cards tell. "Disponíveis" (AVAILABLE) is the operator's actionable
+  // queue — worth pulsing in the UI when > 0.
+  const availableCount = useMemo(
+    () => events.filter((e) => classifyAttendance(e, currentUserId) === 'AVAILABLE').length,
+    [events, currentUserId],
+  );
   const attendingCount = useMemo(
-    () =>
-      events.filter(
-        (e) =>
-          e.attendance?.status === 'IN_PROGRESS' || e.attendance?.isAttendance,
-      ).length,
-    [events],
+    () => {
+      let n = 0;
+      for (const e of events) {
+        const s = classifyAttendance(e, currentUserId);
+        if (s === 'IN_PROGRESS_BY_ME' || s === 'IN_PROGRESS_BY_OTHER') n += 1;
+      }
+      return n;
+    },
+    [events, currentUserId],
   );
 
   return (
@@ -232,6 +257,7 @@ function AlertMonitor() {
       <MonitorKpiGrid
         eventsCount={events.length}
         sosCount={sosCount}
+        availableCount={availableCount}
         attendingCount={attendingCount}
         timeEntriesCount={timeEntries.length}
         isLoadingEvents={patrolQuery.isLoading}
@@ -268,6 +294,8 @@ function AlertMonitor() {
                   <MonitorEventCard
                     key={event._id}
                     event={event}
+                    currentUserId={currentUserId}
+                    isOperator={isOperator}
                     onAttend={handleAttend}
                     onCall={handleCall}
                     callInProgress={callInProgress}
@@ -321,7 +349,7 @@ function AlertMonitor() {
       <AttendanceDialog
         open={!!attendanceEvent}
         onOpenChange={closeAttendance}
-        event={attendanceEvent}
+        event={liveAttendanceEvent}
         onChanged={handleAttendanceChanged}
       />
     </div>
@@ -331,6 +359,7 @@ function AlertMonitor() {
 interface KpiGridProps {
   eventsCount: number;
   sosCount: number;
+  availableCount: number;
   attendingCount: number;
   timeEntriesCount: number;
   isLoadingEvents: boolean;
@@ -342,10 +371,18 @@ interface KpiGridProps {
  * scroll, dialog open/close) and the KPI cards carry their own subtree
  * with spinners and icons — keeping them out of the parent's render
  * loop materially reduces work per frame.
+ *
+ * KPI order reflects the operator's priority:
+ *   1. Total today — context.
+ *   2. SOS — lethal priority.
+ *   3. Disponíveis — the actionable queue (pulses when > 0).
+ *   4. Em atendimento — what someone (including this user) is handling.
+ *   5. Registros de ponto — workforce signal.
  */
 const MonitorKpiGrid = memo(function MonitorKpiGridImpl({
   eventsCount,
   sosCount,
+  availableCount,
   attendingCount,
   timeEntriesCount,
   isLoadingEvents,
@@ -353,7 +390,7 @@ const MonitorKpiGrid = memo(function MonitorKpiGridImpl({
 }: KpiGridProps) {
   const t = useTranslations();
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
       <KpiCard
         title={t('dashboard.todayOccurrences')}
         value={eventsCount}
@@ -366,6 +403,13 @@ const MonitorKpiGrid = memo(function MonitorKpiGridImpl({
         value={sosCount}
         icon={AlertTriangle}
         accent="danger"
+        isLoading={isLoadingEvents}
+      />
+      <KpiCard
+        title={t('alerts.attendance.statusAvailable')}
+        value={availableCount}
+        icon={Bell}
+        accent="success"
         isLoading={isLoadingEvents}
       />
       <KpiCard
