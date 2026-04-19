@@ -84,6 +84,14 @@ export interface CallState {
   status: CallStatus;
   statusMessage: string;
   socketConnected: boolean;
+  /**
+   * True once the socket has connected AND the server has ack'd our
+   * `user:register`. Consumers that emit other server events (like
+   * `call:recordings:list`) should gate on this to avoid NOT_REGISTERED
+   * errors during the small window between TCP connect and session
+   * registration.
+   */
+  socketReady: boolean;
   onlineUsers: string[];
   // Active call
   roomId: string | null;
@@ -113,6 +121,7 @@ export function useCall(): CallState & CallActions {
   const [status, setStatus] = useState<CallStatus>('idle');
   const [statusMessage, setStatusMessage] = useState('');
   const [socketConnected, setSocketConnected] = useState(false);
+  const [socketReady, setSocketReady] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [peerUserId, setPeerUserId] = useState<string | null>(null);
@@ -385,8 +394,14 @@ export function useCall(): CallState & CallActions {
           clientType: 'ADMIN_MONITOR',
           displayName: `${user.firstName} ${user.lastName}`.trim(),
         },
-        () => {
-          /* ignore ack */
+        (ack?: { ok?: boolean; error?: string }) => {
+          // Mark the socket as fully ready only after the server ack's the
+          // register. Other hooks (recordings list, etc.) gate on this to
+          // avoid the NOT_REGISTERED race that flashes on screen while
+          // TCP is connected but the session hasn't landed server-side yet.
+          if (ack?.ok !== false) {
+            setSocketReady(true);
+          }
         },
       );
     };
@@ -398,6 +413,7 @@ export function useCall(): CallState & CallActions {
 
     const onDisconnect = () => {
       setSocketConnected(false);
+      setSocketReady(false);
       if (activeRoomIdRef.current) {
         setStatus('ended');
         setStatusMessage('Conexão com o chat foi perdida');
@@ -737,6 +753,7 @@ export function useCall(): CallState & CallActions {
     status,
     statusMessage,
     socketConnected,
+    socketReady,
     onlineUsers,
     roomId,
     peerUserId,

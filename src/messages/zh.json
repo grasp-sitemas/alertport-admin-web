@@ -435,7 +435,13 @@
       "pageTitle": "录音",
       "pageDescription": "静听通话结束后可供回放。",
       "loadMore": "加载更多",
-      "mode": "通话类型"
+      "mode": "通话类型",
+      "errors": {
+        "generic": "无法加载录音,请重试。",
+        "forbidden": "您没有访问这些录音的权限。",
+        "invalidInput": "筛选条件无效,请检查后重试。",
+        "unavailable": "录音目前不可用。"
+      }
     },
     "silentListenBanner": {
       "title": "静听进行中",

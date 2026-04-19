@@ -435,7 +435,13 @@
       "pageTitle": "Recordings",
       "pageDescription": "Completed silent-listen calls become available for playback.",
       "loadMore": "Load more",
-      "mode": "Call type"
+      "mode": "Call type",
+      "errors": {
+        "generic": "Could not load recordings. Please try again.",
+        "forbidden": "You don't have permission to access these recordings.",
+        "invalidInput": "Invalid filter. Please review the fields and try again.",
+        "unavailable": "Recording unavailable at the moment."
+      }
     },
     "silentListenBanner": {
       "title": "Silent listen in progress",

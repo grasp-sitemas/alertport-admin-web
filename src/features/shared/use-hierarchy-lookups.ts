@@ -59,21 +59,30 @@ export function useClientsLookup(account?: string) {
   });
 }
 
-export function useSitesLookup(client?: string) {
+/**
+ * `account` is optional but — when available — *always* goes on the
+ * payload. The legacy backend's auto-scope rules blow up when a non-SAM
+ * user queries `type=SITE` with only `client`: multi-tenant guards
+ * intercept it and the endpoint returns an empty list. Passing `account`
+ * gives the server everything it needs to apply the correct role-based
+ * visibility without guessing.
+ */
+export function useSitesLookup(client?: string, account?: string) {
   const scope = useUserScope();
   const effectiveClient = client || scope.clientId;
+  const effectiveAccount = account || scope.accountId;
 
   return useQuery({
-    // Keyed ONLY by client so React Query re-fetches every time the user picks a
-    // different client. Matches legacy `Services.getSitesByClient` which sends
-    // just `{ client, status, type }` — no account — so the backend resolves
-    // sites purely from the client ID (and respects hierarchy server-side).
-    queryKey: ['lookup', 'sites', effectiveClient ?? ''],
+    // Keyed by both account AND client so React Query re-fetches on any
+    // hierarchy change (SUPER_ADMIN_MASTER switching accounts, operator
+    // picking a different client of their own account).
+    queryKey: ['lookup', 'sites', effectiveAccount ?? '', effectiveClient ?? ''],
     queryFn: () =>
       companyService.filterSites({
         skip: 1,
         limit: 500,
         status: 'ACTIVE',
+        ...(effectiveAccount ? { account: effectiveAccount } : {}),
         client: effectiveClient,
       }),
     enabled: !!effectiveClient,

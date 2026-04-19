@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSocket } from '@/lib/socket';
+import { useCallContext } from './call-context';
 
 export interface CallRecordingRow {
   _id: string;
@@ -50,6 +51,16 @@ export interface RecordingsFilter {
 }
 
 /**
+ * Server error codes we treat as transient on the client side. These never
+ * surface to the user as text — we just keep showing the loading state and
+ * retry once the socket is ready. Anything else is a real error and gets
+ * mapped to a localized message in the panel.
+ */
+const TRANSIENT_ERRORS = new Set(['NOT_REGISTERED', 'SERVER_ERROR']);
+const RETRY_DELAY_MS = 400;
+const MAX_TRANSIENT_RETRIES = 10;
+
+/**
  * Paginated recordings list. The backend returns an opaque `nextCursor` based
  * on createdAt+_id; we feed it back to fetch the next page. Server scopes the
  * query by the caller's accountId by default; SUPER_ADMIN_MASTER can override
@@ -66,6 +77,13 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Read the global socket session state so we only fire requests after
+  // user:register has been ack'd. Prevents the NOT_REGISTERED flash on
+  // first paint. `useCallContext()` returns null when the user isn't
+  // authenticated yet — in that case we just wait.
+  const call = useCallContext();
+  const socketReady = call?.socketReady ?? false;
+
   const { accountId, clientId, siteId, roomId, callMode, startDate, endDate, limit = 50 } = filter;
   // Snapshot of the latest filter values so callbacks aren't stale when the
   // consumer mutates them mid-flight. Strings-only so equality is trivial.
@@ -80,6 +98,9 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
     limit,
   });
   filterRef.current = { accountId, clientId, siteId, roomId, callMode, startDate, endDate, limit };
+
+  const retryCountRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchPage = useCallback(
     (cursor: string | null, mode: 'replace' | 'append') => {
@@ -105,11 +126,25 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
       if (current.endDate) payload.endDate = current.endDate;
 
       socket.emit('call:recordings:list', payload, (ack: ListAck) => {
+        // Transient errors (socket not yet registered, generic server hiccup)
+        // keep the UI in loading state and retry automatically. The user
+        // never sees a raw error code.
+        if (!ack?.ok && ack?.error && TRANSIENT_ERRORS.has(ack.error)) {
+          if (retryCountRef.current < MAX_TRANSIENT_RETRIES) {
+            retryCountRef.current += 1;
+            if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+            retryTimerRef.current = setTimeout(() => fetchPage(cursor, mode), RETRY_DELAY_MS);
+            return;
+          }
+          // Exhausted retries — fall through to the real-error branch below.
+        }
+
+        retryCountRef.current = 0;
         if (mode === 'replace') setLoading(false);
         else setLoadingMore(false);
 
         if (!ack?.ok) {
-          setError(ack?.error ?? 'ERROR');
+          setError(ack?.error ?? 'UNKNOWN');
           if (mode === 'replace') setRecordings([]);
           return;
         }
@@ -123,20 +158,37 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
   );
 
   const refresh = useCallback(() => {
+    if (!socketReady) {
+      // Park the UI in loading state until the socket finishes registering;
+      // the effect below will trigger a real fetch once socketReady flips.
+      setLoading(true);
+      return;
+    }
     fetchPage(null, 'replace');
-  }, [fetchPage]);
+  }, [fetchPage, socketReady]);
 
   const loadMore = useCallback(() => {
-    if (!nextCursor || loading || loadingMore) return;
+    if (!nextCursor || loading || loadingMore || !socketReady) return;
     fetchPage(nextCursor, 'append');
-  }, [fetchPage, nextCursor, loading, loadingMore]);
+  }, [fetchPage, nextCursor, loading, loadingMore, socketReady]);
 
   useEffect(() => {
-    // Initial fetch on mount + re-fetch when filter changes. The setState
-    // calls happen inside the socket ack callback, not synchronously here.
+    // Initial fetch on mount + re-fetch when filter changes OR socketReady
+    // flips true. The setState calls happen inside the socket ack callback,
+    // not synchronously here.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
-  }, [accountId, clientId, siteId, roomId, callMode, startDate, endDate, limit, refresh]);
+  }, [accountId, clientId, siteId, roomId, callMode, startDate, endDate, limit, socketReady, refresh]);
+
+  // Cleanup any pending retry when the hook unmounts or filter changes.
+  useEffect(() => {
+    return () => {
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const getSignedUrl = useCallback((recordingId: string): Promise<string | null> => {
     const socket = getSocket();

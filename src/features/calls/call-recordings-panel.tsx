@@ -21,6 +21,27 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/**
+ * Translate server error codes into i18n keys. Anything the server could
+ * plausibly send should have a friendly copy; unknown codes fall back to the
+ * generic error message so we never render a raw code like NOT_REGISTERED.
+ */
+function mapRecordingErrorKey(code: string): string {
+  switch (code) {
+    case 'FORBIDDEN':
+      return 'calls.recordings.errors.forbidden';
+    case 'INVALID_ACCOUNT_ID':
+    case 'INVALID_RECORDING_ID':
+      return 'calls.recordings.errors.invalidInput';
+    case 'S3_BUCKET_NOT_CONFIGURED':
+    case 'RECORDING_HAS_NO_KEY':
+    case 'NOT_FOUND':
+      return 'calls.recordings.errors.unavailable';
+    default:
+      return 'calls.recordings.errors.generic';
+  }
+}
+
 interface Props {
   /** Full filter object. Defaults to limit=50 when no other fields are set. */
   filter?: RecordingsFilter;
@@ -91,7 +112,11 @@ export function CallRecordingsPanel({ filter, roomId, limit = 50, hideTitle = fa
         </div>
       )}
 
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && (
+        <p className="text-xs text-red-400">
+          {t(mapRecordingErrorKey(error))}
+        </p>
+      )}
 
       {!loading && recordings.length === 0 && (
         <p className="text-sm text-text-muted py-4 text-center">

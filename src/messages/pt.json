@@ -435,7 +435,13 @@
       "pageTitle": "Gravações",
       "pageDescription": "Chamadas de escuta ativa concluídas ficam disponíveis para reprodução.",
       "loadMore": "Carregar mais",
-      "mode": "Tipo de chamada"
+      "mode": "Tipo de chamada",
+      "errors": {
+        "generic": "Não foi possível carregar as gravações. Tente novamente.",
+        "forbidden": "Você não tem permissão para acessar estas gravações.",
+        "invalidInput": "Filtro inválido. Revise os campos e tente novamente.",
+        "unavailable": "Gravação indisponível no momento."
+      }
     },
     "silentListenBanner": {
       "title": "Escuta ativa em andamento",

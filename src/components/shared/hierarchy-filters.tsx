@@ -14,8 +14,9 @@ import {
   useClientsLookup,
   useSitesLookup,
 } from '@/features/shared/use-hierarchy-lookups';
-import { isSuperAdminMaster } from '@/config/roles';
+import { isSuperAdminMaster, isManagerOrAbove } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
+import { useUserScope } from '@/hooks/use-user-scope';
 
 /**
  * Pull `{ _id, name }` out of a session field that can be a populated Company
@@ -79,11 +80,40 @@ export function HierarchyFilters({
 }: HierarchyFiltersProps) {
   const t = useTranslations();
   const { userSubtype, user: sessionUser } = useAuth();
+  const scope = useUserScope();
+
+  // Per-role visibility contract (mirrors the legacy shieldgo-admin-web
+  // rules):
+  //   SUPER_ADMIN_MASTER  → picks Account + Client + Site freely
+  //   ADMIN_MASTER/ADMIN  → locked to session account; picks Client + Site
+  //   MANAGER             → locked to account + picks Client + Site
+  //   OPERATOR            → locked to account; can still switch Client/Site
+  //                         inside it (some ops cover multiple clients)
+  //   AUDITOR             → locked to account+client; picks Site only
+  //
+  // Account dropdown is the only one that's role-gated here — the Client
+  // and Site dropdowns are controlled by the parent via showClient/showSite
+  // props, and by the user's own selection.
   const canSelectAccount = isSuperAdminMaster(userSubtype);
+  const isAuditor = userSubtype === 'AUDITOR';
+  const canSelectClient = showClient && !isAuditor;
+  const canSelectSite = showSite;
+
+  // Resolve the effective account to scope Client/Site lookups by. SAM
+  // uses whatever they've picked in the account dropdown; everyone else
+  // is forced to their session account (server-side guards would block
+  // cross-tenant lookups anyway, but we do it here too so the UI never
+  // even fires those requests).
+  const effectiveAccount = canSelectAccount ? value.account : scope.accountId;
+  const effectiveClientForSites =
+    value.client || (isManagerOrAbove(userSubtype) ? undefined : scope.clientId);
 
   const accountsLookup = useAccountsLookup();
-  const clientsLookup = useClientsLookup(value.account || undefined);
-  const sitesLookup = useSitesLookup(value.client || undefined);
+  const clientsLookup = useClientsLookup(effectiveAccount || undefined);
+  const sitesLookup = useSitesLookup(
+    effectiveClientForSites || undefined,
+    effectiveAccount || undefined,
+  );
 
   // Merge the session's own hierarchy (account/client/site) as a fallback
   // option. Reason: for non-SUPER_ADMIN roles the backend
@@ -135,7 +165,7 @@ export function HierarchyFilters({
         </div>
       )}
 
-      {showClient && (
+      {canSelectClient && (
         <div>
           <label className="text-xs font-medium text-text-secondary mb-1.5 block">
             {t('common.client')}
@@ -162,7 +192,7 @@ export function HierarchyFilters({
         </div>
       )}
 
-      {showSite && (
+      {canSelectSite && (
         <div>
           <label className="text-xs font-medium text-text-secondary mb-1.5 block">
             {t('common.site')}

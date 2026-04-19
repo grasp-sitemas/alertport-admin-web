@@ -435,7 +435,13 @@
       "pageTitle": "Grabaciones",
       "pageDescription": "Las llamadas de escucha silenciosa quedan disponibles para reproducción.",
       "loadMore": "Cargar más",
-      "mode": "Tipo de llamada"
+      "mode": "Tipo de llamada",
+      "errors": {
+        "generic": "No se pudieron cargar las grabaciones. Inténtalo de nuevo.",
+        "forbidden": "No tienes permiso para acceder a estas grabaciones.",
+        "invalidInput": "Filtro inválido. Revisa los campos e inténtalo de nuevo.",
+        "unavailable": "Grabación no disponible en este momento."
+      }
     },
     "silentListenBanner": {
       "title": "Escucha silenciosa en curso",
