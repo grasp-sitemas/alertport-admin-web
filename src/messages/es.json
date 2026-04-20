@@ -672,6 +672,10 @@
     "bannerDaysRemaining": "Te quedan {count} {count, plural, one {día} other {días}} de prueba",
     "upgradeCta": "Contratar plan",
     "viewPlanCta": "Ver plan",
+    "expiredModalTitle": "Su período de prueba terminó",
+    "expiredModalDescription": "El acceso a las funciones fue pausado. Contrate un plan para seguir usando la plataforma o cierre sesión.",
+    "expiredModalUpgrade": "Contratar plan",
+    "expiredModalLogout": "Cerrar sesión",
     "errors": {
       "expired": "Período de prueba finalizado",
       "expiredDescription": "Contrata un plan para continuar.",
@@ -842,5 +846,9 @@
     "week": "Semana",
     "day": "Día",
     "list": "Lista"
+  },
+  "serviceHealth": {
+    "unavailableTitle": "Servicio temporalmente no disponible",
+    "unavailableDescription": "Reconectando con el servidor. Inténtelo en un momento."
   }
 }

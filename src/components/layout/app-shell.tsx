@@ -9,6 +9,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { CallProvider } from '@/features/calls/call-context';
 import { SilentListenBanner } from '@/features/calls/silent-listen-banner';
 import { TrialBanner } from '@/components/trial/trial-banner';
+import { TrialExpiredModal } from '@/components/trial/trial-expired-modal';
+import { ServiceHealthBanner } from '@/components/shared/service-health-banner';
 import { SosNotificationProvider } from '@/features/alerts/sos-notification-context';
 import { SosBanner } from '@/features/alerts/sos-banner';
 
@@ -45,6 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <div className="flex flex-1 flex-col lg:ml-0 min-w-0">
             <Header onMenuClick={() => setSidebarOpen(true)} />
+            <ServiceHealthBanner />
             <TrialBanner />
             <SilentListenBanner />
 
@@ -56,6 +59,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Global SOS banner — shown on any page. Provider owns the
               Firestore subscription; banner is pure presentation. */}
           <SosBanner />
+
+          {/* Blocking modal shown when the trial has expired. Rendered
+              at the shell level so it sits above every page including
+              the call dialog. Non-dismissible — only way out is upgrade
+              (admins) or logout. */}
+          <TrialExpiredModal />
         </div>
       </SosNotificationProvider>
     </CallProvider>

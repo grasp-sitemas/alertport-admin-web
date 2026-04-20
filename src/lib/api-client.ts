@@ -5,6 +5,56 @@ const RETRY_DELAY = 1000;
 const REQUEST_TIMEOUT = 30_000;
 const RETRYABLE_STATUS = [500, 502, 503, 504, 408, 429];
 
+/**
+ * Number of consecutive backend failures (5xx, 408, network) we
+ * tolerate before broadcasting a `service:unavailable` event. The
+ * AppShell listens for it and renders a banner so operators know the
+ * spinning wheel isn't their internet — it's us. Two failures in a row
+ * rather than one avoids false-positive banners on a single flaky
+ * request, while still catching a true outage within seconds.
+ */
+const UNAVAILABLE_THRESHOLD = 2;
+let _consecutiveFailures = 0;
+let _unavailableBroadcast = false;
+
+function dispatchServiceEvent(kind: 'unavailable' | 'restored') {
+  if (typeof window === 'undefined') return;
+  try {
+    window.dispatchEvent(new CustomEvent(`service:${kind}`));
+  } catch {
+    /* ignore */
+  }
+}
+
+function onRequestSuccess() {
+  _consecutiveFailures = 0;
+  if (_unavailableBroadcast) {
+    _unavailableBroadcast = false;
+    dispatchServiceEvent('restored');
+  }
+}
+
+function onRequestFailure(error: AxiosError) {
+  // Only count 5xx + network errors (4xx are user/client issues — not
+  // the platform being down). 401 is caught upstream before reaching
+  // here in the interceptor chain, so no double-count.
+  const status = error.response?.status;
+  const isServerOrNetwork =
+    !error.response ||
+    (typeof status === 'number' && status >= 500) ||
+    status === 408 ||
+    status === 429;
+  if (!isServerOrNetwork) return;
+  _consecutiveFailures += 1;
+  if (
+    _consecutiveFailures >= UNAVAILABLE_THRESHOLD &&
+    !_unavailableBroadcast
+  ) {
+    _unavailableBroadcast = true;
+    dispatchServiceEvent('unavailable');
+  }
+}
+
 function getSessionToken(): string | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -59,10 +109,16 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 // Response interceptor: handle 401 and retries
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    onRequestSuccess();
+    return response;
+  },
   async (error: AxiosError) => {
     const config = error.config as InternalAxiosRequestConfig & { _retryCount?: number };
-    if (!config) return Promise.reject(error);
+    if (!config) {
+      onRequestFailure(error);
+      return Promise.reject(error);
+    }
 
     // 401 → redirect to login (preserve legacy behavior)
     if (error.response?.status === 401) {
@@ -81,6 +137,7 @@ apiClient.interceptors.response.use(
       return apiClient(config);
     }
 
+    onRequestFailure(error);
     return Promise.reject(error);
   },
 );

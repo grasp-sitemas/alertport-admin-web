@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useSyncExternalStore } from 'react';
+import { useCallback, useState, useSyncExternalStore } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { AuthContext, useAuthValue } from '@/hooks/use-auth';
 import type { User } from '@/types/api';
 import type { SessionData } from '@/lib/session';
@@ -41,12 +42,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const externalUser = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   // Local override state so login/logout flows can update synchronously
   const [overrideUser, setOverrideUser] = useState<User | null | undefined>(undefined);
+  const queryClient = useQueryClient();
 
   const user = overrideUser === undefined ? externalUser : overrideUser;
 
   const setUser = (u: User | null) => setOverrideUser(u);
 
-  const value = useAuthValue(user, setUser);
+  // Clear the React Query cache on logout so a re-login in the same tab
+  // doesn't flash stale data from the previous user (including PII
+  // cached by list pages like /users, /clients, etc.).
+  const onLogoutCleanup = useCallback(() => {
+    queryClient.cancelQueries().catch(() => {});
+    queryClient.clear();
+  }, [queryClient]);
+
+  const value = useAuthValue(user, setUser, onLogoutCleanup);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

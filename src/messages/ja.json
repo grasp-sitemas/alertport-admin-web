@@ -672,6 +672,10 @@
     "bannerDaysRemaining": "トライアル期間残り{count}日",
     "upgradeCta": "プランを契約",
     "viewPlanCta": "プランを見る",
+    "expiredModalTitle": "トライアル期間が終了しました",
+    "expiredModalDescription": "機能へのアクセスが一時停止されました。プラットフォームを引き続き利用するにはプランを契約するか、ログアウトしてください。",
+    "expiredModalUpgrade": "プランを契約",
+    "expiredModalLogout": "ログアウト",
     "errors": {
       "expired": "トライアル期間が終了しました",
       "expiredDescription": "続行するにはプランを契約してください。",
@@ -842,5 +846,9 @@
     "week": "週",
     "day": "日",
     "list": "リスト"
+  },
+  "serviceHealth": {
+    "unavailableTitle": "サービス一時停止中",
+    "unavailableDescription": "サーバーに再接続しています。しばらくしてからやり直してください。"
   }
 }

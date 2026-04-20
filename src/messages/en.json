@@ -672,6 +672,10 @@
     "bannerDaysRemaining": "{count} {count, plural, one {day} other {days}} left in your trial",
     "upgradeCta": "Upgrade plan",
     "viewPlanCta": "View plan",
+    "expiredModalTitle": "Your trial has ended",
+    "expiredModalDescription": "Feature access has been paused. Upgrade to a plan to keep using the platform, or sign out.",
+    "expiredModalUpgrade": "Upgrade plan",
+    "expiredModalLogout": "Sign out",
     "errors": {
       "expired": "Trial period ended",
       "expiredDescription": "Subscribe to a plan to continue.",
@@ -842,5 +846,9 @@
     "week": "Week",
     "day": "Day",
     "list": "List"
+  },
+  "serviceHealth": {
+    "unavailableTitle": "Service temporarily unavailable",
+    "unavailableDescription": "Reconnecting to the server. Please try again in a moment."
   }
 }

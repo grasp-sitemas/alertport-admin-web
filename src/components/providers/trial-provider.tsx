@@ -55,6 +55,34 @@ export function TrialProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, user?._id, fetchContext]);
 
+  // Mid-session refresh: re-pull the trial context every 5 minutes AND
+  // whenever the tab regains focus. Without this, a trial that expires
+  // while the operator is actively using the app keeps the UI happy
+  // until the next full-page reload — the operator clicks buttons that
+  // silently 403 on the server. 5 min is a good balance between
+  // "timely lock-out" and "don't hammer the endpoint".
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const REFRESH_MS = 5 * 60 * 1000;
+    const id = setInterval(() => {
+      fetchContext();
+    }, REFRESH_MS);
+    const onVisible = () => {
+      if (typeof document !== 'undefined' && !document.hidden) {
+        fetchContext();
+      }
+    };
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVisible);
+    }
+    return () => {
+      clearInterval(id);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', onVisible);
+      }
+    };
+  }, [isAuthenticated, fetchContext]);
+
   useEffect(() => {
     // Lazy plan catalog fetch; only after first successful context load.
     if (!hasFetched || plansFetchedRef.current) return;

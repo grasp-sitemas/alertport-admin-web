@@ -672,6 +672,10 @@
     "bannerDaysRemaining": "试用期剩余 {count} 天",
     "upgradeCta": "升级套餐",
     "viewPlanCta": "查看套餐",
+    "expiredModalTitle": "您的试用期已结束",
+    "expiredModalDescription": "功能访问已暂停。升级套餐以继续使用平台,或退出登录。",
+    "expiredModalUpgrade": "升级套餐",
+    "expiredModalLogout": "退出",
     "errors": {
       "expired": "试用期已结束",
       "expiredDescription": "请订阅套餐以继续。",
@@ -842,5 +846,9 @@
     "week": "周",
     "day": "日",
     "list": "列表"
+  },
+  "serviceHealth": {
+    "unavailableTitle": "服务暂时不可用",
+    "unavailableDescription": "正在重新连接服务器,请稍后再试。"
   }
 }
