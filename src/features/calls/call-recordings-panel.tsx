@@ -149,6 +149,7 @@ export function CallRecordingsPanel({ filter, roomId, limit = 50, hideTitle = fa
                   </p>
                   <p className="text-xs text-text-muted truncate">
                     {formatDuration(r.durationSec)} · {formatBytes(r.bytes)} · {t(mapCallModeKey(r.callMode))}
+                    {r.clientName ? ` · ${r.clientName}` : ''}
                     {r.siteName ? ` · ${r.siteName}` : ''}
                     {r.peerLabel ? ` · ${r.peerLabel}` : ''}
                   </p>
