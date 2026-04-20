@@ -68,16 +68,31 @@ function pickEventEnd(row: AlertSchedule, startISO: string | undefined): string 
 }
 
 function pickName(row: AlertSchedule): string {
-  // Prefer the schedule name the user typed (e.g. "Agenda teste x"). The
-  // calendar filter endpoint returns rows in the appointment shape,
-  // which sometimes puts `name` at the top level and sometimes only as
-  // a nested `schedule.name` — check both so the title never falls back
-  // to the generic "Alerta" label when a real name exists.
-  if (typeof row.name === 'string' && row.name.trim()) return row.name.trim();
+  // Prefer the schedule name the user typed (e.g. "Agenda teste x").
+  // The calendar filter endpoint (`appointment filterV2` with
+  // `isFullCalendar: true`) projects this as `title: '$name'` — see
+  // hp-shield-crud/dao/dao-appointment.js:382. Other code paths
+  // (schedule shape / nested appointment) still use `name`. Check
+  // every spot it can appear so we never fall through to the generic
+  // "Alerta" label when a real name exists.
+  const candidates: unknown[] = [
+    row.name,
+    (row as { title?: unknown }).title,
+  ];
   const nested = (row as { schedule?: unknown }).schedule;
-  if (nested && typeof nested === 'object' && 'name' in nested) {
-    const n = (nested as { name?: unknown }).name;
-    if (typeof n === 'string' && n.trim()) return n.trim();
+  if (nested && typeof nested === 'object') {
+    if ('name' in nested) candidates.push((nested as { name?: unknown }).name);
+    if ('title' in nested) candidates.push((nested as { title?: unknown }).title);
+  }
+  const appointment = (row as { appointment?: unknown }).appointment;
+  if (appointment && typeof appointment === 'object') {
+    if ('name' in appointment)
+      candidates.push((appointment as { name?: unknown }).name);
+    if ('title' in appointment)
+      candidates.push((appointment as { title?: unknown }).title);
+  }
+  for (const c of candidates) {
+    if (typeof c === 'string' && c.trim()) return c.trim();
   }
   const siteName =
     typeof row.site === 'object' && row.site && 'name' in row.site ? row.site.name : null;
