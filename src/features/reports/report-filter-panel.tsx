@@ -4,7 +4,6 @@ import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { AlertCircle, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import {
   HierarchyFilters,
@@ -18,18 +17,20 @@ import {
 } from './report-filter-validator';
 
 /**
- * Unified filter panel for every report page.
+ * Compact filter panel used by every report page.
  *
- * Encapsulates:
- *  - Hierarchy picker (account / client / site)
- *  - Date range (startDate / endDate) with inline validation
- *  - 30-day max enforcement (matches the backend hard cap in
- *    `alertport-report-helpers.js::parseFilter`)
- *  - Search / Clear buttons
+ * Layout rule: everything — hierarchy (account / client / site),
+ * date range, report-specific extras (e.g. SLA threshold), actions —
+ * lives in ONE responsive grid so operators get the most vertical
+ * space possible for the actual report body. On desktop (lg+) the
+ * panel collapses to a single visible row.
  *
- * Keeping this in one place means every report shares the same
- * validation, layout, and language — critical for the
- * "profissional, muito bem distribuído" bar.
+ * Density choices:
+ *   - 10px uppercase tracking-wider labels (shared with FilterPanel)
+ *   - h-9 inputs + selects (vs the default h-10)
+ *   - gap-y-2 (vs gap-y-3) and p-3 (vs p-4)
+ *   - HierarchyFilters renders with `compact` so its labels and
+ *     select heights match.
  */
 
 export interface ReportFilterValue {
@@ -43,10 +44,13 @@ interface Props {
   onChange: (next: ReportFilterValue) => void;
   onApply: () => void;
   onClear: () => void;
-  /** Optional extra fields rendered to the right of dates (e.g. SLA threshold). */
+  /** Optional extra fields (rendered as an extra grid cell, e.g. SLA threshold). */
   extras?: React.ReactNode;
   isLoading?: boolean;
 }
+
+const LABEL_CLASS =
+  'text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block';
 
 export function ReportFilterPanel({
   value,
@@ -69,42 +73,54 @@ export function ReportFilterPanel({
   const canApply = validation.ok && !isLoading;
 
   return (
-    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4">
-      <HierarchyFilters
-        value={value.hierarchy}
-        onChange={(hierarchy) => onChange({ ...value, hierarchy })}
-      />
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 space-y-2">
+      {/* One dense responsive grid for every filter field. On xl the
+          row can hold: account + client + site + start + end + extras
+          in six columns. Actions live in their own compact sub-row
+          below so they stay discoverable without stealing a grid cell. */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-3 gap-y-2">
+        <HierarchyFilters
+          value={value.hierarchy}
+          onChange={(hierarchy) => onChange({ ...value, hierarchy })}
+          compact
+        />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="report-start-date">{t('common.startDate')}</Label>
+        <div>
+          <label htmlFor="report-start-date" className={LABEL_CLASS}>
+            {t('common.startDate')}
+          </label>
           <Input
             id="report-start-date"
             type="date"
+            className="h-9 px-3 text-sm"
             value={value.startDate}
             onChange={(e) => onChange({ ...value, startDate: e.target.value })}
           />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="report-end-date">{t('common.endDate')}</Label>
+        <div>
+          <label htmlFor="report-end-date" className={LABEL_CLASS}>
+            {t('common.endDate')}
+          </label>
           <Input
             id="report-end-date"
             type="date"
+            className="h-9 px-3 text-sm"
             value={value.endDate}
             onChange={(e) => onChange({ ...value, endDate: e.target.value })}
           />
         </div>
+
         {extras}
       </div>
 
       {!validation.ok && (
         <div
           className={cn(
-            'flex items-start gap-2 rounded-xl border px-3 py-2 text-xs',
+            'flex items-start gap-2 rounded-lg border px-3 py-1.5 text-[11px]',
             'border-amber-500/20 bg-amber-500/5 text-amber-200',
           )}
         >
-          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
           <span>
             {t(rangeErrorKey(validation.error), {
               max: MAX_RANGE_DAYS,
@@ -114,7 +130,7 @@ export function ReportFilterPanel({
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-2 pt-1">
+      <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" onClick={onApply} disabled={!canApply}>
           <Search className="h-4 w-4" />
           {t('common.search')}
@@ -123,10 +139,13 @@ export function ReportFilterPanel({
           <X className="h-4 w-4" />
           {t('common.clearFilters')}
         </Button>
-        <span className="ml-auto text-xs text-text-muted">
+        <span className="ml-auto text-[11px] text-text-muted">
           {t('reports.filter.maxRangeHint', { max: MAX_RANGE_DAYS })}
         </span>
       </div>
     </div>
   );
 }
+
+/** Exported so report pages can match styling on their own `extras` slot. */
+export const REPORT_FILTER_LABEL_CLASS = LABEL_CLASS;

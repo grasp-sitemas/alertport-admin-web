@@ -4,7 +4,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { CheckCircle2, Clock, Gauge, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { RoleGuard } from '@/components/shared/role-guard';
@@ -169,20 +168,25 @@ function SlaPageBody() {
           onClear={clear}
           isLoading={query.isLoading}
           extras={
-            <div className="space-y-1.5 md:col-span-2">
-              <Label htmlFor="sla-threshold">{t('reports.sla.thresholdLabel')}</Label>
+            <div>
+              <label
+                htmlFor="sla-threshold"
+                className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block"
+                title={t('reports.sla.thresholdHint')}
+              >
+                {t('reports.sla.thresholdLabel')}
+              </label>
               <Input
                 id="sla-threshold"
                 type="number"
                 min={1}
                 max={3600}
                 step={1}
+                className="h-9 px-3 text-sm"
                 value={slaThresholdSec}
                 onChange={(e) => setSlaThresholdSec(Number(e.target.value))}
+                title={t('reports.sla.thresholdHint')}
               />
-              <p className="text-[11px] text-text-muted">
-                {t('reports.sla.thresholdHint')}
-              </p>
             </div>
           }
         />

@@ -57,6 +57,13 @@ interface HierarchyFiltersProps {
   showSite?: boolean;
   /** Hide the client filter (rare; usually kept). */
   showClient?: boolean;
+  /**
+   * Shrink labels + select height so the filters pack more per row.
+   * Opt-in: legacy pages stay at the default density. Reports pages
+   * enable this so their dense 6-column filter grid can fit hierarchy
+   * + dates + actions on a single desktop row.
+   */
+  compact?: boolean;
 }
 
 /**
@@ -77,7 +84,12 @@ export function HierarchyFilters({
   onChange,
   showSite = true,
   showClient = true,
+  compact = false,
 }: HierarchyFiltersProps) {
+  const labelClass = compact
+    ? 'text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block'
+    : 'text-xs font-medium text-text-secondary mb-1.5 block';
+  const triggerClass = compact ? 'h-9 px-3 text-sm' : undefined;
   const t = useTranslations();
   const { userSubtype, user: sessionUser } = useAuth();
   const scope = useUserScope();
@@ -140,7 +152,7 @@ export function HierarchyFilters({
     <>
       {canSelectAccount && (
         <div>
-          <label className="text-xs font-medium text-text-secondary mb-1.5 block">
+          <label className={labelClass}>
             {t('common.account')}
           </label>
           <Select
@@ -150,7 +162,7 @@ export function HierarchyFilters({
               onChange({ account, client: '', site: '' });
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger className={triggerClass}>
               <SelectValue placeholder={t('common.selectOption')} />
             </SelectTrigger>
             <SelectContent>
@@ -167,7 +179,7 @@ export function HierarchyFilters({
 
       {canSelectClient && (
         <div>
-          <label className="text-xs font-medium text-text-secondary mb-1.5 block">
+          <label className={labelClass}>
             {t('common.client')}
           </label>
           <Select
@@ -177,7 +189,7 @@ export function HierarchyFilters({
               onChange({ ...value, client, site: '' });
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger className={triggerClass}>
               <SelectValue placeholder={t('common.selectOption')} />
             </SelectTrigger>
             <SelectContent>
@@ -194,7 +206,7 @@ export function HierarchyFilters({
 
       {canSelectSite && (
         <div>
-          <label className="text-xs font-medium text-text-secondary mb-1.5 block">
+          <label className={labelClass}>
             {t('common.site')}
           </label>
           <Select
@@ -204,7 +216,7 @@ export function HierarchyFilters({
               onChange({ ...value, site });
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger className={triggerClass}>
               <SelectValue placeholder={t('common.selectOption')} />
             </SelectTrigger>
             <SelectContent>
