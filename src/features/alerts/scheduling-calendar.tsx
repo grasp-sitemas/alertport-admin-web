@@ -168,6 +168,11 @@ export function SchedulingCalendar({
             meridiem: false,
             hour12: false,
           }}
+          // We prepend "HH:MM" to every event title in use-schedule-events
+          // so the format is identical across all views (e.g. "09:15 Agenda
+          // teste x"). Disable FullCalendar's own auto-time prefix to avoid
+          // rendering the hour twice on month view.
+          displayEventTime={false}
         />
       </div>
       {/* Dark-theme tweaks for FullCalendar's default CSS. We keep overrides

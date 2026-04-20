@@ -67,11 +67,51 @@ function pickEventEnd(row: AlertSchedule, startISO: string | undefined): string 
   return d.toISOString();
 }
 
-function pickTitle(row: AlertSchedule): string {
-  if (row.name && row.name.trim()) return row.name.trim();
+function pickName(row: AlertSchedule): string {
+  // Prefer the schedule name the user typed (e.g. "Agenda teste x"). The
+  // calendar filter endpoint returns rows in the appointment shape,
+  // which sometimes puts `name` at the top level and sometimes only as
+  // a nested `schedule.name` — check both so the title never falls back
+  // to the generic "Alerta" label when a real name exists.
+  if (typeof row.name === 'string' && row.name.trim()) return row.name.trim();
+  const nested = (row as { schedule?: unknown }).schedule;
+  if (nested && typeof nested === 'object' && 'name' in nested) {
+    const n = (nested as { name?: unknown }).name;
+    if (typeof n === 'string' && n.trim()) return n.trim();
+  }
   const siteName =
     typeof row.site === 'object' && row.site && 'name' in row.site ? row.site.name : null;
   return siteName || 'Alerta';
+}
+
+function formatHHMM(startISO: string | undefined): string {
+  if (!startISO) return '';
+  // Plain "HH:MM" tail (no-T beginHour) — strip seconds if present.
+  if (!startISO.includes('T')) {
+    return startISO.length >= 5 ? startISO.slice(0, 5) : '';
+  }
+  const d = new Date(startISO);
+  if (Number.isNaN(d.getTime())) return '';
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
+/**
+ * Build the visible event title as `HH:MM Name` — e.g.
+ * "09:15 Agenda teste x". We prepend the time ourselves (instead of
+ * relying on FullCalendar's per-view displayEventTime prefix) so the
+ * format is identical across month / week / day / list views and
+ * matches the product spec verbatim.
+ *
+ * `displayEventTime={false}` in scheduling-calendar.tsx stops
+ * FullCalendar from adding its own time prefix — no duplicate
+ * "09:15 09:15 …" in month view.
+ */
+function pickTitle(row: AlertSchedule, startISO: string | undefined): string {
+  const name = pickName(row);
+  const hhmm = formatHHMM(startISO);
+  return hhmm ? `${hhmm} ${name}` : name;
 }
 
 function pickAppointmentId(row: AlertSchedule): string | undefined {
@@ -164,7 +204,7 @@ export function useScheduleEvents(filter: ScheduleEventsFilter, enabled = true) 
         const scheduleId = pickScheduleId(row);
         return {
           id: String(appointmentId || scheduleId || row._id),
-          title: pickTitle(row),
+          title: pickTitle(row, start),
           start,
           end: pickEventEnd(row, start),
           extendedProps: {
