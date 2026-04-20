@@ -11,8 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Filter, Search, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Filter, Search, X } from 'lucide-react';
 import { translateDynamicLabel } from '@/lib/i18n-labels';
+import { cn } from '@/lib/utils';
 
 interface FilterField {
   key: string;
@@ -35,31 +36,24 @@ interface FilterPanelProps {
    */
   extras?: React.ReactNode;
   /**
-   * When set, the counter badge on the toggle button uses this value
-   * instead of the automatic count. Lets pages that know their own
-   * "default" state (e.g. `status=ACTIVE` doesn't really count as a
-   * user filter) report a smarter number.
+   * When set, the counter badge uses this value instead of the automatic
+   * count. Lets pages that know their own "default" state (e.g. a
+   * `status=ACTIVE` isn't really a user filter) report a smarter number.
    */
   activeFilterCount?: number;
   /**
-   * When true, renders the panel in the legacy "always expanded" layout
-   * instead of the collapsible drawer. Intended as a temporary escape
-   * hatch for pages that render outside a scroll container and look odd
-   * with a drawer. Default is `false` — collapsed by default.
+   * Always-expanded variant (legacy pages). Default: collapsible drawer.
    */
   alwaysOpen?: boolean;
   /**
-   * When true the drawer starts open on first render. Useful for pages
-   * where the filters are the primary interaction. Default is `false`.
+   * Start the drawer open on first render. Default: false.
    */
   defaultOpen?: boolean;
 }
 
 /**
- * Count filter values that look "set" to the user. Heuristic: any
- * non-empty string, non-`__all__`, non-default status. Booleans and
- * numbers count as "set" when truthy. This is good enough for a UI
- * badge — a page that needs finer control passes `activeFilterCount`.
+ * Count filter values that look "set" to the user. Any non-empty
+ * string, non-`__all__`, non-default `status=ACTIVE` counts.
  */
 function countActiveFilters(values: Record<string, unknown>): number {
   let count = 0;
@@ -68,8 +62,6 @@ function countActiveFilters(values: Record<string, unknown>): number {
     if (typeof raw === 'string') {
       if (!raw) continue;
       if (raw === '__all__') continue;
-      // Treat the ubiquitous `status: 'ACTIVE'` default as "not filtering"
-      // so a fresh page load shows 0 on the badge.
       if (key === 'status' && raw === 'ACTIVE') continue;
       count += 1;
       continue;
@@ -78,8 +70,6 @@ function countActiveFilters(values: Record<string, unknown>): number {
       if (raw) count += 1;
       continue;
     }
-    // Arrays and objects (e.g. hierarchy sub-filters) — count as set if
-    // at least one nested value is truthy.
     if (Array.isArray(raw)) {
       if (raw.length > 0) count += 1;
       continue;
@@ -92,6 +82,23 @@ function countActiveFilters(values: Record<string, unknown>): number {
   return count;
 }
 
+/**
+ * Compact, modern filter panel.
+ *
+ * Layout decisions:
+ *  - Collapsed: single row with a Filter toggle (badge = active count),
+ *    a Clear button when filters are set, and an always-visible Search
+ *    button on the right. Zero vertical chrome when the user isn't
+ *    filtering — keeps the main content area roomy.
+ *  - Expanded: a tight grid (3-column on lg, 4 on xl) with small labels
+ *    stacked over inputs. Actions pinned to the bottom-right.
+ *  - Search does NOT auto-collapse the drawer anymore. Earlier behavior
+ *    made live-filter pages look like the click did nothing (the panel
+ *    would just slide shut). The operator now stays in context — they
+ *    see their filters and the updated results at the same time.
+ *  - Button label is "Buscar" (calls onSearch) — was "Filtrar" which
+ *    suggested opening a filter drawer, not running the query.
+ */
 export function FilterPanel({
   fields,
   values,
@@ -106,8 +113,6 @@ export function FilterPanel({
   const t = useTranslations();
   const [open, setOpen] = useState(alwaysOpen || defaultOpen);
 
-  // Lock `open` to `true` when the caller forces `alwaysOpen` — don't
-  // fight the state of a controlled variant.
   const isOpen = alwaysOpen || open;
 
   const effectiveCount = useMemo(() => {
@@ -120,17 +125,15 @@ export function FilterPanel({
     setOpen((v) => !v);
   };
 
-  const handleSearchAndCollapse = () => {
+  const handleSearch = () => {
+    // No auto-collapse — staying open keeps the user in context.
     onSearch();
-    // Collapse the drawer after submitting filters so the results are
-    // immediately visible. The operator can always reopen to tweak.
-    if (!alwaysOpen) setOpen(false);
   };
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-3">
+    <div className="flex flex-col gap-2 rounded-xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-2.5">
       {!alwaysOpen && (
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
             variant={isOpen ? 'secondary' : 'ghost'}
@@ -138,7 +141,7 @@ export function FilterPanel({
             onClick={handleToggle}
             aria-expanded={isOpen}
             aria-controls="shared-filter-panel-body"
-            className="gap-2"
+            className="gap-2 shrink-0"
           >
             <Filter className="h-4 w-4" />
             {t('common.filters')}
@@ -150,26 +153,45 @@ export function FilterPanel({
                 {effectiveCount}
               </span>
             )}
+            {isOpen ? (
+              <ChevronUp className="h-3.5 w-3.5 opacity-70" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+            )}
           </Button>
-          {effectiveCount > 0 && !isOpen && (
-            <Button type="button" variant="ghost" size="sm" onClick={onClear}>
+
+          {effectiveCount > 0 && (
+            <Button type="button" variant="ghost" size="sm" onClick={onClear} className="shrink-0">
               <X className="h-4 w-4" />
               {t('common.clearFilters')}
             </Button>
           )}
+
+          <div className="ml-auto">
+            <Button type="button" size="sm" onClick={handleSearch}>
+              <Search className="h-4 w-4" />
+              {t('common.search')}
+            </Button>
+          </div>
         </div>
       )}
 
       {isOpen && (
         <div
           id="shared-filter-panel-body"
-          className="flex flex-col gap-4"
+          className={cn(
+            'flex flex-col gap-3',
+            // When the drawer is a child of the collapsible shell, add a
+            // thin separator so the fields visually detach from the
+            // compact header row above.
+            !alwaysOpen && 'pt-1 border-t border-white/[0.05]',
+          )}
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-3 gap-y-2">
             {extras}
             {fields.map((field) => (
-              <div key={field.key}>
-                <label className="text-xs font-medium text-text-secondary mb-1.5 block">
+              <div key={field.key} className="flex flex-col gap-1">
+                <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wide">
                   {t(field.labelKey)}
                 </label>
                 {field.type === 'text' && (
@@ -177,7 +199,12 @@ export function FilterPanel({
                     value={(values[field.key] as string) || ''}
                     onChange={(e) => onChange(field.key, e.target.value)}
                     placeholder={field.placeholder || t(field.labelKey)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearchAndCollapse()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSearch();
+                      }
+                    }}
                   />
                 )}
                 {field.type === 'select' && (
@@ -208,16 +235,18 @@ export function FilterPanel({
               </div>
             ))}
           </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="ghost" size="sm" onClick={onClear}>
-              <X className="h-4 w-4" />
-              {t('common.clearFilters')}
-            </Button>
-            <Button size="sm" onClick={handleSearchAndCollapse}>
-              <Search className="h-4 w-4" />
-              {t('common.filter')}
-            </Button>
-          </div>
+          {alwaysOpen && (
+            <div className="flex gap-2 justify-end">
+              <Button variant="ghost" size="sm" onClick={onClear}>
+                <X className="h-4 w-4" />
+                {t('common.clearFilters')}
+              </Button>
+              <Button size="sm" onClick={handleSearch}>
+                <Search className="h-4 w-4" />
+                {t('common.search')}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

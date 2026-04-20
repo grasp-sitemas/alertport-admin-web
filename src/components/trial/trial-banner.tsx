@@ -4,6 +4,21 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { AlertTriangle, Info, Sparkles } from 'lucide-react';
 import { useTrial } from '@/hooks/use-trial';
+import { useAuth } from '@/hooks/use-auth';
+import type { UserSubtype } from '@/types/api';
+
+/**
+ * Roles that can act on the plan — the "Ver plano" / upgrade CTA
+ * only makes sense to users who can change the billing relationship.
+ * OPERATOR and AUDITOR see the banner (so they know the trial is
+ * running down) but never the CTA, since they can't act on it and
+ * the extra click only adds friction.
+ */
+const PLAN_ACTION_ROLES: ReadonlySet<UserSubtype> = new Set<UserSubtype>([
+  'SUPER_ADMIN_MASTER',
+  'ADMIN_MASTER',
+  'ADMIN',
+]);
 
 /**
  * Full-width banner rendered under the header. Four states:
@@ -11,10 +26,16 @@ import { useTrial } from '@/hooks/use-trial';
  *  - info    (trial with more than 3 days left)
  *  - warning (trial ending within 3 days)
  *  - critical (expired / read-only)
+ *
+ * The primary CTA (Ver plano / Fazer upgrade) is role-gated — non
+ * plan-owners see the informational banner without the action.
  */
 export function TrialBanner() {
   const t = useTranslations();
   const { isTrial, daysRemaining, isReadOnly } = useTrial();
+  const { user } = useAuth();
+  const role = user?.companyUser?.subtype as UserSubtype | undefined;
+  const canActOnPlan = !!role && PLAN_ACTION_ROLES.has(role);
 
   if (!isTrial) return null;
 
@@ -31,12 +52,14 @@ export function TrialBanner() {
             — {t('trial.bannerExpiredDescription')}
           </span>
         </div>
-        <Link
-          href="/plan"
-          className="inline-flex items-center gap-1 rounded bg-red-500/20 px-3 py-1 text-xs font-medium text-red-100 transition hover:bg-red-500/30"
-        >
-          {t('trial.upgradeCta')}
-        </Link>
+        {canActOnPlan && (
+          <Link
+            href="/plan"
+            className="inline-flex items-center gap-1 rounded bg-red-500/20 px-3 py-1 text-xs font-medium text-red-100 transition hover:bg-red-500/30"
+          >
+            {t('trial.upgradeCta')}
+          </Link>
+        )}
       </div>
     );
   }
@@ -67,12 +90,14 @@ export function TrialBanner() {
         <span>{headline}</span>
         <span className="hidden opacity-80 sm:inline">— {t('trial.bannerDescription')}</span>
       </div>
-      <Link
-        href="/plan"
-        className={`inline-flex items-center gap-1 rounded px-3 py-1 text-xs font-medium transition ${ctaClasses}`}
-      >
-        {t('trial.viewPlanCta')}
-      </Link>
+      {canActOnPlan && (
+        <Link
+          href="/plan"
+          className={`inline-flex items-center gap-1 rounded px-3 py-1 text-xs font-medium transition ${ctaClasses}`}
+        >
+          {t('trial.viewPlanCta')}
+        </Link>
+      )}
     </div>
   );
 }

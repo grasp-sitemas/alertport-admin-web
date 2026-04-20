@@ -115,35 +115,86 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
   const hierarchyKey = `${scope.accountId ?? ''}|${scope.clientId ?? ''}|${scope.siteId ?? ''}|${scope.siteGroupId ?? ''}`;
 
   const playAlarmSound = useCallback(() => {
-    // Brief, non-annoying ping — two quick beeps. Matches the legacy
-    // monitor's oscillator approach (no external audio files needed so
-    // we don't have to serve assets for this).
+    // Modern 2-second emergency alert. Six alternating hi/lo pulses
+    // with short attack/release envelopes per pulse — reads as an
+    // "urgent" tone (think PagerDuty / smartwatch emergency) without
+    // being shrill. Pure Web Audio so no static asset to ship.
+    //
+    // Tuning notes:
+    //   - 880 Hz / 660 Hz is the recognizable emergency interval.
+    //   - ~0.25 s per pulse, 0.08 s gap → 6 pulses ≈ 1.98 s total.
+    //   - Peak gain 0.22, ramped via linearRampToValueAtTime so the
+    //     pulse envelope is smooth (no audible click at on/off).
+    //   - Hard stop at 2.0 s via ctx.close() — matches the product
+    //     requirement "toque por 2 segundos e pare".
+    //   - If a previous alarm is still running, we close its context
+    //     first so rapid-fire SOS doesn't layer into chaos.
+    const DURATION_SEC = 2;
     try {
       const AudioContextCtor =
         window.AudioContext ||
         (window as unknown as { webkitAudioContext?: typeof AudioContext })
           .webkitAudioContext;
       if (!AudioContextCtor) return;
+
+      if (alarmAudioRef.current?.ctx) {
+        try {
+          void alarmAudioRef.current.ctx.close();
+        } catch {
+          /* ignore */
+        }
+      }
+
       const ctx = new AudioContextCtor();
-      const g = ctx.createGain();
-      g.gain.value = 0.12;
-      g.connect(ctx.destination);
+      const master = ctx.createGain();
+      master.gain.value = 0;
+      master.connect(ctx.destination);
 
-      const pulse = (startOffset: number, freq: number) => {
-        const o = ctx.createOscillator();
-        o.frequency.value = freq;
-        o.connect(g);
-        o.start(ctx.currentTime + startOffset);
-        o.stop(ctx.currentTime + startOffset + 0.18);
-      };
-      pulse(0, 880);
-      pulse(0.25, 988);
+      const pulseMs = 250;
+      const gapMs = 80;
+      const totalPulseMs = pulseMs + gapMs;
+      const pulseCount = Math.floor((DURATION_SEC * 1000) / totalPulseMs);
+      const peak = 0.22;
+      const attack = 0.015;
+      const release = 0.04;
 
-      alarmAudioRef.current = { ctx, stopAt: ctx.currentTime + 0.6 };
-      // Auto-close the context so repeated alarms don't leak nodes.
+      for (let i = 0; i < pulseCount; i += 1) {
+        const start = ctx.currentTime + (i * totalPulseMs) / 1000;
+        const end = start + pulseMs / 1000;
+        const freq = i % 2 === 0 ? 880 : 660;
+
+        const osc = ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.value = freq;
+
+        const env = ctx.createGain();
+        env.gain.setValueAtTime(0, start);
+        env.gain.linearRampToValueAtTime(peak, start + attack);
+        env.gain.setValueAtTime(peak, end - release);
+        env.gain.linearRampToValueAtTime(0, end);
+
+        osc.connect(env).connect(master);
+        osc.start(start);
+        osc.stop(end + 0.01);
+      }
+
+      // Smooth master ramp so the whole thing fades in (12 ms) and
+      // out (40 ms) — prevents click artifacts on the audio buss.
+      master.gain.setValueAtTime(0, ctx.currentTime);
+      master.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.012);
+      master.gain.setValueAtTime(1, ctx.currentTime + DURATION_SEC - 0.04);
+      master.gain.linearRampToValueAtTime(0, ctx.currentTime + DURATION_SEC);
+
+      const stopAt = ctx.currentTime + DURATION_SEC;
+      alarmAudioRef.current = { ctx, stopAt };
+      // Hard stop at 2 s: close the AudioContext so any scheduled
+      // nodes are cancelled and resources released.
       setTimeout(() => {
         ctx.close().catch(() => {});
-      }, 800);
+        if (alarmAudioRef.current?.ctx === ctx) {
+          alarmAudioRef.current = null;
+        }
+      }, DURATION_SEC * 1000 + 50);
     } catch {
       /* ignore — audio is a courtesy, never a requirement */
     }
