@@ -186,7 +186,125 @@
     "schedules": "スケジュール",
     "timelines": "タイムライン",
     "monitoring": "モニタリング",
-    "plan": "プラン"
+    "plan": "プラン",
+    "reports": "レポート",
+    "reportAdherence": "巡回遵守率",
+    "reportAttendance": "勤怠記録",
+    "reportSos": "SOSアラート",
+    "reportSla": "対応SLA"
+  },
+  "reports": {
+    "filter": {
+      "maxRangeHint": "最大期間: {max}日"
+    },
+    "errors": {
+      "datesRequired": "開始日と終了日を選択してください",
+      "invalidDate": "無効な日付です",
+      "endBeforeStart": "終了日は開始日より後にしてください",
+      "rangeExceeded": "最大期間は{max}日です。指定: {actual}日"
+    },
+    "empty": {
+      "title": "期間内にデータがありません",
+      "description": "フィルタを調整するか、期間を広げてください(最大30日)。"
+    },
+    "meta": {
+      "generatedAt": "生成: {when} · {ms} ms"
+    },
+    "export": {
+      "button": "エクスポート",
+      "xlsx": "Excel (.xlsx)",
+      "csv": "CSV (.csv)",
+      "pdf": "PDF (.pdf)",
+      "success": "エクスポート完了",
+      "failed": "エクスポートに失敗しました。再試行してください。",
+      "nothingToExport": "エクスポートするものがありません — 先に検索してください。"
+    },
+    "adherence": {
+      "title": "巡回遵守率",
+      "description": "スケジュールされた巡回と警備員が実際に対応した数。",
+      "tableTitle": "期間内の発生",
+      "scheduledAt": "予定日時",
+      "respondedAt": "対応日時",
+      "responseTime": "対応時間",
+      "status": "状態",
+      "kpi": {
+        "adherenceRate": "遵守率",
+        "adherenceHint": "対応 ÷ 合計",
+        "attended": "対応済",
+        "missed": "未対応",
+        "total": "合計",
+        "avgResponseTime": "平均対応時間"
+      },
+      "statusValue": {
+        "PENDING": "保留中",
+        "RESPONDED": "対応済",
+        "MISSED": "未対応",
+        "EXPIRED": "期限切れ"
+      }
+    },
+    "attendance": {
+      "title": "勤怠記録",
+      "description": "期間内の警備員の勤怠記録。",
+      "tableTitle": "期間内の記録",
+      "method": "方法",
+      "kpi": {
+        "total": "合計記録数",
+        "clockIns": "出勤",
+        "clockOuts": "退勤",
+        "uniqueUsers": "ユニークユーザー"
+      }
+    },
+    "sos": {
+      "title": "SOSアラート",
+      "description": "SOS発報と対応時間の履歴。",
+      "tableTitle": "期間内の発報",
+      "date": "日時",
+      "vigilant": "警備員",
+      "operator": "オペレーター",
+      "attendanceStatus": "対応",
+      "responseTime": "応答時間",
+      "resolutionTime": "解決時間",
+      "kpi": {
+        "total": "合計",
+        "attended": "対応済",
+        "unattended": "未対応",
+        "attendedRate": "対応率",
+        "avgResponseTime": "平均応答時間"
+      },
+      "statusValue": {
+        "IN_PROGRESS": "進行中",
+        "CLOSED": "終了",
+        "UNATTENDED": "未対応"
+      }
+    },
+    "sla": {
+      "title": "対応SLA",
+      "description": "SOSの応答時間と解決時間 — 契約上のSLA証跡。",
+      "tableTitle": "対応済SOS",
+      "operatorBreakdown": "オペレーター別",
+      "operatorAttendances": "対応 {count}件",
+      "operatorAvg": "平均: {avg}",
+      "date": "日時",
+      "operator": "オペレーター",
+      "responseTime": "応答時間",
+      "resolutionTime": "解決時間",
+      "attendanceStatus": "状態",
+      "thresholdLabel": "SLA閾値(秒)",
+      "thresholdHint": "SLA内とみなす最大応答時間",
+      "kpi": {
+        "compliance": "SLA遵守率",
+        "complianceHint": "{threshold}以内の応答",
+        "threshold": "閾値",
+        "avgResponse": "平均応答",
+        "p50Response": "P50応答",
+        "p95Response": "P95応答",
+        "avgResolution": "平均解決",
+        "p50Resolution": "P50解決",
+        "p95Resolution": "P95解決",
+        "withinSla": "SLA以内",
+        "total": "対応合計"
+      }
+    }
   },
   "dashboard": {
     "title": "ダッシュボード",

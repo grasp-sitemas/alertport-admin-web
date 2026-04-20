@@ -186,7 +186,125 @@
     "schedules": "Programaciones",
     "timelines": "Líneas de Tiempo",
     "monitoring": "Monitoreo",
-    "plan": "Plan"
+    "plan": "Plan",
+    "reports": "Informes",
+    "reportAdherence": "Adherencia de Ronda",
+    "reportAttendance": "Registro de Presencia",
+    "reportSos": "Alertas SOS",
+    "reportSla": "SLA de Atención"
+  },
+  "reports": {
+    "filter": {
+      "maxRangeHint": "Intervalo máximo: {max} días"
+    },
+    "errors": {
+      "datesRequired": "Seleccione fechas de inicio y fin",
+      "invalidDate": "Fecha inválida",
+      "endBeforeStart": "La fecha final no puede ser anterior a la inicial",
+      "rangeExceeded": "Intervalo máximo: {max} días. Solicitado: {actual}"
+    },
+    "empty": {
+      "title": "Sin datos en el período",
+      "description": "Ajuste los filtros o amplíe el intervalo (máximo 30 días)."
+    },
+    "meta": {
+      "generatedAt": "Generado el {when} · {ms} ms"
+    },
+    "export": {
+      "button": "Exportar",
+      "xlsx": "Excel (.xlsx)",
+      "csv": "CSV (.csv)",
+      "pdf": "PDF (.pdf)",
+      "success": "Exportación completada",
+      "failed": "Falló la exportación. Intente nuevamente.",
+      "nothingToExport": "Nada para exportar — realice una búsqueda antes."
+    },
+    "adherence": {
+      "title": "Adherencia de Ronda",
+      "description": "Programados disparados vs atendidos por el vigilante.",
+      "tableTitle": "Ocurrencias en el período",
+      "scheduledAt": "Programado en",
+      "respondedAt": "Atendido en",
+      "responseTime": "Tiempo de respuesta",
+      "status": "Estado",
+      "kpi": {
+        "adherenceRate": "Adherencia",
+        "adherenceHint": "Atendidos ÷ Total",
+        "attended": "Atendidos",
+        "missed": "Perdidos",
+        "total": "Total",
+        "avgResponseTime": "Tiempo medio de respuesta"
+      },
+      "statusValue": {
+        "PENDING": "Pendiente",
+        "RESPONDED": "Atendido",
+        "MISSED": "Perdido",
+        "EXPIRED": "Expirado"
+      }
+    },
+    "attendance": {
+      "title": "Registro de Presencia",
+      "description": "Registros de fichaje de los vigilantes en el período.",
+      "tableTitle": "Registros en el período",
+      "method": "Método",
+      "kpi": {
+        "total": "Total de registros",
+        "clockIns": "Entradas",
+        "clockOuts": "Salidas",
+        "uniqueUsers": "Colaboradores únicos"
+      }
+    },
+    "sos": {
+      "title": "Alertas SOS",
+      "description": "Histórico de accionamientos SOS con tiempos de atención.",
+      "tableTitle": "Accionamientos en el período",
+      "date": "Fecha",
+      "vigilant": "Vigilante",
+      "operator": "Operador",
+      "attendanceStatus": "Atención",
+      "responseTime": "Tiempo de respuesta",
+      "resolutionTime": "Tiempo de resolución",
+      "kpi": {
+        "total": "Total",
+        "attended": "Atendidos",
+        "unattended": "No atendidos",
+        "attendedRate": "Tasa de atención",
+        "avgResponseTime": "Tiempo medio de respuesta"
+      },
+      "statusValue": {
+        "IN_PROGRESS": "En curso",
+        "CLOSED": "Cerrado",
+        "UNATTENDED": "No atendido"
+      }
+    },
+    "sla": {
+      "title": "SLA de Atención",
+      "description": "Tiempos de respuesta y resolución de SOS — prueba de SLA contractual.",
+      "tableTitle": "SOS atendidos",
+      "operatorBreakdown": "Por operador",
+      "operatorAttendances": "{count} atenciones",
+      "operatorAvg": "Media: {avg}",
+      "date": "Fecha",
+      "operator": "Operador",
+      "responseTime": "Tiempo de respuesta",
+      "resolutionTime": "Tiempo de resolución",
+      "attendanceStatus": "Estado",
+      "thresholdLabel": "Umbral de SLA (segundos)",
+      "thresholdHint": "Tiempo máximo de respuesta para considerar dentro del SLA",
+      "kpi": {
+        "compliance": "SLA Compliance",
+        "complianceHint": "Respuestas en hasta {threshold}",
+        "threshold": "Umbral configurado",
+        "avgResponse": "Respuesta media",
+        "p50Response": "P50 respuesta",
+        "p95Response": "P95 respuesta",
+        "avgResolution": "Resolución media",
+        "p50Resolution": "P50 resolución",
+        "p95Resolution": "P95 resolución",
+        "withinSla": "Dentro del SLA",
+        "total": "Total atendido"
+      }
+    }
   },
   "dashboard": {
     "title": "Dashboard",

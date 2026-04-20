@@ -12,6 +12,9 @@ import {
   Briefcase,
   MapPin,
   Gem,
+  Target,
+  AlertTriangle,
+  Gauge,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserSubtype } from '@/types/api';
@@ -83,6 +86,35 @@ export const navigation: NavSection[] = [
         href: '/alerts/scheduling',
         icon: Calendar,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN', 'MANAGER'],
+      },
+    ],
+  },
+  {
+    titleKey: 'sidebar.reports',
+    items: [
+      {
+        titleKey: 'sidebar.reportAdherence',
+        href: '/reports/adherence',
+        icon: Target,
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER'],
+      },
+      {
+        titleKey: 'sidebar.reportAttendance',
+        href: '/reports/attendance',
+        icon: Clock,
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR'],
+      },
+      {
+        titleKey: 'sidebar.reportSos',
+        href: '/reports/sos',
+        icon: AlertTriangle,
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR'],
+      },
+      {
+        titleKey: 'sidebar.reportSla',
+        href: '/reports/sla',
+        icon: Gauge,
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER'],
       },
     ],
   },

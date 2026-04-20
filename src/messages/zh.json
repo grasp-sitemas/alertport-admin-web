@@ -186,7 +186,125 @@
     "schedules": "调度",
     "timelines": "时间线",
     "monitoring": "监控",
-    "plan": "套餐"
+    "plan": "套餐",
+    "reports": "报表",
+    "reportAdherence": "巡更合规",
+    "reportAttendance": "考勤记录",
+    "reportSos": "SOS告警",
+    "reportSla": "处置 SLA"
+  },
+  "reports": {
+    "filter": {
+      "maxRangeHint": "最大区间:{max} 天"
+    },
+    "errors": {
+      "datesRequired": "请选择开始与结束日期",
+      "invalidDate": "日期无效",
+      "endBeforeStart": "结束日期不能早于开始日期",
+      "rangeExceeded": "最大区间 {max} 天,请求 {actual} 天"
+    },
+    "empty": {
+      "title": "所选区间无数据",
+      "description": "请调整筛选或扩大区间(最长 30 天)。"
+    },
+    "meta": {
+      "generatedAt": "生成时间 {when} · {ms} 毫秒"
+    },
+    "export": {
+      "button": "导出",
+      "xlsx": "Excel (.xlsx)",
+      "csv": "CSV (.csv)",
+      "pdf": "PDF (.pdf)",
+      "success": "导出完成",
+      "failed": "导出失败,请重试。",
+      "nothingToExport": "暂无可导出数据 — 请先执行搜索。"
+    },
+    "adherence": {
+      "title": "巡更合规",
+      "description": "排期下发与安保实际响应的对比。",
+      "tableTitle": "区间内记录",
+      "scheduledAt": "排期时间",
+      "respondedAt": "响应时间",
+      "responseTime": "响应耗时",
+      "status": "状态",
+      "kpi": {
+        "adherenceRate": "合规率",
+        "adherenceHint": "已响应 ÷ 总数",
+        "attended": "已响应",
+        "missed": "未响应",
+        "total": "总数",
+        "avgResponseTime": "平均响应时长"
+      },
+      "statusValue": {
+        "PENDING": "待处理",
+        "RESPONDED": "已响应",
+        "MISSED": "漏失",
+        "EXPIRED": "已过期"
+      }
+    },
+    "attendance": {
+      "title": "考勤记录",
+      "description": "区间内安保人员的考勤记录。",
+      "tableTitle": "区间内的记录",
+      "method": "方式",
+      "kpi": {
+        "total": "记录总数",
+        "clockIns": "签到",
+        "clockOuts": "签退",
+        "uniqueUsers": "独立用户"
+      }
+    },
+    "sos": {
+      "title": "SOS 告警",
+      "description": "SOS 事件及处置时效历史。",
+      "tableTitle": "区间内的事件",
+      "date": "时间",
+      "vigilant": "触发人",
+      "operator": "操作员",
+      "attendanceStatus": "处置",
+      "responseTime": "响应时长",
+      "resolutionTime": "解决时长",
+      "kpi": {
+        "total": "总数",
+        "attended": "已处置",
+        "unattended": "未处置",
+        "attendedRate": "处置率",
+        "avgResponseTime": "平均响应时长"
+      },
+      "statusValue": {
+        "IN_PROGRESS": "处理中",
+        "CLOSED": "已结束",
+        "UNATTENDED": "未处置"
+      }
+    },
+    "sla": {
+      "title": "处置 SLA",
+      "description": "SOS 响应与解决时长 — 合同 SLA 依据。",
+      "tableTitle": "已处置的 SOS",
+      "operatorBreakdown": "按操作员",
+      "operatorAttendances": "处置 {count} 件",
+      "operatorAvg": "平均:{avg}",
+      "date": "时间",
+      "operator": "操作员",
+      "responseTime": "响应时长",
+      "resolutionTime": "解决时长",
+      "attendanceStatus": "状态",
+      "thresholdLabel": "SLA 阈值(秒)",
+      "thresholdHint": "判定为达标的最长响应时间",
+      "kpi": {
+        "compliance": "SLA 达标率",
+        "complianceHint": "{threshold} 内响应",
+        "threshold": "阈值",
+        "avgResponse": "平均响应",
+        "p50Response": "P50 响应",
+        "p95Response": "P95 响应",
+        "avgResolution": "平均解决",
+        "p50Resolution": "P50 解决",
+        "p95Resolution": "P95 解决",
+        "withinSla": "SLA 内",
+        "total": "处置合计"
+      }
+    }
   },
   "dashboard": {
     "title": "仪表板",

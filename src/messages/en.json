@@ -186,7 +186,125 @@
     "schedules": "Schedules",
     "timelines": "Timelines",
     "monitoring": "Monitoring",
-    "plan": "Plan"
+    "plan": "Plan",
+    "reports": "Reports",
+    "reportAdherence": "Patrol Adherence",
+    "reportAttendance": "Attendance Log",
+    "reportSos": "SOS Alerts",
+    "reportSla": "Attendance SLA"
+  },
+  "reports": {
+    "filter": {
+      "maxRangeHint": "Max window: {max} days"
+    },
+    "errors": {
+      "datesRequired": "Pick both a start and end date",
+      "invalidDate": "Invalid date",
+      "endBeforeStart": "End date must be after start date",
+      "rangeExceeded": "Max range is {max} days. Requested: {actual}"
+    },
+    "empty": {
+      "title": "No data in this window",
+      "description": "Adjust the filters or widen the range (max 30 days)."
+    },
+    "meta": {
+      "generatedAt": "Generated at {when} · {ms} ms"
+    },
+    "export": {
+      "button": "Export",
+      "xlsx": "Excel (.xlsx)",
+      "csv": "CSV (.csv)",
+      "pdf": "PDF (.pdf)",
+      "success": "Export complete",
+      "failed": "Export failed. Try again.",
+      "nothingToExport": "Nothing to export — run a search first."
+    },
+    "adherence": {
+      "title": "Patrol Adherence",
+      "description": "Scheduled patrols triggered vs attended by the guard.",
+      "tableTitle": "Occurrences in window",
+      "scheduledAt": "Scheduled at",
+      "respondedAt": "Responded at",
+      "responseTime": "Response time",
+      "status": "Status",
+      "kpi": {
+        "adherenceRate": "Adherence",
+        "adherenceHint": "Attended ÷ Total",
+        "attended": "Attended",
+        "missed": "Missed",
+        "total": "Total",
+        "avgResponseTime": "Avg response time"
+      },
+      "statusValue": {
+        "PENDING": "Pending",
+        "RESPONDED": "Responded",
+        "MISSED": "Missed",
+        "EXPIRED": "Expired"
+      }
+    },
+    "attendance": {
+      "title": "Attendance Log",
+      "description": "Guard time entries in the selected window.",
+      "tableTitle": "Entries in window",
+      "method": "Method",
+      "kpi": {
+        "total": "Total entries",
+        "clockIns": "Clock-ins",
+        "clockOuts": "Clock-outs",
+        "uniqueUsers": "Unique users"
+      }
+    },
+    "sos": {
+      "title": "SOS Alerts",
+      "description": "SOS triggers with attendance timing.",
+      "tableTitle": "SOS triggers in window",
+      "date": "Date",
+      "vigilant": "Guard",
+      "operator": "Operator",
+      "attendanceStatus": "Attendance",
+      "responseTime": "Response time",
+      "resolutionTime": "Resolution time",
+      "kpi": {
+        "total": "Total",
+        "attended": "Attended",
+        "unattended": "Unattended",
+        "attendedRate": "Attendance rate",
+        "avgResponseTime": "Avg response time"
+      },
+      "statusValue": {
+        "IN_PROGRESS": "In progress",
+        "CLOSED": "Closed",
+        "UNATTENDED": "Unattended"
+      }
+    },
+    "sla": {
+      "title": "Attendance SLA",
+      "description": "Response and resolution times for SOS — contractual proof of SLA.",
+      "tableTitle": "Attended SOS",
+      "operatorBreakdown": "Per operator",
+      "operatorAttendances": "{count} attendances",
+      "operatorAvg": "Avg: {avg}",
+      "date": "Date",
+      "operator": "Operator",
+      "responseTime": "Response time",
+      "resolutionTime": "Resolution time",
+      "attendanceStatus": "Status",
+      "thresholdLabel": "SLA threshold (seconds)",
+      "thresholdHint": "Max response time to be considered within SLA",
+      "kpi": {
+        "compliance": "SLA Compliance",
+        "complianceHint": "Responses within {threshold}",
+        "threshold": "Threshold",
+        "avgResponse": "Avg response",
+        "p50Response": "P50 response",
+        "p95Response": "P95 response",
+        "avgResolution": "Avg resolution",
+        "p50Resolution": "P50 resolution",
+        "p95Resolution": "P95 resolution",
+        "withinSla": "Within SLA",
+        "total": "Attended total"
+      }
+    }
   },
   "dashboard": {
     "title": "Dashboard",

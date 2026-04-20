@@ -151,6 +151,12 @@ export const endpoints = {
   planFeatures: url('/api/company/plan/features/v1/'),
   planLimits: url('/api/company/plan/limits/v1/'),
 
+  // ─── AlertPort Reports ───────────────────────────────────
+  reportsAdherence: url('/api/reports/alertport/adherence/v1/'),
+  reportsAttendance: url('/api/reports/alertport/attendance/v1/'),
+  reportsSos: url('/api/reports/alertport/sos/v1/'),
+  reportsSla: url('/api/reports/alertport/sla/v1/'),
+
   // ─── Addresses / Geolocation ─────────────────────────────
   addressGeolocation: url('/api/address/geo/v1/'),
 
