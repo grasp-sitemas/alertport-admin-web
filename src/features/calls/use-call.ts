@@ -282,19 +282,26 @@ export function useCall(): CallState & CallActions {
   }, [user, clearRecordingTimers, releaseRecordingResources]);
 
   /**
-   * Build a mixed MediaStream from local mic + remote peer audio using
-   * an AudioContext. Needed for NORMAL calls where the saved recording
-   * must contain both sides. SILENT_LISTEN only records the remote
-   * stream (the operator's mic is always muted in that mode).
+   * Build the MediaStream that feeds MediaRecorder.
    *
-   * If either side is missing or the browser doesn't support the
-   * required APIs we fall back to the remote stream alone - one side
-   * is always better than dropping the recording entirely.
+   * ALWAYS routes through an AudioContext, even when there's only one
+   * source. This is deliberate: Chromium has a long-standing quirk
+   * where `new MediaRecorder(webRtcStream)` produces a valid WebM
+   * container with no Opus frames inside - live playback works
+   * (audio element renders it fine) but the saved file is silent on
+   * playback. Routing through `createMediaStreamSource +
+   * createMediaStreamDestination` forces the audio graph to actually
+   * flow samples into the recorder. See Chromium issue 1142150.
+   *
+   * NORMAL: mic + remote mixed (operator hears + talks, saved file
+   * captures both sides).
+   * SILENT_LISTEN: remote only (operator's mic is muted in this mode
+   * so there's nothing to mix from the local side).
    */
-  const createMixedStream = useCallback((): MediaStream | null => {
+  const buildRecordingStream = useCallback((mode: CallMode): MediaStream | null => {
     const remote = remoteStreamRef.current;
     const local = localStreamRef.current;
-    if (!remote && !local) return null;
+    if (!remote && (mode === 'SILENT_LISTEN' || !local)) return null;
 
     const AudioCtx: typeof AudioContext | undefined =
       typeof window !== 'undefined'
@@ -302,21 +309,37 @@ export function useCall(): CallState & CallActions {
             (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)
         : undefined;
 
-    if (!AudioCtx || !remote || !local) {
-      return remote || local || null;
+    // No AudioContext available: fall back to raw stream. Likely to
+    // produce a silent file on Chromium but it's the best we can do
+    // in environments where AudioContext isn't supported.
+    if (!AudioCtx) {
+      return mode === 'SILENT_LISTEN' ? remote : remote || local;
     }
 
     try {
       const ctx = new AudioCtx();
+      // Resume eagerly: SILENT_LISTEN / NORMAL both start from a user
+      // click, so the gesture should allow it. Resume is a no-op when
+      // the context is already running.
+      void ctx.resume?.().catch(() => {});
+
       const destination = ctx.createMediaStreamDestination();
-      const localSource = ctx.createMediaStreamSource(local);
-      const remoteSource = ctx.createMediaStreamSource(remote);
-      localSource.connect(destination);
-      remoteSource.connect(destination);
+
+      if (remote) {
+        const remoteSource = ctx.createMediaStreamSource(remote);
+        remoteSource.connect(destination);
+      }
+      if (mode === 'NORMAL' && local) {
+        const localSource = ctx.createMediaStreamSource(local);
+        localSource.connect(destination);
+      }
+
       recordingAudioCtxRef.current = ctx;
       return destination.stream;
     } catch {
-      return remote || local || null;
+      // Fallback on any AudioContext error - better to attempt a raw
+      // recording than to drop the feature entirely.
+      return mode === 'SILENT_LISTEN' ? remote : remote || local;
     }
   }, []);
 
@@ -326,8 +349,7 @@ export function useCall(): CallState & CallActions {
       if (typeof MediaRecorder === 'undefined') return;
       if (!callRecordingEnabledRef.current) return;
 
-      const stream =
-        mode === 'SILENT_LISTEN' ? remoteStreamRef.current : createMixedStream();
+      const stream = buildRecordingStream(mode);
       if (!stream) return;
 
       try {
@@ -370,7 +392,7 @@ export function useCall(): CallState & CallActions {
         setRecordingDurationSec(0);
       }
     },
-    [createMixedStream, finalizeRecording],
+    [buildRecordingStream, finalizeRecording],
   );
 
   const toggleRecording = useCallback(() => {
