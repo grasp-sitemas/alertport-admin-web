@@ -187,6 +187,7 @@
     "timelines": "Timelines",
     "monitoring": "Monitoramento",
     "plan": "Plano",
+    "modules": "Módulos",
     "reports": "Relatórios",
     "reportAdherence": "Aderência de Ronda",
     "reportAttendance": "Controle de Presença",
@@ -990,6 +991,40 @@
         "title": "Pronto para o turno",
         "content": "Você já conhece o fluxo completo. Dica: mantenha o Monitor aberto o tempo todo, atenda SOS rápido e grave ligações quando necessário. Bom plantão!"
       }
+    }
+  },
+  "modules": {
+    "title": "Módulos da empresa",
+    "description": "Gestão manual dos módulos liberados por empresa (plano customizado).",
+    "selectAccount": "Selecionar empresa",
+    "searchAccountPlaceholder": "Buscar por nome",
+    "noAccounts": "Nenhuma empresa encontrada",
+    "noSelection": "Selecione uma empresa",
+    "emptyStateTitle": "Nenhuma empresa selecionada",
+    "emptyStateDescription": "Escolha uma empresa na lista ao lado para gerenciar seus módulos.",
+    "saveSuccess": "Módulos atualizados com sucesso",
+    "categories": {
+      "operations": "Operação",
+      "calls": "Ligações",
+      "reports": "Relatórios",
+      "management": "Gestão",
+      "admin": "Administração"
+    },
+    "items": {
+      "MONITOR": { "label": "Monitor de Alertas", "desc": "Tela em tempo real com SOS, ocorrências e ponto dos vigias." },
+      "SCHEDULING": { "label": "Agendamento de Alertas", "desc": "Calendário de rondas e alertas recorrentes." },
+      "OCCURRENCES": { "label": "Histórico de Ocorrências", "desc": "Lista completa de eventos (SOS, incidentes, rondas)." },
+      "TIME_ENTRIES": { "label": "Controle de Presença", "desc": "Registros de ponto dos vigias pelo app." },
+      "CALL_NORMAL": { "label": "Ligação Normal", "desc": "Conversa bidirecional com o vigia durante atendimento." },
+      "CALL_SILENT": { "label": "Escuta Ativa", "desc": "Ouvir o ambiente sem o vigia saber (emergência)." },
+      "RECORDINGS": { "label": "Gravações de Ligação", "desc": "Histórico de áudios para auditoria e treinamento." },
+      "REPORTS": { "label": "Relatórios", "desc": "Aderência, SLA, SOS, Presença. Exportáveis em XLSX/CSV/PDF." },
+      "CLIENTS": { "label": "Clientes", "desc": "Cadastro das empresas/condomínios atendidos." },
+      "SITES": { "label": "Postos", "desc": "Locais físicos onde os vigias atuam." },
+      "EQUIPMENT": { "label": "Equipamentos", "desc": "Dispositivos vinculados aos postos via QR Code." },
+      "COLLABORATORS": { "label": "Colaboradores", "desc": "Vigilantes e supervisores com acesso ao app." },
+      "USERS": { "label": "Operadores e Admins", "desc": "Usuários da central (operadores e administradores)." },
+      "COMPANY_SETTINGS": { "label": "Configurações da Empresa", "desc": "Dados cadastrais, timezone e políticas internas." }
     }
   }
 }

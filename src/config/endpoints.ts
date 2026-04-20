@@ -161,6 +161,11 @@ export const endpoints = {
   onboardingStatus: url('/api/users/system/onboarding/status/v1/'),
   onboardingComplete: url('/api/users/system/onboarding/complete/v1/'),
 
+  // ─── Account Modules (SUPER_ADMIN_MASTER plan management) ─
+  accountModulesCatalog: url('/api/company/modules/catalog/v1/'),
+  accountModulesByAccount: (accountId: string) =>
+    url(`/api/company/modules/by-account/${accountId}/v1/`),
+
   // ─── Addresses / Geolocation ─────────────────────────────
   addressGeolocation: url('/api/address/geo/v1/'),
 

@@ -15,6 +15,7 @@ import {
   Target,
   AlertTriangle,
   Gauge,
+  SlidersHorizontal,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserSubtype } from '@/types/api';
@@ -167,6 +168,12 @@ export const navigation: NavSection[] = [
         href: '/plan',
         icon: Gem,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN'],
+      },
+      {
+        titleKey: 'sidebar.modules',
+        href: '/modules',
+        icon: SlidersHorizontal,
+        roles: ['SUPER_ADMIN_MASTER'],
       },
     ],
   },

@@ -187,6 +187,7 @@
     "timelines": "タイムライン",
     "monitoring": "モニタリング",
     "plan": "プラン",
+    "modules": "モジュール",
     "reports": "レポート",
     "reportAdherence": "巡回遵守率",
     "reportAttendance": "勤怠記録",
@@ -990,6 +991,40 @@
         "title": "シフトの準備完了",
         "content": "全体の流れを把握しました。ヒント: Monitorを常に開いておく、SOSには素早く対応する、必要に応じて通話を録音する。良いシフトを!"
       }
+    }
+  },
+  "modules": {
+    "title": "企業モジュール",
+    "description": "企業ごとに有効化するモジュールの手動管理(カスタムプラン)。",
+    "selectAccount": "企業を選択",
+    "searchAccountPlaceholder": "名前で検索",
+    "noAccounts": "企業が見つかりません",
+    "noSelection": "企業を選択してください",
+    "emptyStateTitle": "企業が選択されていません",
+    "emptyStateDescription": "左のリストから企業を選んでモジュールを管理してください。",
+    "saveSuccess": "モジュールを更新しました",
+    "categories": {
+      "operations": "運用",
+      "calls": "通話",
+      "reports": "レポート",
+      "management": "管理",
+      "admin": "システム管理"
+    },
+    "items": {
+      "MONITOR": { "label": "アラートモニター", "desc": "SOS、発生事象、警備員の勤怠をリアルタイムで表示する画面。" },
+      "SCHEDULING": { "label": "アラートスケジュール", "desc": "定期巡回とアラートのカレンダー。" },
+      "OCCURRENCES": { "label": "発生事象の履歴", "desc": "イベント全件の一覧(SOS、インシデント、巡回)。" },
+      "TIME_ENTRIES": { "label": "勤怠記録", "desc": "警備員がアプリから打刻した勤怠の記録。" },
+      "CALL_NORMAL": { "label": "通常通話", "desc": "対応中に警備員と双方向で会話します。" },
+      "CALL_SILENT": { "label": "サイレントリッスン", "desc": "警備員に気づかれずに周囲の音を聞きます(緊急時)。" },
+      "RECORDINGS": { "label": "通話録音", "desc": "監査や研修のための音声履歴。" },
+      "REPORTS": { "label": "レポート", "desc": "遵守率、SLA、SOS、勤怠。XLSX、CSV、PDFで出力可能。" },
+      "CLIENTS": { "label": "クライアント", "desc": "対応する企業やマンションの登録情報。" },
+      "SITES": { "label": "拠点", "desc": "警備員が勤務する物理的な場所。" },
+      "EQUIPMENT": { "label": "機器", "desc": "QR Codeで拠点に紐付けられた端末。" },
+      "COLLABORATORS": { "label": "協力者", "desc": "アプリを利用する警備員や監督者。" },
+      "USERS": { "label": "オペレーターと管理者", "desc": "センターのユーザー(オペレーターと管理者)。" },
+      "COMPANY_SETTINGS": { "label": "企業設定", "desc": "登録情報、タイムゾーン、社内ポリシー。" }
     }
   }
 }

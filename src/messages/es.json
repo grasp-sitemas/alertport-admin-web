@@ -187,6 +187,7 @@
     "timelines": "Líneas de Tiempo",
     "monitoring": "Monitoreo",
     "plan": "Plan",
+    "modules": "Módulos",
     "reports": "Informes",
     "reportAdherence": "Adherencia de Ronda",
     "reportAttendance": "Registro de Presencia",
@@ -990,6 +991,40 @@
         "title": "Listo para tu turno",
         "content": "Ya conoces el flujo completo. Consejo: mantén el Monitor abierto todo el tiempo, atiende los SOS rápido y graba llamadas cuando sea necesario. ¡Buen turno!"
       }
+    }
+  },
+  "modules": {
+    "title": "Módulos de la empresa",
+    "description": "Gestión manual de los módulos habilitados por empresa (plan personalizado).",
+    "selectAccount": "Seleccionar empresa",
+    "searchAccountPlaceholder": "Buscar por nombre",
+    "noAccounts": "No se encontraron empresas",
+    "noSelection": "Selecciona una empresa",
+    "emptyStateTitle": "Ninguna empresa seleccionada",
+    "emptyStateDescription": "Elige una empresa en la lista de la izquierda para gestionar sus módulos.",
+    "saveSuccess": "Módulos actualizados con éxito",
+    "categories": {
+      "operations": "Operación",
+      "calls": "Llamadas",
+      "reports": "Informes",
+      "management": "Gestión",
+      "admin": "Administración"
+    },
+    "items": {
+      "MONITOR": { "label": "Monitor de Alertas", "desc": "Pantalla en tiempo real con SOS, ocurrencias y registros de los vigilantes." },
+      "SCHEDULING": { "label": "Programación de Alertas", "desc": "Calendario para rondas y alertas recurrentes." },
+      "OCCURRENCES": { "label": "Historial de Ocurrencias", "desc": "Lista completa de eventos (SOS, incidentes, rondas)." },
+      "TIME_ENTRIES": { "label": "Registros de Horario", "desc": "Marcajes de horario de los vigilantes por la app." },
+      "CALL_NORMAL": { "label": "Llamada Normal", "desc": "Conversación bidireccional con el vigilante durante la atención." },
+      "CALL_SILENT": { "label": "Escucha Activa", "desc": "Escuchar el entorno sin que el vigilante lo sepa (emergencia)." },
+      "RECORDINGS": { "label": "Grabaciones de Llamadas", "desc": "Historial de audios para auditoría y capacitación." },
+      "REPORTS": { "label": "Informes", "desc": "Adherencia, SLA, SOS, Presencia. Exportables en XLSX, CSV o PDF." },
+      "CLIENTS": { "label": "Clientes", "desc": "Registro de las empresas o condominios atendidos." },
+      "SITES": { "label": "Puestos", "desc": "Ubicaciones físicas donde actúan los vigilantes." },
+      "EQUIPMENT": { "label": "Equipos", "desc": "Dispositivos vinculados a los puestos vía QR Code." },
+      "COLLABORATORS": { "label": "Colaboradores", "desc": "Vigilantes y supervisores con acceso a la app." },
+      "USERS": { "label": "Operadores y Admins", "desc": "Usuarios de la central (operadores y administradores)." },
+      "COMPANY_SETTINGS": { "label": "Configuración de la Empresa", "desc": "Datos de registro, zona horaria y políticas internas." }
     }
   }
 }

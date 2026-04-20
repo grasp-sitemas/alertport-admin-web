@@ -187,6 +187,7 @@
     "timelines": "时间线",
     "monitoring": "监控",
     "plan": "套餐",
+    "modules": "模块",
     "reports": "报表",
     "reportAdherence": "巡更合规",
     "reportAttendance": "考勤记录",
@@ -990,6 +991,40 @@
         "title": "班次已就绪",
         "content": "您已掌握完整流程。建议:始终保持 Monitor 打开、快速响应 SOS、按需录音。祝您班次顺利!"
       }
+    }
+  },
+  "modules": {
+    "title": "企业模块",
+    "description": "按企业手动管理启用的模块(定制套餐)。",
+    "selectAccount": "选择企业",
+    "searchAccountPlaceholder": "按名称搜索",
+    "noAccounts": "未找到企业",
+    "noSelection": "请选择一个企业",
+    "emptyStateTitle": "未选择企业",
+    "emptyStateDescription": "请在左侧列表中选择一个企业来管理其模块。",
+    "saveSuccess": "模块更新成功",
+    "categories": {
+      "operations": "运营",
+      "calls": "通话",
+      "reports": "报表",
+      "management": "管理",
+      "admin": "系统管理"
+    },
+    "items": {
+      "MONITOR": { "label": "警报监控", "desc": "实时显示 SOS、事件及保安考勤的界面。" },
+      "SCHEDULING": { "label": "警报调度", "desc": "定期巡更和告警的日历。" },
+      "OCCURRENCES": { "label": "事件历史", "desc": "完整的事件列表(SOS、事故、巡更)。" },
+      "TIME_ENTRIES": { "label": "考勤记录", "desc": "保安通过应用进行的考勤打卡记录。" },
+      "CALL_NORMAL": { "label": "普通通话", "desc": "处置过程中与保安进行双向通话。" },
+      "CALL_SILENT": { "label": "静默监听", "desc": "在保安不知情的情况下监听环境声音(紧急场景)。" },
+      "RECORDINGS": { "label": "通话录音", "desc": "用于审计和培训的音频历史。" },
+      "REPORTS": { "label": "报表", "desc": "合规、SLA、SOS、考勤。支持 XLSX、CSV、PDF 导出。" },
+      "CLIENTS": { "label": "客户", "desc": "服务的企业或物业的登记信息。" },
+      "SITES": { "label": "站点", "desc": "保安实际值守的物理位置。" },
+      "EQUIPMENT": { "label": "设备", "desc": "通过 QR Code 关联到站点的终端。" },
+      "COLLABORATORS": { "label": "协作者", "desc": "可访问应用的保安和主管。" },
+      "USERS": { "label": "操作员和管理员", "desc": "中控用户(操作员和管理员)。" },
+      "COMPANY_SETTINGS": { "label": "企业设置", "desc": "基本资料、时区及内部政策。" }
     }
   }
 }
