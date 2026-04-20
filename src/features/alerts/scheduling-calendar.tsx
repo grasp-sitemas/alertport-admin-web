@@ -44,9 +44,9 @@ export interface SchedulingCalendarProps {
    * view). The parent should refetch for the new date window.
    */
   onRangeChange?: (range: { start: Date; end: Date; viewType: string }) => void;
-  /** Click on an existing event — open the edit modal. */
+  /** Click on an existing event - open the edit modal. */
   onEventClick?: (event: ScheduleCalendarEvent) => void;
-  /** Click on empty date/time — open the create modal pre-filled. */
+  /** Click on empty date/time - open the create modal pre-filled. */
   onDateSelect?: (args: { startISO: string; endISO: string; allDay: boolean }) => void;
   /** Locale for the calendar UI text (pt-br / en / etc). */
   locale?: string;
@@ -63,7 +63,7 @@ function mapLocaleKey(locale: string): string {
 
 /**
  * FullCalendar view for the alert-occurrence scheduling page. Pure
- * presentation — doesn't fetch, doesn't mutate. The parent controls the
+ * presentation - doesn't fetch, doesn't mutate. The parent controls the
  * events list and reacts to callbacks.
  *
  * We pin the render via `useMemo` on the events+locale so FullCalendar's
@@ -116,7 +116,10 @@ export function SchedulingCalendar({
   const resolvedLocale = useMemo(() => mapLocaleKey(locale || uiLocale), [locale, uiLocale]);
 
   return (
-    <div className="relative rounded-xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-3">
+    <div
+      data-tour="scheduling-calendar"
+      className="relative rounded-xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-3"
+    >
       {loading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30 rounded-xl pointer-events-none">
           <Spinner />
@@ -158,7 +161,7 @@ export function SchedulingCalendar({
           datesSet={handleDatesSet}
           eventClick={handleEventClick}
           select={handleSelect}
-          // Keep the user's clicked range stable — we don't let FullCalendar
+          // Keep the user's clicked range stable - we don't let FullCalendar
           // edit events directly; mutation goes through our modal.
           editable={false}
           droppable={false}

@@ -422,7 +422,7 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
               )}
             </div>
 
-            {/* Employee code — read-only on edit (legacy), auto-generated server-side on create */}
+            {/* Employee code - read-only on edit (legacy), auto-generated server-side on create */}
             {isEdit && (
               <div className="space-y-2">
                 <Label>{t('collaborators.employeeCode')}</Label>

@@ -10,7 +10,7 @@ export function getInitials(firstName?: string, lastName?: string): string {
 }
 
 export function formatEntityName(entity?: { name?: string } | null): string {
-  return entity?.name ?? '—';
+  return entity?.name ?? '-';
 }
 
 /**

@@ -52,7 +52,7 @@ export interface RecordingsFilter {
 
 /**
  * Server error codes we treat as transient on the client side. These never
- * surface to the user as text — we just keep showing the loading state and
+ * surface to the user as text - we just keep showing the loading state and
  * retry once the socket is ready. Anything else is a real error and gets
  * mapped to a localized message in the panel.
  */
@@ -66,7 +66,7 @@ const MAX_TRANSIENT_RETRIES = 10;
  * query by the caller's accountId by default; SUPER_ADMIN_MASTER can override
  * via the `accountId` filter to audit other tenants.
  *
- * `refresh()` resets the list and pulls the first page again — used for the
+ * `refresh()` resets the list and pulls the first page again - used for the
  * refresh button and whenever the filter changes.
  * `loadMore()` appends the next page; no-ops when there is nothing more.
  */
@@ -80,7 +80,7 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
   // Read the global socket session state so we only fire requests after
   // user:register has been ack'd. Prevents the NOT_REGISTERED flash on
   // first paint. `useCallContext()` returns null when the user isn't
-  // authenticated yet — in that case we just wait.
+  // authenticated yet - in that case we just wait.
   const call = useCallContext();
   const socketReady = call?.socketReady ?? false;
 
@@ -133,7 +133,7 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
         limit: current.limit,
         cursor,
       };
-      // Only send filter keys the user actually set — the backend treats
+      // Only send filter keys the user actually set - the backend treats
       // missing keys as "no filter", so this keeps the payload small and
       // the Heroku logs readable.
       if (current.accountId) payload.accountId = current.accountId;
@@ -158,7 +158,7 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
             );
             return;
           }
-          // Exhausted retries — fall through to the real-error branch below.
+          // Exhausted retries - fall through to the real-error branch below.
         }
 
         retryCountRef.current = 0;
@@ -204,7 +204,7 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
   useEffect(() => {
     // Initial fetch on mount + re-fetch when filter changes OR socketReady
     // flips true. `refresh()` either fires the socket RPC (setState happens
-    // in the ack callback — not synchronous) or, when socketReady is false,
+    // in the ack callback - not synchronous) or, when socketReady is false,
     // flips loading=true so the UI parks until registration lands. The
     // second branch IS a synchronous setState, so defer it to a microtask
     // to satisfy react-hooks/set-state-in-effect without a disable comment.

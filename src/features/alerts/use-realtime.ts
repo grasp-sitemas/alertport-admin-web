@@ -24,7 +24,7 @@ function tryParseJson<T>(raw: unknown): T | null {
  * Hook that wires Firestore real-time subscriptions for the currently logged-in user.
  * Invalidates related TanStack Query caches so the UI stays fresh without polling.
  *
- * Idempotent: unsubscribes when deps change or component unmounts — no listener leaks.
+ * Idempotent: unsubscribes when deps change or component unmounts - no listener leaks.
  */
 export function useAlertportRealtime(options?: {
   onEvent?: (evt: AlertportRealtimeEvent) => void;

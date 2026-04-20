@@ -2,7 +2,7 @@
  * Tests for the ms-chat socket singleton.
  *
  * The socket is shared across every page (monitor, recordings,
- * call dialog) — a second connection would duplicate every incoming
+ * call dialog) - a second connection would duplicate every incoming
  * call:incoming event and double-ring the modal. These tests lock
  * the singleton behavior:
  *   - getSocket returns the same instance across calls

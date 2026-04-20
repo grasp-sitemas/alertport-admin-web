@@ -54,7 +54,7 @@ interface ScheduleFormDialogProps {
   /**
    * Fired when the user clicks the Delete button inside the form. The
    * parent is expected to open the scope dialog (series vs occurrence)
-   * and handle the actual mutation. The form itself never deletes — it
+   * and handle the actual mutation. The form itself never deletes - it
    * just asks the parent to start the delete flow.
    */
   onDeleteRequest?: () => void;
@@ -112,7 +112,7 @@ function normalizeDatePart(raw: string | null | undefined): string {
 
 /**
  * Read the schedule name from wherever it's available on the incoming
- * row. The calendar filter returns the appointment shape — `name` lives
+ * row. The calendar filter returns the appointment shape - `name` lives
  * at the top level there. But defensively support a nested `schedule`
  * object for robustness.
  */
@@ -208,7 +208,7 @@ export function ScheduleFormDialog({
     : undefined;
   // `name`, `frequency`, `weeklyDays`, `frequencyMonth/Year`,
   // `alertConfig`, `endDate` come from the full schedule when
-  // available — the appointment row tends to blank those out.
+  // available - the appointment row tends to blank those out.
   const nameSource = extractScheduleName(fullSchedule ?? schedule);
   const seriesBeginDate = normalizeDatePart(
     (fullSchedule as AlertSchedule | null)?.beginDate ?? schedule?.beginDate,
@@ -272,7 +272,7 @@ export function ScheduleFormDialog({
   useEffect(() => {
     // Reset fires on: dialog open, source row swap, mode change, OR
     // when the async full-schedule fetch settles. The last one is
-    // critical — without it the form would render once with the
+    // critical - without it the form would render once with the
     // half-filled calendar row and never re-hydrate when the complete
     // schedule arrives a few hundred ms later.
     if (open) reset(defaults);
@@ -368,7 +368,7 @@ export function ScheduleFormDialog({
   const descriptionKey =
     mode === 'edit-occurrence' ? 'alerts.editOccurrenceDescription' : 'alerts.scheduling';
 
-  // Track previous cascade values locally — they get reinitialized on
+  // Track previous cascade values locally - they get reinitialized on
   // every render, which is fine since the cascade resets only run inside
   // the onValueChange callbacks.
   let prevAccount = defaults.account ?? '';

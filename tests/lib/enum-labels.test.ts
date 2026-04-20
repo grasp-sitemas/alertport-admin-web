@@ -23,6 +23,6 @@ describe('formatEnumLabel', () => {
   });
 
   it('falls back to a dash when value is missing', () => {
-    expect(formatEnumLabel(undefined, { DAILY: 'Diário' })).toBe('—');
+    expect(formatEnumLabel(undefined, { DAILY: 'Diário' })).toBe('-');
   });
 });

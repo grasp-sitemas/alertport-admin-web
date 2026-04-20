@@ -59,7 +59,7 @@ describe('correlateSos', () => {
     // Scenario: the same site had an SOS 5s ago that's already in-progress
     // (maybe manually opened before the notification landed due to a
     // realtime delay). A second SOS just fired. We must point the
-    // operator at the new, actionable one — not the claimed one.
+    // operator at the new, actionable one - not the claimed one.
     const notifAt = new Date('2026-04-19T12:00:00Z');
     const result = correlateSos({
       candidates: [

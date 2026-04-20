@@ -70,7 +70,7 @@ function pickEventEnd(row: AlertSchedule, startISO: string | undefined): string 
 function pickName(row: AlertSchedule): string {
   // Prefer the schedule name the user typed (e.g. "Agenda teste x").
   // The calendar filter endpoint (`appointment filterV2` with
-  // `isFullCalendar: true`) projects this as `title: '$name'` — see
+  // `isFullCalendar: true`) projects this as `title: '$name'` - see
   // hp-shield-crud/dao/dao-appointment.js:382. Other code paths
   // (schedule shape / nested appointment) still use `name`. Check
   // every spot it can appear so we never fall through to the generic
@@ -101,7 +101,7 @@ function pickName(row: AlertSchedule): string {
 
 function formatHHMM(startISO: string | undefined): string {
   if (!startISO) return '';
-  // Plain "HH:MM" tail (no-T beginHour) — strip seconds if present.
+  // Plain "HH:MM" tail (no-T beginHour) - strip seconds if present.
   if (!startISO.includes('T')) {
     return startISO.length >= 5 ? startISO.slice(0, 5) : '';
   }
@@ -113,14 +113,14 @@ function formatHHMM(startISO: string | undefined): string {
 }
 
 /**
- * Build the visible event title as `HH:MM Name` — e.g.
+ * Build the visible event title as `HH:MM Name` - e.g.
  * "09:15 Agenda teste x". We prepend the time ourselves (instead of
  * relying on FullCalendar's per-view displayEventTime prefix) so the
  * format is identical across month / week / day / list views and
  * matches the product spec verbatim.
  *
  * `displayEventTime={false}` in scheduling-calendar.tsx stops
- * FullCalendar from adding its own time prefix — no duplicate
+ * FullCalendar from adding its own time prefix - no duplicate
  * "09:15 09:15 …" in month view.
  */
 function pickTitle(row: AlertSchedule, startISO: string | undefined): string {
@@ -131,7 +131,7 @@ function pickTitle(row: AlertSchedule, startISO: string | undefined): string {
 
 function pickAppointmentId(row: AlertSchedule): string | undefined {
   // The backend appointment-shape row uses the appointment's own _id as
-  // the primary key. Schedule-shape rows don't have an appointment — fall
+  // the primary key. Schedule-shape rows don't have an appointment - fall
   // back to id / _id to keep React keys stable.
   return (
     (row as { appointment?: { _id?: string } }).appointment?._id ??

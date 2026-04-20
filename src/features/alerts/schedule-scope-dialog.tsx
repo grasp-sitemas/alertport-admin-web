@@ -31,7 +31,7 @@ interface ScheduleScopeDialogProps {
  * AlertOccurrence flow (SweetAlert with three buttons) but using the
  * project's Dialog primitives so we stay inside the design system.
  *
- * The parent owns the "what happens next" logic — this component is pure:
+ * The parent owns the "what happens next" logic - this component is pure:
  * it renders the choice and delegates via `onChoose` / `onCancel`.
  */
 export function ScheduleScopeDialog({

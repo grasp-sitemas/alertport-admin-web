@@ -36,7 +36,7 @@ const VALIDATION = /corrija os campos|verifique os campos|obrigatório/i;
 const GENERIC_ERROR = /ocorreu um erro/i;
 
 async function waitForSaveOutcome(page: Page) {
-  // A successful mutation, a validation toast, or a generic error toast —
+  // A successful mutation, a validation toast, or a generic error toast -
   // any ONE of those is acceptable. What we refuse is silence.
   await expect
     .poll(
@@ -47,7 +47,7 @@ async function waitForSaveOutcome(page: Page) {
         if (GENERIC_ERROR.test(bodyText)) return 'error';
         return null;
       },
-      { timeout: 10_000, message: 'Clicking Save produced no toast — the submit was silent' },
+      { timeout: 10_000, message: 'Clicking Save produced no toast - the submit was silent' },
     )
     .not.toBeNull();
 }
@@ -73,7 +73,7 @@ async function clickRowEdit(page: Page) {
   throw new Error('No edit control found on the list page');
 }
 
-test.describe('CRUD form smoke — every edit+save path must toast an outcome', () => {
+test.describe('CRUD form smoke - every edit+save path must toast an outcome', () => {
   test.beforeEach(async ({ page }) => {
     await seedSession(page);
   });

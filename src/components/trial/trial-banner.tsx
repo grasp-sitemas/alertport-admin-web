@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/use-auth';
 import type { UserSubtype } from '@/types/api';
 
 /**
- * Roles that can act on the plan — the "Ver plano" / upgrade CTA
+ * Roles that can act on the plan - the "Ver plano" / upgrade CTA
  * only makes sense to users who can change the billing relationship.
  * OPERATOR and AUDITOR see the banner (so they know the trial is
  * running down) but never the CTA, since they can't act on it and
@@ -27,7 +27,7 @@ const PLAN_ACTION_ROLES: ReadonlySet<UserSubtype> = new Set<UserSubtype>([
  *  - warning (trial ending within 3 days)
  *  - critical (expired / read-only)
  *
- * The primary CTA (Ver plano / Fazer upgrade) is role-gated — non
+ * The primary CTA (Ver plano / Fazer upgrade) is role-gated - non
  * plan-owners see the informational banner without the action.
  */
 export function TrialBanner() {
@@ -49,7 +49,7 @@ export function TrialBanner() {
           <AlertTriangle className="h-4 w-4 flex-shrink-0" />
           <span>{t('trial.bannerExpiredTitle')}</span>
           <span className="hidden text-red-300/80 sm:inline">
-            — {t('trial.bannerExpiredDescription')}
+            - {t('trial.bannerExpiredDescription')}
           </span>
         </div>
         {canActOnPlan && (
@@ -88,7 +88,7 @@ export function TrialBanner() {
       <div className="flex items-center gap-2">
         {warning ? <Icon className="h-4 w-4 flex-shrink-0" /> : <Sparkles className="h-4 w-4 flex-shrink-0" />}
         <span>{headline}</span>
-        <span className="hidden opacity-80 sm:inline">— {t('trial.bannerDescription')}</span>
+        <span className="hidden opacity-80 sm:inline">- {t('trial.bannerDescription')}</span>
       </div>
       {canActOnPlan && (
         <Link

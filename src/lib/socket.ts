@@ -1,5 +1,5 @@
 /**
- * Socket.IO client — ms-chat connection singleton.
+ * Socket.IO client - ms-chat connection singleton.
  *
  * Preserves the exact configuration, event names and payload shapes used in
  * shieldgo-admin-web/src/config/websocket.js. The server URL comes from
@@ -64,7 +64,7 @@ export interface StartCallAck {
   targetOnline?: boolean;
   /**
    * When `targetOnline` is false, ms-chat checks whether the user id is
-   * registered under a DIFFERENT account and sets this to true — lets the
+   * registered under a DIFFERENT account and sets this to true - lets the
    * UI distinguish "device app closed" from "device logged into another
    * tenant" (the legacy multi-tenant isolation rule).
    */

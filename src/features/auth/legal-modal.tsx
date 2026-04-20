@@ -19,7 +19,7 @@ interface LegalModalProps {
   kind: LegalKind;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Optional acceptance callback — shown as the primary CTA when provided. */
+  /** Optional acceptance callback - shown as the primary CTA when provided. */
   onAccept?: () => void;
 }
 
@@ -29,8 +29,8 @@ interface LegalModalProps {
  *   - Privacy Policy (kind="privacy")
  *
  * Content is the canonical PT-BR version (legal text is not auto-translated to
- * avoid introducing liability drift between locales). UI chrome — titles,
- * CTAs, "last updated" — is i18n-driven.
+ * avoid introducing liability drift between locales). UI chrome - titles,
+ * CTAs, "last updated" - is i18n-driven.
  */
 export function LegalModal({ kind, open, onOpenChange, onAccept }: LegalModalProps) {
   const t = useTranslations();
@@ -219,7 +219,7 @@ function TermsBody() {
       <Section index={6} title="Pagamentos e cancelamento">
         <p>
           Planos pagos são cobrados recorrentemente conforme a periodicidade escolhida. O
-          Usuário poderá cancelar a qualquer momento — o cancelamento interrompe a próxima
+          Usuário poderá cancelar a qualquer momento - o cancelamento interrompe a próxima
           renovação, sem reembolso proporcional salvo disposição legal em contrário.
         </p>
       </Section>
@@ -300,9 +300,9 @@ function PrivacyBody() {
 
       <Section index={5} title="Segurança e retenção">
         <p>
-          Adotamos controles técnicos e administrativos apropriados — criptografia em
+          Adotamos controles técnicos e administrativos apropriados - criptografia em
           trânsito e em repouso, segregação de ambientes, revisão de acessos e registros
-          de auditoria — para proteger os dados contra acessos não autorizados. Os dados
+          de auditoria - para proteger os dados contra acessos não autorizados. Os dados
           são retidos pelo tempo necessário ao cumprimento das finalidades e das
           obrigações legais aplicáveis.
         </p>

@@ -64,7 +64,7 @@ describe('alertsService attendance mutations', () => {
       expect(att.isAttendance).toBe(true);
       expect(att.status).toBe('IN_PROGRESS');
       expect(att.operator).toBe('u1');
-      // openedDate must be an ISO-8601 timestamp — the backend parses it
+      // openedDate must be an ISO-8601 timestamp - the backend parses it
       // back into a Date. Any invalid shape here gets silently dropped.
       expect(typeof att.openedDate).toBe('string');
       expect(new Date(att.openedDate as string).toString()).not.toBe('Invalid Date');
@@ -103,7 +103,7 @@ describe('alertsService attendance mutations', () => {
       expect(att.status).toBe('CLOSED');
       expect(typeof att.closedDate).toBe('string');
       expect(new Date(att.closedDate as string).toString()).not.toBe('Invalid Date');
-      // isAttendance remains true after close — that is what lets the
+      // isAttendance remains true after close - that is what lets the
       // classifier distinguish "CLOSED" from "AVAILABLE".
       expect(att.isAttendance).toBe(true);
     });

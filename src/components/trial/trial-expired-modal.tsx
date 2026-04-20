@@ -15,7 +15,7 @@
  *  - `isReadOnly` coming from the backend is the source of truth.
  *  - Only ADMIN / ADMIN_MASTER / SUPER_ADMIN_MASTER see the upgrade
  *    link (matches the TrialBanner role gate).
- *  - Can't be dismissed — the trial is expired, not a warning.
+ *  - Can't be dismissed - the trial is expired, not a warning.
  */
 
 import Link from 'next/link';

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Alert schedule schema — mirrors shieldgo-admin-web/src/types/alertOccurenceSchedule.js
+ * Alert schedule schema - mirrors shieldgo-admin-web/src/types/alertOccurenceSchedule.js
  * and the legacy CreateScheduleModal form validation.
  *
  * Required fields: account (only if SUPER_ADMIN_MASTER), client, site, equipment,

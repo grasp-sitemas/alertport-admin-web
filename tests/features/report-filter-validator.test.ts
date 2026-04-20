@@ -7,8 +7,8 @@ import {
 } from '@/features/reports/report-filter-validator';
 
 // These rules run client-side AND server-side (see
-// `alertport-report-helpers.js::parseFilter` — 30-day cap). A regression
-// here means either a guaranteed-failure network round-trip or — worse —
+// `alertport-report-helpers.js::parseFilter` - 30-day cap). A regression
+// here means either a guaranteed-failure network round-trip or - worse -
 // an expensive aggregation query that gets stopped at the server. Both
 // are user-visible latency spikes.
 

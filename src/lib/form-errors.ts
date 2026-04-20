@@ -4,7 +4,7 @@ import type { FieldErrors } from 'react-hook-form';
 /**
  * Build an `onInvalid` handler for react-hook-form's `handleSubmit` that
  * surfaces the first validation message as a toast. Without this, a failed
- * zod validation silently drops the submit — the user clicks Save and
+ * zod validation silently drops the submit - the user clicks Save and
  * nothing happens because the invalid field is off-screen or its inline
  * `<p class="text-red-400">` error is hidden inside a collapsed section.
  */

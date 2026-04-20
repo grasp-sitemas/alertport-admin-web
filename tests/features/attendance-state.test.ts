@@ -6,9 +6,9 @@ import {
 import type { PatrolAction } from '@/types/api';
 
 // The classifier is the single source of truth for the attendance
-// lifecycle — every surface (event card, dialog, KPIs, realtime) reads
+// lifecycle - every surface (event card, dialog, KPIs, realtime) reads
 // from it. Coverage here is intentionally exhaustive because a wrong
-// classification is either "operator can't do their job" or — worse —
+// classification is either "operator can't do their job" or - worse -
 // "two operators claim the same event" (the backend's attendance DAO
 // uses a blind $set and cannot detect the race itself).
 
@@ -113,7 +113,7 @@ describe('classifyAttendance', () => {
     });
 
     it('returns IN_PROGRESS_BY_OTHER when operator id is missing (cannot prove ownership)', () => {
-      // Conservative default: if we can't verify ownership, lock it — better
+      // Conservative default: if we can't verify ownership, lock it - better
       // a false negative on "it's mine" than the takeover bug.
       expect(
         classifyAttendance(
@@ -243,7 +243,7 @@ describe('takeover protection scenarios', () => {
     expect(classifyAttendance(claimedByA, undefined)).toBe('IN_PROGRESS_BY_OTHER');
   });
 
-  it('After close, both operators see CLOSED — no takeover is possible', () => {
+  it('After close, both operators see CLOSED - no takeover is possible', () => {
     const closed = mkEvent({
       isAttendance: true,
       status: 'CLOSED',

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any --
    Fixtures mirror the shape the API actually returns, which is typed as
-   `any` on purpose: the schema under test is the contract — not the fixture
+   `any` on purpose: the schema under test is the contract - not the fixture
    type. Mapping each form's `reset(defaults)` manually with `unknown` casts
    at every access would add noise without catching any more bugs. */
 
@@ -26,7 +26,7 @@ import {
  * Each form in the app uses a zod schema to validate the payload before it
  * is submitted. The initial form state is hydrated from a real API response.
  * If the API returns a shape that the schema can't accept, `handleSubmit`
- * fails silently — the user clicks Save and nothing happens.
+ * fails silently - the user clicks Save and nothing happens.
  *
  * These tests lock that contract: for every edit form, every fixture row
  * must pass `schema.safeParse(toFormValues(apiRow))`. The fixtures are
@@ -52,14 +52,14 @@ function getIdOrEmpty(v: unknown): string {
   return '';
 }
 
-describe('schema contracts — every fixture row must edit-load without zod errors', () => {
+describe('schema contracts - every fixture row must edit-load without zod errors', () => {
   describe('userFormSchema (admin users /users)', () => {
     const fixture = loadFixture('companyuser-search');
     const rows = fixture.results.filter(
       (r: any) =>
         r.type === 'USER-COMPANY' &&
         // Only roles the edit form actually supports. SUPER_ADMIN_MASTER
-        // isn't editable via /users — it's the whitelabel owner and has no
+        // isn't editable via /users - it's the whitelabel owner and has no
         // form entry for its role.
         ['ADMIN', 'MANAGER', 'OPERATOR', 'AUDITOR'].includes(r.companyUser?.subtype),
     );
@@ -252,7 +252,7 @@ describe('schema contracts — every fixture row must edit-load without zod erro
       expect(result.success).toBe(true);
     });
 
-    // Also iterate all company-filter rows — ACCOUNT, CLIENT, SITE records
+    // Also iterate all company-filter rows - ACCOUNT, CLIENT, SITE records
     // all flow through this schema in different admin contexts.
     const allCompanies = loadFixture('company-filter').results;
     it.each(allCompanies as any[])('accepts company-filter row $name (type=$type)', (row: any) => {

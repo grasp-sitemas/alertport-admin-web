@@ -3,7 +3,7 @@ import { env } from '@/config/env';
 /**
  * Resolves a stored photo/logo URL into a fully-qualified URL the browser can
  * load. The legacy backend persists uploads as relative paths like
- * `/filemanager/photo/<name>.png` — absent a prefix, the browser requests them
+ * `/filemanager/photo/<name>.png` - absent a prefix, the browser requests them
  * against the Vercel origin (404) instead of the API gateway that actually
  * serves them.
  *

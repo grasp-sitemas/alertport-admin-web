@@ -6,7 +6,7 @@
  * Each report returns a `summary` (KPI block the UI pins to the top),
  * `results` (paginated detail rows for the table), and `totalCount`
  * for pagination. The `generatedAt`/`durationMs` fields are
- * diagnostic — surfaced in the footer so operators know they're
+ * diagnostic - surfaced in the footer so operators know they're
  * looking at fresh data.
  */
 
@@ -16,9 +16,9 @@ export interface ReportFilterParams {
   account?: string;
   client?: string;
   site?: string;
-  /** ISO date — required. */
+  /** ISO date - required. */
   startDate: string;
-  /** ISO date — required. Must be within 30 days of startDate. */
+  /** ISO date - required. Must be within 30 days of startDate. */
   endDate: string;
   limit?: number;
   skip?: number;

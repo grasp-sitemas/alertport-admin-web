@@ -44,7 +44,7 @@ export default function RecordingsPage() {
 
   const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
 
-  // Filters apply **live** — we used to mirror the shieldgo pattern of a
+  // Filters apply **live** - we used to mirror the shieldgo pattern of a
   // "Filtrar" button that commits filters via a separate `activeFilters`
   // state, but that added one more render cycle and a bug where the panel
   // briefly showed empty state between the initial fetch and the committed

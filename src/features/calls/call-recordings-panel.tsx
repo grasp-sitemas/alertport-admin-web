@@ -15,7 +15,7 @@ function formatDuration(sec: number): string {
 }
 
 function formatBytes(bytes: number): string {
-  if (!bytes) return '—';
+  if (!bytes) return '-';
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -23,7 +23,7 @@ function formatBytes(bytes: number): string {
 
 /**
  * Localized label for a recording's call mode. Keeps the wire-level enum
- * ('SILENT_LISTEN' / 'NORMAL') out of the UI — the server contract stays
+ * ('SILENT_LISTEN' / 'NORMAL') out of the UI - the server contract stays
  * stable but the operator never sees the raw token.
  */
 function mapCallModeKey(mode: string | undefined): string {
@@ -56,7 +56,7 @@ function mapRecordingErrorKey(code: string): string {
 interface Props {
   /** Full filter object. Defaults to limit=50 when no other fields are set. */
   filter?: RecordingsFilter;
-  /** Shortcut for `{ roomId }` — kept for callers embedding the panel inline. */
+  /** Shortcut for `{ roomId }` - kept for callers embedding the panel inline. */
   roomId?: string;
   /** Shortcut for `{ limit }`. */
   limit?: number;
@@ -67,7 +67,7 @@ interface Props {
 /**
  * Read-only list of silent-listen recordings for the current operator's
  * account. Clicking Play fetches a short-lived signed S3 URL and streams it
- * inline — no download buttons, consistent with the legacy monitor UX.
+ * inline - no download buttons, consistent with the legacy monitor UX.
  */
 export function CallRecordingsPanel({ filter, roomId, limit = 50, hideTitle = false }: Props) {
   const t = useTranslations();

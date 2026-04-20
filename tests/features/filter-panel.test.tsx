@@ -2,7 +2,7 @@
  * Behavioral tests for the shared FilterPanel.
  *
  * Locks in the three UX invariants from the recent redesign:
- *  1. The primary button label is "Buscar" (was "Filtrar" — the old
+ *  1. The primary button label is "Buscar" (was "Filtrar" - the old
  *     label suggested opening a drawer, not running the query).
  *  2. Clicking Buscar must NOT auto-close the drawer. Live-filter
  *     pages used to see the drawer collapse with nothing visibly
@@ -70,7 +70,7 @@ describe('FilterPanel', () => {
     const filtersToggle = screen.getByRole('button', { name: /^Filtros$/ });
     expect(filtersToggle).toHaveAttribute('aria-expanded', 'true');
     fireEvent.click(screen.getByRole('button', { name: /^Buscar$/ }));
-    // Drawer should remain open — the operator stays in context.
+    // Drawer should remain open - the operator stays in context.
     expect(filtersToggle).toHaveAttribute('aria-expanded', 'true');
   });
 

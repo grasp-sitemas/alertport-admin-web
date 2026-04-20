@@ -13,7 +13,7 @@ export function onlyDigits(value: string | number | null | undefined): string {
 }
 
 /**
- * Brazilian phone — fixed (10 digits) or mobile (11 digits).
+ * Brazilian phone - fixed (10 digits) or mobile (11 digits).
  *   "11987654321" → "(11) 98765-4321"
  *   "1134567890"  → "(11) 3456-7890"
  */
@@ -45,7 +45,7 @@ function onlyAlnum(value: string | number | null | undefined): string {
  *     tolerated during typing but `isValidCPF` will reject them)
  *   - 12–14 chars: CNPJ shape "00.ABC.000/00DE-00", supporting the new
  *     alphanumeric format (IN RFB 2.229/2024). Positions 13–14 remain
- *     purely numeric (the two check digits) — any letter in those slots
+ *     purely numeric (the two check digits) - any letter in those slots
  *     will be stripped on the raw-value side by the form handler.
  */
 export function maskBrDocument(value: string | number | null | undefined): string {

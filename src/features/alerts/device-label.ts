@@ -40,7 +40,7 @@ export function formatDeviceLabel(event: Pick<PatrolAction, 'site' | 'deviceInfo
  * Returns the socket `userId` to pass as `to` on `call:start`. The AlertPort
  * app registers with its `deviceId` as the socket userId, so this field is the
  * correct call target. Do NOT fall back to `event.user._id` or
- * `event.equipment._id` — those are different IDs.
+ * `event.equipment._id` - those are different IDs.
  */
 export function resolveCallTargetId(event: Pick<PatrolAction, 'deviceInfo'>): string | null {
   const id = event.deviceInfo?.deviceId;

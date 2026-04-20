@@ -8,7 +8,7 @@ function isApiI18nKey(value: string): boolean {
 
 function humanizeToken(token: string): string {
   const normalized = token.replace(/[_-]+/g, ' ').trim();
-  if (!normalized) return '—';
+  if (!normalized) return '-';
   return normalized
     .split(/\s+/)
     .map((word) => (word.length <= 3 ? word.toUpperCase() : word[0].toUpperCase() + word.slice(1).toLowerCase()))
@@ -23,7 +23,7 @@ function fallbackFromKey(key: string): string {
 export function translateDynamicLabel(
   value: unknown,
   t?: TranslatorFn,
-  fallback = '—',
+  fallback = '-',
 ): string {
   if (typeof value !== 'string') return fallback;
   const raw = value.trim();
@@ -43,7 +43,7 @@ export function translateDynamicLabel(
       const translated = t(raw);
       if (translated && translated !== raw) return translated;
     } catch {
-      // ignore — fall through
+      // ignore - fall through
     }
   }
 

@@ -6,7 +6,7 @@ import { isValidBrDocument, normalizeBrDocument } from '@/lib/br-documents';
 export const signupCompanySchema = z.object({
   name: z.string().trim().min(2, { message: 'validation.required' }),
   fantasyName: z.string().trim(),
-  // Accepts CPF (11 digits) OR CNPJ — legacy numeric AND the new alphanumeric
+  // Accepts CPF (11 digits) OR CNPJ - legacy numeric AND the new alphanumeric
   // CNPJ spec (IN RFB 2.229/2024). The transform strips separators and
   // uppercases letters so both branches validate uniformly.
   document: z

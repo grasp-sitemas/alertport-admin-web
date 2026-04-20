@@ -5,12 +5,12 @@
  * when an SOS alert is pending. Design goals:
  *
  *   • Unmissable (red, top-center, high z-index, attention shadow).
- *   • One-click claim — primary CTA is "Atender agora" which deep-
+ *   • One-click claim - primary CTA is "Atender agora" which deep-
  *     links the operator to the monitor with the event pre-claimed.
- *   • Non-blocking — the rest of the UI remains interactive so the
+ *   • Non-blocking - the rest of the UI remains interactive so the
  *     operator can finish whatever action they were on before pivoting.
- *   • Stackable — up to 3 SOS visible, rest collapse to "+N".
- *   • Keyboard-accessible — Esc dismisses the focused banner;
+ *   • Stackable - up to 3 SOS visible, rest collapse to "+N".
+ *   • Keyboard-accessible - Esc dismisses the focused banner;
  *     Enter/Space claims.
  */
 

@@ -12,8 +12,8 @@ export const userFormSchema = z
     oldUsername: z.string().optional(),
     primaryPhone: z.string().optional(),
     // When present, password must meet the app-wide policy (min 8, uppercase,
-    // special char, no sequential digits). When empty/undefined — typical on
-    // EDIT — the field is skipped entirely and the server keeps the old hash.
+    // special char, no sequential digits). When empty/undefined - typical on
+    // EDIT - the field is skipped entirely and the server keeps the old hash.
     password: z
       .string()
       .optional()

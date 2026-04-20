@@ -78,7 +78,7 @@ function extractLookupOption(v: unknown): { _id: string; name: string } | null {
 /**
  * Merge an optional "preferred" option into a list of lookup results. Used
  * so that the Account/Client/Site <Select> always has a SelectItem matching
- * the current form value — critical for edit mode, since Radix Select only
+ * the current form value - critical for edit mode, since Radix Select only
  * renders the trigger label when a matching child is mounted. Without this,
  * the trigger shows the placeholder until the lookup query resolves (and
  * stays empty forever if the item isn't in the first page of results or if
@@ -159,8 +159,8 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
 
   useEffect(() => {
     if (open) {
-      // `reset(defaults)` reinitializes the whole form so every field —
-      // including the hierarchy triad — picks up the new user's values.
+      // `reset(defaults)` reinitializes the whole form so every field -
+      // including the hierarchy triad - picks up the new user's values.
       // Without `keepDefaultValues: false` (the default) RHF also swaps its
       // internal `defaultValues`, which avoids "dirty" state lingering from
       // a previous edit session.
@@ -198,7 +198,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
   // When editing, the user row ships the hierarchy embedded (account, client,
   // site as { _id, name, ... } objects). Merge those into the Select options
   // so the trigger always finds a matching SelectItem and displays the name
-  // even before the lookup queries resolve — or when the referenced entity
+  // even before the lookup queries resolve - or when the referenced entity
   // is archived/out-of-page and therefore absent from the active list.
   const accountOptions = mergeOption(
     accountsLookup.data?.results ?? [],

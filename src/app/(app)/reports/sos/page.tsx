@@ -23,7 +23,7 @@ import type { ReportFilterParams, SosRow } from '@/types/reports';
 import type { ExportPayload } from '@/features/reports/report-export';
 
 /**
- * Alertas de SOS — listagem completa de acionamentos com tempo de
+ * Alertas de SOS - listagem completa de acionamentos com tempo de
  * resposta e atendimento. Backend source: `patrol-actions` com
  * `type='SOS_ALERT'` e `source='ALERTPORT'`.
  */
@@ -79,28 +79,28 @@ function SosPageBody() {
       {
         key: 'site',
         headerKey: 'common.site',
-        render: (r) => r.site?.name ?? '—',
+        render: (r) => r.site?.name ?? '-',
       },
       {
         key: 'client',
         headerKey: 'common.client',
-        render: (r) => r.client?.name ?? '—',
+        render: (r) => r.client?.name ?? '-',
       },
       {
         key: 'vigilant',
         headerKey: 'reports.sos.vigilant',
         render: (r) =>
           r.vigilant
-            ? `${r.vigilant.firstName ?? ''} ${r.vigilant.lastName ?? ''}`.trim() || '—'
-            : '—',
+            ? `${r.vigilant.firstName ?? ''} ${r.vigilant.lastName ?? ''}`.trim() || '-'
+            : '-',
       },
       {
         key: 'operator',
         headerKey: 'reports.sos.operator',
         render: (r) =>
           r.operator
-            ? `${r.operator.firstName ?? ''} ${r.operator.lastName ?? ''}`.trim() || '—'
-            : '—',
+            ? `${r.operator.firstName ?? ''} ${r.operator.lastName ?? ''}`.trim() || '-'
+            : '-',
       },
       {
         key: 'attendanceStatus',
@@ -126,7 +126,7 @@ function SosPageBody() {
     return {
       fileName: 'alertas_sos',
       title: t('reports.sos.title'),
-      subtitle: `${filterValue.startDate} — ${filterValue.endDate}`,
+      subtitle: `${filterValue.startDate} - ${filterValue.endDate}`,
       generatedAt: data?.generatedAt || new Date().toISOString(),
       kpis: [
         { label: t('reports.sos.kpi.total'), value: formatNumber(summary.total) },

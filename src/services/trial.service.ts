@@ -21,7 +21,7 @@ interface ApiMany<T> {
 
 export const trialService = {
   /**
-   * Principal endpoint — populates the global trial store.
+   * Principal endpoint - populates the global trial store.
    * Tolerant to 404 / non-existence: callers should fall back to a "no trial" default.
    */
   async getContext(): Promise<TrialContext | null> {

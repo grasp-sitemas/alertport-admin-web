@@ -12,7 +12,7 @@ export const companyFormSchema = z.object({
   timezone: z.string().optional(),
   logoURL: z.string().optional(),
   status: z.enum(['ACTIVE', 'ARCHIVED']),
-  // Accept any legacy type string — whitelabel admins edit records with
+  // Accept any legacy type string - whitelabel admins edit records with
   // `type: 'WHITE-LABEL-COMPANY'`, which the previous enum rejected (silently
   // blocking the Save submit with no visible error next to any field).
   type: z.string().optional(),

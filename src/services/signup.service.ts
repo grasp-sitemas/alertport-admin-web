@@ -14,7 +14,7 @@ interface ApiSingle<T> {
 
 /**
  * Public (unauthenticated) endpoints for self-signup + activation.
- * The apiClient still works for these — the request interceptor silently
+ * The apiClient still works for these - the request interceptor silently
  * skips the auth header when there is no session.
  */
 export const signupService = {

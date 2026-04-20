@@ -4,7 +4,7 @@
  * Mirrors shieldgo-admin-web/src/firebaseInit.js behavior, but with
  * configuration sourced entirely from environment variables (no hard-coded
  * credentials in source). HML vs PRD is driven by NEXT_PUBLIC_IS_PRODUCTION
- * — but the actual config values come from .env.local / .env.production.
+ * - but the actual config values come from .env.local / .env.production.
  *
  * Safe on the server: only initializes inside the browser.
  */

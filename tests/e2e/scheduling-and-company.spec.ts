@@ -61,7 +61,7 @@ test.describe('Critical admin routes', () => {
     await page.goto('/alerts/scheduling');
     await expect(page.getByRole('heading', { name: /agendamento de alertas|alert scheduling/i })).toBeVisible();
     await expect(page.getByText('Fallback schedule')).toBeVisible();
-    await expect(page.getByRole('cell', { name: '— – —' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '- – -' })).toBeVisible();
     expect(pageErrors).toEqual([]);
   });
 

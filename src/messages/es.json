@@ -217,7 +217,7 @@
       "pdf": "PDF (.pdf)",
       "success": "Exportación completada",
       "failed": "Falló la exportación. Intente nuevamente.",
-      "nothingToExport": "Nada para exportar — realice una búsqueda antes."
+      "nothingToExport": "Nada para exportar - realice una búsqueda antes."
     },
     "adherence": {
       "title": "Adherencia de Ronda",
@@ -279,7 +279,7 @@
     },
     "sla": {
       "title": "SLA de Atención",
-      "description": "Tiempos de respuesta y resolución de SOS — prueba de SLA contractual.",
+      "description": "Tiempos de respuesta y resolución de SOS - prueba de SLA contractual.",
       "tableTitle": "SOS atendidos",
       "operatorBreakdown": "Por operador",
       "operatorAttendances": "{count} atenciones",
@@ -660,7 +660,7 @@
     "qrPrint": "Imprimir"
   },
   "trial": {
-    "badgeAria": "Prueba — {days} días restantes",
+    "badgeAria": "Prueba - {days} días restantes",
     "badgeExpiredAria": "Prueba expirada",
     "badgeExpired": "Expirado",
     "badgeEndingToday": "Finaliza hoy",
@@ -756,7 +756,7 @@
       "title": "¡Listo!",
       "subtitle": "Te enviamos un correo con el código de activación.",
       "emailSent": "Confirma tu correo",
-      "checkInbox": "Enviamos el código a {email}. Puede tardar unos minutos — revisa también el spam.",
+      "checkInbox": "Enviamos el código a {email}. Puede tardar unos minutos - revisa también el spam.",
       "nextSteps": "Próximos pasos",
       "step1": "Abre el correo que enviamos",
       "step2": "Copia el código de activación",
@@ -769,7 +769,7 @@
       "linkStep2": "Haz clic en el botón \"Activar mi cuenta\"",
       "linkStep3": "Tu cuenta queda activada y lista para entrar",
       "resendLinkCta": "Reenviar enlace",
-      "spamNote": "¿No llegó? Revisa tu carpeta de spam — puede tardar unos minutos."
+      "spamNote": "¿No llegó? Revisa tu carpeta de spam - puede tardar unos minutos."
     },
     "activation": {
       "title": "Activa tu cuenta",
@@ -858,98 +858,111 @@
       "close": "Cerrar",
       "finish": "Finalizar",
       "next": "Siguiente",
+      "nextWithProgress": "Siguiente ({current} de {total})",
       "skip": "Omitir"
     },
     "admin": {
       "welcome": {
-        "title": "Bienvenido a AlertPort",
-        "content": "Voy a guiarte en pocos minutos por los pasos esenciales para configurar tu operación. Puedes omitir en cualquier momento — este recorrido queda siempre disponible en el menú de tu perfil."
+        "title": "Bienvenido a la plataforma AlertPort",
+        "content": "¡Hola! Voy a guiarte en pocos minutos por los pasos esenciales para configurar tu operación. Puedes omitir en cualquier momento. El recorrido queda disponible en el menú de tu perfil, en la esquina superior derecha."
       },
-      "clients": {
-        "title": "1. Empieza por tus Clientes",
-        "content": "El primer paso es registrar tus Clientes: las empresas o edificios que atiendes. Todo (postos, rondas, informes) se organiza alrededor de ellos."
+      "dashboard": {
+        "title": "Dashboard: tu visión general",
+        "content": "Estas tarjetas muestran, en tiempo real, el total de alertas del día, pendientes, respondidas y perdidas. Es lo primero que ves al entrar."
       },
-      "sites": {
-        "title": "2. Luego, registra los Postos",
-        "content": "Para cada Cliente, registra sus Postos (ubicaciones físicas donde patrullan los vigilantes). Sin postos, no se pueden agendar rondas ni vincular dispositivos."
+      "clientsMenu": {
+        "title": "1. Empieza por los Clientes",
+        "content": "El primer paso es registrar tus Clientes: las empresas o condominios que atiendes. Todo (Sitios, rondas, informes) se organiza alrededor de ellos. Te llevo a esa pantalla ahora."
+      },
+      "clientsCreate": {
+        "title": "Registrar un Cliente",
+        "content": "Haz clic en este botón para crear tu primer Cliente. Ingresas nombre, documento y datos de contacto. Después avanzamos a los Sitios de ese Cliente."
+      },
+      "sitesMenu": {
+        "title": "2. Registra los Sitios",
+        "content": "Para cada Cliente registras los Sitios (lugares físicos donde actúan tus Vigilantes). Sin Sitio no se pueden agendar rondas ni vincular dispositivos."
+      },
+      "sitesCreate": {
+        "title": "Crear un Sitio",
+        "content": "Este es el botón para registrar un Sitio. Una vez guardado, el Sitio genera un QR Code único, usado para vincular el dispositivo del Vigilante."
       },
       "qrcode": {
-        "title": "3. QR Code del Posto + app AlertPort",
-        "content": "Cada posto genera un QR Code único. En la app AlertPort del vigilante, escanea el QR para vincular el dispositivo (teléfono) a ese posto. Solo tras ese escaneo, el dispositivo aparece disponible en los agendamientos."
+        "title": "3. QR Code del Sitio + app AlertPort",
+        "content": "Cada Sitio genera un QR Code único. En la app AlertPort instalada en el celular del Vigilante, él lee el QR Code y así el dispositivo queda vinculado a ese Sitio. Solo después de ese escaneo el dispositivo aparece como disponible en los Agendamientos."
       },
-      "equipment": {
+      "equipmentMenu": {
         "title": "4. Equipos vinculados",
-        "content": "Aquí ves todos los dispositivos vinculados a tus postos. Cada fila muestra qué posto tiene qué dispositivo y su estado."
+        "content": "Aquí ves todos los dispositivos vinculados a tus Sitios. Cada fila muestra qué Sitio tiene cuál dispositivo y su estado (en línea, inactivo, bloqueado)."
+      },
+      "equipmentCreate": {
+        "title": "Nuevo equipo",
+        "content": "Si necesitas registrar manualmente un dispositivo antes del escaneo del QR Code (casos poco frecuentes), usa este botón. El flujo recomendado sigue siendo escanear el QR Code con la app."
       },
       "collaborators": {
-        "title": "5. Colaboradores (vigilantes)",
-        "content": "Registra tus vigilantes aquí. Ellos reciben las alertas en la app AlertPort y presionan el botón para confirmar presencia o responder eventos."
+        "title": "5. Colaboradores (Vigilantes)",
+        "content": "Registra tus Vigilantes aquí. Son ellos los que reciben las alertas en la app AlertPort, fichan y responden a los eventos. Define el turno y los Sitios en los que actúa cada uno."
       },
       "users": {
         "title": "6. Operadores de la central",
-        "content": "Los operadores monitorean el sistema 24/7. Atienden SOS, hacen llamadas y gestionan eventos. Regístralos aquí con perfil OPERATOR."
+        "content": "Los operadores monitorean el sistema 24/7, atienden SOS y hacen llamadas. Regístralos aquí con perfil OPERATOR. Los Admins también se gestionan desde esta pantalla."
       },
-      "scheduling": {
-        "title": "7. Agenda de alertas",
-        "content": "Con cliente + posto + dispositivo vinculado, crea agendamientos. El vigilante recibe en la app y debe presionar para confirmar que está activo — el famoso \"no dormir en el puesto\"."
+      "schedulingMenu": {
+        "title": "7. Agendamiento de alertas",
+        "content": "Con Cliente + Sitio + dispositivo vinculado, creas agendamientos de alertas. El Vigilante las recibe en la app y debe presionar para confirmar que está activo en el Sitio. Es el famoso \"no dormirse en el puesto\"."
+      },
+      "schedulingCalendar": {
+        "title": "Calendario de agendamientos",
+        "content": "Este es el calendario donde creas y visualizas los agendamientos. Arrastra para crear uno nuevo, haz clic para editar. Recurrencia diaria, semanal o mensual."
       },
       "monitor": {
         "title": "8. Monitor de Alertas",
-        "content": "Esta es la pantalla donde tu operador pasa el día. Aparecen SOS en tiempo real, eventos agendados y registros de fichaje. Permite llamar y escuchar en modo silencioso."
+        "content": "Es la pantalla que tu operador deja abierta durante todo el turno. Aquí aparecen SOS en tiempo real, eventos de agendamiento y fichajes registrados. Permite llamar y escuchar en modo activo."
       },
       "attendance": {
         "title": "9. Control de Presencia",
-        "content": "Fichajes de los vigilantes (entrada, salida, descansos). Útil para control de jornada y cumplimiento laboral."
+        "content": "Los fichajes de los Vigilantes (entrada, salida, descansos) aparecen aquí. Útil para control de jornada y cumplimiento laboral."
       },
       "recordings": {
         "title": "10. Grabaciones de llamada",
-        "content": "Toda llamada hecha por la plataforma se graba y se guarda aquí. Útil para auditoría, prueba contractual y formación."
+        "content": "Toda llamada hecha por la plataforma se graba y queda disponible aquí. Útil para auditoría, prueba contractual y capacitación."
       },
       "reports": {
         "title": "11. Informes",
-        "content": "Cuatro informes clave: Adherencia de Ronda (el principal — prueba que el vigilante respondió), SLA de Atención, Alertas SOS y Control de Presencia. Exportables en XLSX, CSV y PDF."
-      },
-      "settings": {
-        "title": "12. Ajustes de la empresa",
-        "content": "Logo, datos fiscales, zona horaria, políticas internas. Cualquier admin de la cuenta puede ajustar."
+        "content": "Cuatro informes clave: Adherencia de Ronda (el principal, prueba que el Vigilante respondió), SLA de Atención, Alertas de SOS y Control de Presencia. Exportables en XLSX, CSV y PDF."
       },
       "plan": {
-        "title": "13. Tu Plan",
-        "content": "Aquí ves tu plan, período de prueba y límites. Cuando quieras contratar, es por aquí."
+        "title": "12. Tu Plan",
+        "content": "Acompaña aquí tu plan, período de prueba y límites. Cuando quieras contratar o hacer upgrade, es por aquí."
       },
       "finish": {
         "title": "¡Listo!",
-        "content": "Conoces lo esencial. Recuerda: empieza por Clientes → Postos → QR Code en la app → vincula dispositivos → crea agendamientos. Puedes repetir este recorrido desde el menú de tu perfil."
+        "content": "Conoces lo esencial. Recuerda el camino: Clientes, después Sitios, después QR Code en la app, después vincular dispositivos, después crear agendamientos. Puedes repetir este recorrido en cualquier momento desde el menú del perfil."
       }
     },
     "operator": {
       "welcome": {
         "title": "Bienvenido, operador",
-        "content": "Tu turno ha comenzado. Te voy a mostrar dónde está cada cosa y cómo responder a las alertas. Puedes omitir y repetir después desde el menú de tu perfil."
-      },
-      "monitor": {
-        "title": "Tu pantalla principal es el Monitor",
-        "content": "El Monitor de Alertas es tu home. Mantén abierto todo el turno — aquí llegan los SOS y los eventos para atender."
-      },
-      "sosGlobal": {
-        "title": "El SOS llega desde cualquier pantalla",
-        "content": "Estés en la página que estés, un SOS hace sonar una alarma de 2 segundos y aparece un banner rojo arriba. Haz clic en \"Atender ahora\" para ir directo."
+        "content": "Tu turno ha comenzado. Te voy a mostrar dónde está cada cosa y cómo responder a las alertas. Puedes omitir y repetir luego desde el menú de tu perfil."
       },
       "kpis": {
         "title": "Indicadores del día (KPIs)",
-        "content": "Arriba del Monitor: total de eventos, SOS del día, Disponibles (no atendidos aún), En curso y Fichajes. La tarjeta \"Disponibles\" es lo que debes atender."
+        "content": "En la parte superior del Monitor: total de eventos, SOS del día, Disponibles (no atendidos todavía), En curso y Fichajes. La tarjeta \"Disponibles\" es lo que debes atender."
       },
       "eventCard": {
-        "title": "Tarjetas de evento",
-        "content": "Cada alerta se convierte en una tarjeta. El botón \"Abrir atención\" inicia el proceso. Una vez atendida, pasa a la sección \"En curso por ti\"."
+        "title": "Tarjetas de eventos",
+        "content": "Cada alerta se convierte en una tarjeta con hora, Sitio, Vigilante y prioridad. El botón \"Abrir atención\" inicia el proceso. Una vez atendida, la tarjeta pasa a la sección \"En curso por ti\"."
+      },
+      "sosGlobal": {
+        "title": "El SOS llega desde cualquier pantalla",
+        "content": "Estés en la página que estés, un SOS dispara una alarma sonora y aparece un banner rojo en la parte superior. Haz clic en \"Atender ahora\" para ir directo a la alerta."
       },
       "attendanceOwner": {
         "title": "Atención exclusiva: un operador por evento",
-        "content": "Cuando abres una atención, el evento queda bloqueado para ti — nadie más puede atenderlo. Evita que dos operadores gestionen el mismo SOS al mismo tiempo."
+        "content": "Cuando abres una atención, el evento queda bloqueado para ti. Ningún otro operador puede atender el mismo. Esto evita que dos operadores gestionen el mismo SOS al mismo tiempo."
       },
       "callActions": {
         "title": "Llamada normal y escucha activa",
-        "content": "Durante la atención puedes hacer llamada normal (conversación) o escucha activa (escuchas sin que el vigilante lo sepa, útil en emergencias). Usa el botón de la tarjeta."
+        "content": "Durante la atención puedes hacer llamada normal (conversación) o escucha activa (escuchas sin que el Vigilante lo sepa, útil en emergencias)."
       },
       "recording": {
         "title": "Grabación de llamada",
@@ -957,27 +970,23 @@
       },
       "recordingsHistory": {
         "title": "Historial de grabaciones",
-        "content": "Todas las llamadas grabadas quedan aquí. Filtra por cliente, posto, fecha y escúchalas de nuevo. Útil para informes y auditoría."
+        "content": "Todas las llamadas grabadas quedan aquí. Puedes filtrar por Cliente, Sitio, fecha y escucharlas de nuevo. Útil para informes y auditoría."
       },
       "occurrences": {
         "title": "Historial de eventos",
-        "content": "Aquí la lista completa de todos los eventos (SOS, incidentes). Busca por fecha, posto o vigilante."
+        "content": "Lista completa de todos los eventos (SOS, incidentes) de la operación. Busca por fecha, Sitio o Vigilante."
       },
       "timeEntries": {
-        "title": "Registros de Horario",
-        "content": "Los vigilantes fichan desde la app. Consulta entrada, salida e intervalos de cada colaborador."
-      },
-      "scheduling": {
-        "title": "Agendamientos",
-        "content": "Ve los agendamientos activos (alertas recurrentes que los vigilantes deben responder). Útil para entender qué aparecerá en el Monitor."
+        "title": "Registros de Fichaje",
+        "content": "Los Vigilantes fichan desde la app. Aquí consultas entrada, salida e intervalos de cada colaborador durante el turno."
       },
       "reports": {
         "title": "Tus informes",
-        "content": "Tienes acceso a Adherencia de Ronda, Alertas SOS y Presencia. Exportables en XLSX, CSV y PDF para enviar a los clientes."
+        "content": "Tienes acceso a los informes de Alertas de SOS y Presencia. Exportables en XLSX, CSV y PDF para enviar a los clientes."
       },
       "finish": {
         "title": "Listo para tu turno",
-        "content": "Ya conoces el flujo completo. Consejo: mantén el Monitor abierto, atiende SOS rápido y graba llamadas cuando sea necesario. ¡Buen turno!"
+        "content": "Ya conoces el flujo completo. Consejo: mantén el Monitor abierto todo el tiempo, atiende los SOS rápido y graba llamadas cuando sea necesario. ¡Buen turno!"
       }
     }
   }

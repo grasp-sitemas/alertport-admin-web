@@ -112,7 +112,7 @@ export interface User {
   status: EntityStatus;
   // System user (admin) flavor
   companyUser?: CompanyUser;
-  // Customer user (collaborator / vigilant) flavor — only present for USER-CUSTOMER records
+  // Customer user (collaborator / vigilant) flavor - only present for USER-CUSTOMER records
   customerUser?: CustomerUser;
   account?: Company;
   client?: Company;
@@ -365,7 +365,7 @@ export type AttendanceStatus = AttendanceFlagStatus | 'COMPLETED' | 'CANCELLED';
 /**
  * `deviceInfo` on a PatrolAction identifies the AlertPort device that fired the
  * event. The `deviceId` here is the value the device registered with on the
- * socket (`user:register.userId`) — so it is the correct target for a WebRTC
+ * socket (`user:register.userId`) - so it is the correct target for a WebRTC
  * call via `call:start.to`. Other ids on the event (user / equipment) do NOT
  * necessarily map to an online socket.
  */
@@ -399,7 +399,7 @@ export interface PatrolAction {
 
 /**
  * The `attendance` flag embedded on a PatrolAction (NOT an individual attendance
- * record — for that see `AttendanceRecord`). Mirrors shieldgo-admin-web's
+ * record - for that see `AttendanceRecord`). Mirrors shieldgo-admin-web's
  * contract exactly: `isAttendance`, `openedDate`, `closedDate`, `status`.
  */
 export interface EventAttendance {

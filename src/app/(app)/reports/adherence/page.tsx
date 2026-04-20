@@ -23,7 +23,7 @@ import type { AdherenceRow, ReportFilterParams } from '@/types/reports';
 import type { ExportPayload } from '@/features/reports/report-export';
 
 /**
- * Aderência de Ronda — the core KPI of AlertPort: did the vigia
+ * Aderência de Ronda - the core KPI of AlertPort: did the vigia
  * press the button on every scheduled check? Rate = responded /
  * total. Backend source: `alert_occurrences`.
  */
@@ -85,7 +85,7 @@ function AdherencePageBody() {
       {
         key: 'respondedAt',
         headerKey: 'reports.adherence.respondedAt',
-        render: (r) => (r.respondedAt ? new Date(r.respondedAt).toLocaleString() : '—'),
+        render: (r) => (r.respondedAt ? new Date(r.respondedAt).toLocaleString() : '-'),
       },
       {
         key: 'responseTimeSec',
@@ -95,12 +95,12 @@ function AdherencePageBody() {
       {
         key: 'site',
         headerKey: 'common.site',
-        render: (r) => r.site?.name ?? '—',
+        render: (r) => r.site?.name ?? '-',
       },
       {
         key: 'client',
         headerKey: 'common.client',
-        render: (r) => r.client?.name ?? '—',
+        render: (r) => r.client?.name ?? '-',
       },
     ],
     [],
@@ -111,7 +111,7 @@ function AdherencePageBody() {
     return {
       fileName: 'aderencia_ronda',
       title: t('reports.adherence.title'),
-      subtitle: `${filterValue.startDate} — ${filterValue.endDate}`,
+      subtitle: `${filterValue.startDate} - ${filterValue.endDate}`,
       generatedAt: data?.generatedAt || new Date().toISOString(),
       kpis: [
         { label: t('reports.adherence.kpi.adherenceRate'), value: formatPercent(summary.adherenceRate) },

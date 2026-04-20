@@ -3,7 +3,7 @@
 /**
  * Last-chance error boundary (Next.js App Router).
  *
- * Catches errors that blow up even the root layout — i18n provider
+ * Catches errors that blow up even the root layout - i18n provider
  * crash, auth context throwing during hydration, etc. Replaces the
  * whole document, so it must render its own <html> + <body>. We
  * keep it minimal (no i18n, no fancy components) because the very

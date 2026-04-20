@@ -89,14 +89,14 @@ function countActiveFilters(values: Record<string, unknown>): number {
  *  - Collapsed: single row with a Filter toggle (badge = active count),
  *    a Clear button when filters are set, and an always-visible Search
  *    button on the right. Zero vertical chrome when the user isn't
- *    filtering — keeps the main content area roomy.
+ *    filtering - keeps the main content area roomy.
  *  - Expanded: a tight grid (3-column on lg, 4 on xl) with small labels
  *    stacked over inputs. Actions pinned to the bottom-right.
  *  - Search does NOT auto-collapse the drawer anymore. Earlier behavior
  *    made live-filter pages look like the click did nothing (the panel
- *    would just slide shut). The operator now stays in context — they
+ *    would just slide shut). The operator now stays in context - they
  *    see their filters and the updated results at the same time.
- *  - Button label is "Buscar" (calls onSearch) — was "Filtrar" which
+ *  - Button label is "Buscar" (calls onSearch) - was "Filtrar" which
  *    suggested opening a filter drawer, not running the query.
  */
 export function FilterPanel({
@@ -126,7 +126,7 @@ export function FilterPanel({
   };
 
   const handleSearch = () => {
-    // No auto-collapse — staying open keeps the user in context.
+    // No auto-collapse - staying open keeps the user in context.
     onSearch();
   };
 

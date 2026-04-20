@@ -9,7 +9,7 @@ import type { QueryClient } from '@tanstack/react-query';
 export type MutatedKind = 'account' | 'client' | 'site' | 'equipment' | 'user';
 
 /**
- * Invalidate every React Query cache that depends — directly or transitively —
+ * Invalidate every React Query cache that depends - directly or transitively -
  * on the mutated entity. This keeps cascading dropdowns fresh across the
  * whole app after creating, editing or archiving a client / site / equipment /
  * user, without forcing the operator to reload the page.

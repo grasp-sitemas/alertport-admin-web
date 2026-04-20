@@ -45,7 +45,7 @@ interface Props {
  * React.memo + stable callback references from the parent.
  *
  * The visual distinction between "disponível para atendimento" (fresh),
- * "em andamento por fulano" (claimed by another operator — locked for
+ * "em andamento por fulano" (claimed by another operator - locked for
  * the current user), "em andamento por você" and "encerrado" is driven
  * entirely by {@link classifyAttendance} so every surface tells the
  * same story.

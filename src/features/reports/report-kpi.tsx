@@ -85,16 +85,16 @@ export function ReportKpiGrid({ children, cols = 4 }: GridProps) {
 }
 
 /**
- * Helpers for summary formatting — used by every report page so
+ * Helpers for summary formatting - used by every report page so
  * numbers render consistently.
  */
 export function formatPercent(n: number | undefined): string {
-  if (n == null || !Number.isFinite(n)) return '—';
+  if (n == null || !Number.isFinite(n)) return '-';
   return `${n.toFixed(1)}%`;
 }
 
 export function formatSeconds(sec: number | null | undefined): string {
-  if (sec == null || !Number.isFinite(sec)) return '—';
+  if (sec == null || !Number.isFinite(sec)) return '-';
   if (sec < 60) return `${Math.round(sec)}s`;
   const m = Math.floor(sec / 60);
   const s = Math.round(sec % 60);
@@ -102,6 +102,6 @@ export function formatSeconds(sec: number | null | undefined): string {
 }
 
 export function formatNumber(n: number | undefined): string {
-  if (n == null || !Number.isFinite(n)) return '—';
+  if (n == null || !Number.isFinite(n)) return '-';
   return n.toLocaleString();
 }

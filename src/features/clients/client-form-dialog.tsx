@@ -131,7 +131,7 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
       reset();
     },
     onError: (err: AxiosError<ApiErrorBody>) => {
-      // Surface backend validation details when available — the generic
+      // Surface backend validation details when available - the generic
       // "Ocorreu um erro. Tente novamente." gives no hint of WHICH field
       // is missing.
       const body = err.response?.data;

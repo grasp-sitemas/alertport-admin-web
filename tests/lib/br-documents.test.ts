@@ -20,7 +20,7 @@ describe('normalizeBrDocument', () => {
   });
 });
 
-describe('isValidCPF — numeric only (11 digits)', () => {
+describe('isValidCPF - numeric only (11 digits)', () => {
   it('accepts canonical valid CPFs', () => {
     // Public test vectors commonly used for CPF examples.
     expect(isValidCPF('123.456.789-09')).toBe(true);
@@ -44,7 +44,7 @@ describe('isValidCPF — numeric only (11 digits)', () => {
   });
 });
 
-describe('isValidCNPJ — legacy numeric (14 digits)', () => {
+describe('isValidCNPJ - legacy numeric (14 digits)', () => {
   it('accepts canonical valid numeric CNPJs', () => {
     expect(isValidCNPJ('11.222.333/0001-81')).toBe(true);
     expect(isValidCNPJ('45.723.174/0001-10')).toBe(true);
@@ -59,7 +59,7 @@ describe('isValidCNPJ — legacy numeric (14 digits)', () => {
   });
 });
 
-describe('isValidCNPJ — alphanumeric (IN RFB 2.229/2024)', () => {
+describe('isValidCNPJ - alphanumeric (IN RFB 2.229/2024)', () => {
   /**
    * Test vector computed by hand with the official algorithm:
    *   raw positions 1–12 = "12ABC34501DE"

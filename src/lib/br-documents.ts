@@ -1,5 +1,5 @@
 /**
- * Brazilian fiscal-document validators — CPF (11 numeric digits) and the new
+ * Brazilian fiscal-document validators - CPF (11 numeric digits) and the new
  * CNPJ Alfanumérico introduced by Receita Federal in Instrução Normativa RFB
  * nº 2.229/2024. The alphanumeric format takes effect in July 2026; existing
  * numeric CNPJs remain valid forever and pass this same algorithm unchanged.
@@ -48,7 +48,7 @@ function charToValue(ch: string): number {
 export function isValidCPF(value: string | null | undefined): boolean {
   const cpf = normalizeBrDocument(value);
   if (cpf.length !== 11) return false;
-  // CPF must be purely digits — any letter invalidates it.
+  // CPF must be purely digits - any letter invalidates it.
   if (!/^\d{11}$/.test(cpf)) return false;
   if (allEqualChars(cpf)) return false;
 

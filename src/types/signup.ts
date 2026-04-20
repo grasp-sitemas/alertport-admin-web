@@ -1,4 +1,4 @@
-// Signup / activation contracts — mirrors ms-user's crt-signup.js shapes.
+// Signup / activation contracts - mirrors ms-user's crt-signup.js shapes.
 
 export interface SignupCompanyPayload {
   name: string;
@@ -36,7 +36,7 @@ export interface ActivationConfirmRequest {
   /**
    * Link-based activation carries a long base64url `token`. The backend
    * upper-cases the legacy `code` field for the 6-char-code flow, which would
-   * corrupt a base64url token — so always send `token` (not `code`) for the
+   * corrupt a base64url token - so always send `token` (not `code`) for the
    * email-link path.
    */
   token?: string;

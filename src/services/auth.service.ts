@@ -33,7 +33,7 @@ export const authService = {
   },
 
   /**
-   * Step 1 of recovery flow — generates an email code and returns the
+   * Step 1 of recovery flow - generates an email code and returns the
    * opaque `systemUser` identifier that must be sent back on step 2.
    * Mirrors legacy `Endpoints.systemUsers.gencode` from shieldgo-admin-web.
    */
@@ -53,7 +53,7 @@ export const authService = {
   },
 
   /**
-   * Step 2 of recovery flow — validates the code and sets the new password.
+   * Step 2 of recovery flow - validates the code and sets the new password.
    * Legacy payload is `{ code, systemUser, password }` (NOT the email).
    */
   async resetPassword(params: {

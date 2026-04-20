@@ -39,7 +39,7 @@ describe('toMultipartFormData', () => {
     expect(fd.get('jsonData')).toBe('null');
   });
 
-  it('never appends an empty Blob — this is the production regression', () => {
+  it('never appends an empty Blob - this is the production regression', () => {
     // Guardrail: if a future refactor reintroduces `fd.append("file", new Blob([]))`
     // it would silently send a 0-byte file and the backend would 500 with ENOENT.
     const fd = toMultipartFormData({}, undefined);

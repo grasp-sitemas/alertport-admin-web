@@ -57,11 +57,11 @@ export default function AttendancePage() {
       key: 'user',
       headerKey: 'attendance.employee',
       render: (item) => {
-        if (!item.user) return '—';
+        if (!item.user) return '-';
         const full =
           item.user.fullName ??
           `${item.user.firstName ?? ''} ${item.user.lastName ?? ''}`.trim();
-        return full || '—';
+        return full || '-';
       },
     },
     {
@@ -72,17 +72,17 @@ export default function AttendancePage() {
     {
       key: 'client',
       headerKey: 'common.client',
-      render: (item) => (typeof item.client === 'object' ? item.client?.name : '—'),
+      render: (item) => (typeof item.client === 'object' ? item.client?.name : '-'),
     },
     {
       key: 'site',
       headerKey: 'common.site',
-      render: (item) => (typeof item.site === 'object' ? item.site?.name : '—'),
+      render: (item) => (typeof item.site === 'object' ? item.site?.name : '-'),
     },
     {
       key: 'equipment',
       headerKey: 'alerts.equipment',
-      render: (item) => (typeof item.equipment === 'object' ? item.equipment?.name : '—'),
+      render: (item) => (typeof item.equipment === 'object' ? item.equipment?.name : '-'),
     },
   ];
 
@@ -175,8 +175,8 @@ function nowISO(): string {
  */
 function formatTimestamp(item: TimeEntry): string {
   const raw = item.createdAt ?? item.timestamp ?? item.createdDate;
-  if (!raw) return '—';
+  if (!raw) return '-';
   const d = new Date(raw);
-  if (Number.isNaN(d.getTime())) return '—';
+  if (Number.isNaN(d.getTime())) return '-';
   return d.toLocaleString();
 }

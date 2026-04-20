@@ -41,7 +41,7 @@ export function SilentListenBanner() {
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold truncate">
           {t('calls.silentListenBanner.title')}
-          {call.peerLabel ? ` — ${call.peerLabel}` : ''}
+          {call.peerLabel ? ` - ${call.peerLabel}` : ''}
         </p>
         <p className="text-xs text-amber-200/80 truncate">
           {t('calls.silentListenBanner.description')}

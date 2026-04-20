@@ -21,7 +21,7 @@ function isUnlimited(limit: number | undefined): boolean {
  * Hydrates the trial context on mount and whenever the auth user changes.
  * Everything is defensive: if the endpoint 404s, a legacy-like context is
  * returned (isReadOnly=false, everything allowed). This keeps legacy
- * customers — and any environment where the backend hasn't deployed yet —
+ * customers - and any environment where the backend hasn't deployed yet -
  * functioning exactly as before.
  */
 export function TrialProvider({ children }: { children: React.ReactNode }) {
@@ -58,7 +58,7 @@ export function TrialProvider({ children }: { children: React.ReactNode }) {
   // Mid-session refresh: re-pull the trial context every 5 minutes AND
   // whenever the tab regains focus. Without this, a trial that expires
   // while the operator is actively using the app keeps the UI happy
-  // until the next full-page reload — the operator clicks buttons that
+  // until the next full-page reload - the operator clicks buttons that
   // silently 403 on the server. 5 min is a good balance between
   // "timely lock-out" and "don't hammer the endpoint".
   useEffect(() => {

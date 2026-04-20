@@ -262,7 +262,7 @@ export default function AlertSchedulingPage() {
           }
         />
 
-        {/* Compact collapsible filter drawer — keeps the calendar as the
+        {/* Compact collapsible filter drawer - keeps the calendar as the
            visual hero of the page. Opens on demand; shows a counter badge
            when non-default filters are applied so the operator knows
            something is filtering the view. */}

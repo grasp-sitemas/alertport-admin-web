@@ -70,7 +70,7 @@ export default function UsersPage() {
       render: (item) => {
         const name =
           item.fullName ?? `${item.firstName ?? ''} ${item.lastName ?? ''}`.trim();
-        return <p className="font-medium text-white">{name || '—'}</p>;
+        return <p className="font-medium text-white">{name || '-'}</p>;
       },
     },
     { key: 'email', headerKey: 'common.email', render: (item) => item.email },
@@ -78,7 +78,7 @@ export default function UsersPage() {
       key: 'role',
       headerKey: 'users.role',
       render: (item) =>
-        item.companyUser?.subtype ? <RoleBadge role={item.companyUser.subtype} /> : '—',
+        item.companyUser?.subtype ? <RoleBadge role={item.companyUser.subtype} /> : '-',
     },
     {
       key: 'status',

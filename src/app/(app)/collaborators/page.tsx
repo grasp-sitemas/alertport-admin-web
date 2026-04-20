@@ -77,13 +77,13 @@ export default function CollaboratorsPage() {
       render: (item) => {
         const name =
           item.fullName ?? `${item.firstName ?? ''} ${item.lastName ?? ''}`.trim();
-        return <p className="font-medium text-white">{name || '—'}</p>;
+        return <p className="font-medium text-white">{name || '-'}</p>;
       },
     },
     {
       key: 'employeeCode',
       headerKey: 'collaborators.employeeCode',
-      render: (item) => item.customerUser?.employeeCode || '—',
+      render: (item) => item.customerUser?.employeeCode || '-',
     },
     {
       key: 'subtype',
@@ -93,25 +93,25 @@ export default function CollaboratorsPage() {
         return k ? (
           <Badge variant="brand">{t(SUBTYPE_LABELS[k] ?? 'common.info')}</Badge>
         ) : (
-          '—'
+          '-'
         );
       },
     },
     {
       key: 'client',
       headerKey: 'common.client',
-      render: (item) => (typeof item.client === 'object' ? item.client?.name : '—'),
+      render: (item) => (typeof item.client === 'object' ? item.client?.name : '-'),
     },
     {
       key: 'site',
       headerKey: 'common.site',
-      render: (item) => (typeof item.site === 'object' ? item.site?.name : '—'),
+      render: (item) => (typeof item.site === 'object' ? item.site?.name : '-'),
     },
-    { key: 'email', headerKey: 'common.email', render: (item) => item.email || '—' },
+    { key: 'email', headerKey: 'common.email', render: (item) => item.email || '-' },
     {
       key: 'primaryPhone',
       headerKey: 'common.phone',
-      render: (item) => (item.primaryPhone ? maskPhoneBR(item.primaryPhone) : '—'),
+      render: (item) => (item.primaryPhone ? maskPhoneBR(item.primaryPhone) : '-'),
     },
     {
       key: 'status',

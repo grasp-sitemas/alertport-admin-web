@@ -6,6 +6,10 @@ import {
   pickTourForRole,
 } from '@/features/onboarding/tours';
 import ptMessages from '@/messages/pt.json';
+import enMessages from '@/messages/en.json';
+import esMessages from '@/messages/es.json';
+import jaMessages from '@/messages/ja.json';
+import zhMessages from '@/messages/zh.json';
 
 // Rails around the onboarding content so it stays in sync with the
 // product spec: admin learns clients -> sites -> QR code -> device
@@ -92,5 +96,108 @@ describe('i18n coverage of tour keys', () => {
     expect(titles.join(' ')).toMatch(/liga[çc][ãa]o|escuta/i);
     expect(titles.join(' ')).toMatch(/grava[çc][ãa]o/i);
     expect(titles.join(' ')).toMatch(/indicador|KPI/i);
+  });
+});
+
+describe('role isolation: OPERATOR tour must not leak admin-only surfaces', () => {
+  // These anchors belong to screens OPERATOR has no access to
+  // per navigation.ts roles. Catching them here prevents a
+  // future refactor from silently exposing ADMIN UX to operators.
+  const ADMIN_ONLY_ANCHORS = [
+    'sidebar-clients',
+    'sidebar-sites',
+    'sidebar-equipment',
+    'sidebar-collaborators',
+    'sidebar-users',
+    'sidebar-alertScheduling',
+    'sidebar-companySettings',
+    'sidebar-plan',
+    'sidebar-reportAdherence',
+    'sidebar-reportSla',
+    'page-clients-create',
+    'page-sites-create',
+    'page-equipment-create',
+    'scheduling-calendar',
+    'dashboard-kpis',
+  ];
+
+  it('OPERATOR steps never target ADMIN-only anchors', () => {
+    const leaks: string[] = [];
+    for (const step of OPERATOR_TOUR_STEPS) {
+      for (const anchor of ADMIN_ONLY_ANCHORS) {
+        if (step.target.includes(anchor)) leaks.push(`${step.titleKey} -> ${anchor}`);
+      }
+    }
+    expect(leaks).toEqual([]);
+  });
+
+  it('OPERATOR steps only route to pages the operator can access', () => {
+    const operatorRoutes = new Set([
+      '/dashboard',
+      '/alerts/monitor',
+      '/alerts/recordings',
+      '/alerts/occurrences',
+      '/attendance',
+      '/reports/attendance',
+      '/reports/sos',
+    ]);
+    const offenders: string[] = [];
+    for (const step of OPERATOR_TOUR_STEPS) {
+      if (step.route && !operatorRoutes.has(step.route)) {
+        offenders.push(`${step.titleKey} -> ${step.route}`);
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+});
+
+describe('i18n parity across locales', () => {
+  const locales = {
+    en: enMessages,
+    es: esMessages,
+    ja: jaMessages,
+    zh: zhMessages,
+    pt: ptMessages,
+  };
+
+  function resolve(obj: unknown, path: string): unknown {
+    const parts = path.split('.');
+    let node: unknown = obj;
+    for (const p of parts) {
+      if (!node || typeof node !== 'object') return undefined;
+      node = (node as Record<string, unknown>)[p];
+    }
+    return node;
+  }
+
+  it('every tour step key resolves to a non-empty string in every locale', () => {
+    const missing: string[] = [];
+    for (const step of [...ADMIN_TOUR_STEPS, ...OPERATOR_TOUR_STEPS]) {
+      for (const [lang, bundle] of Object.entries(locales)) {
+        const title = resolve(bundle, step.titleKey);
+        const content = resolve(bundle, step.contentKey);
+        if (typeof title !== 'string' || !title.trim()) missing.push(`${lang}:${step.titleKey}`);
+        if (typeof content !== 'string' || !content.trim()) missing.push(`${lang}:${step.contentKey}`);
+      }
+    }
+    expect(missing).toEqual([]);
+  });
+
+  it('nextWithProgress uses {current} and {total} placeholders in every locale', () => {
+    for (const [lang, bundle] of Object.entries(locales)) {
+      const label = resolve(bundle, 'onboarding.controls.nextWithProgress');
+      expect(typeof label === 'string' && label.includes('{current}') && label.includes('{total}'))
+        .toBe(true);
+      if (typeof label !== 'string') throw new Error(`${lang} missing nextWithProgress`);
+    }
+  });
+
+  it('no em-dash (U+2014) appears anywhere in the onboarding block of any locale', () => {
+    const offenders: string[] = [];
+    for (const [lang, bundle] of Object.entries(locales)) {
+      const block = JSON.stringify(resolve(bundle, 'onboarding') ?? {});
+      if (block.includes('\u2014')) offenders.push(lang);
+    }
+    expect(offenders).toEqual([]);
   });
 });

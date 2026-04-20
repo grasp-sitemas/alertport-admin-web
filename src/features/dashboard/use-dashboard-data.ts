@@ -7,7 +7,7 @@ import { usersService } from '@/services/users.service';
 import { useUserScope, applyUserScope } from '@/hooks/use-user-scope';
 
 /**
- * Dashboard KPIs — all filter endpoints are scoped to the logged-in user's
+ * Dashboard KPIs - all filter endpoints are scoped to the logged-in user's
  * account / client / site hierarchy, matching the legacy shieldgo behaviour.
  */
 export function useDashboardData() {

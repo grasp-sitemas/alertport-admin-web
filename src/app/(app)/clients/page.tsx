@@ -67,16 +67,16 @@ export default function ClientsPage() {
       headerKey: 'common.name',
       render: (item) => <p className="font-medium text-white">{item.name}</p>,
     },
-    { key: 'email', headerKey: 'common.email', render: (item) => item.email || '—' },
+    { key: 'email', headerKey: 'common.email', render: (item) => item.email || '-' },
     {
       key: 'primaryPhone',
       headerKey: 'common.phone',
-      render: (item) => (item.primaryPhone ? maskPhoneBR(item.primaryPhone) : '—'),
+      render: (item) => (item.primaryPhone ? maskPhoneBR(item.primaryPhone) : '-'),
     },
     {
       key: 'account',
       headerKey: 'common.account',
-      render: (item) => (typeof item.account === 'object' ? item.account?.name : '—'),
+      render: (item) => (typeof item.account === 'object' ? item.account?.name : '-'),
     },
     {
       key: 'status',
@@ -124,6 +124,7 @@ export default function ClientsPage() {
           action={
             <GatedCreateButton
               resource="clients"
+              data-tour="page-clients-create"
               onClick={() => {
                 setEditing(undefined);
                 setFormOpen(true);

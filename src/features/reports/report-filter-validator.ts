@@ -6,7 +6,7 @@ import type { ReportFilterParams } from '@/types/reports';
  * Backend enforces the same rules (see
  * `ms-report/helpers/alertport-report-helpers.js::parseFilter`), but
  * we replicate them here so we never POST a guaranteed-failure request
- * — keeps network round-trips cheap and the error message instant.
+ * - keeps network round-trips cheap and the error message instant.
  */
 
 export const MAX_RANGE_DAYS = 30;

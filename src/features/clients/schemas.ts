@@ -8,7 +8,7 @@ import { z } from 'zod';
  *   - account: required (the client belongs to an ACCOUNT)
  *   - email, primaryPhone, owner: optional
  *
- * `primaryPhone` is stored as digits only — the UI input masks it for display.
+ * `primaryPhone` is stored as digits only - the UI input masks it for display.
  */
 export const clientFormSchema = z.object({
   _id: z.string().optional(),

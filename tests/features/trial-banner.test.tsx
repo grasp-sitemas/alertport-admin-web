@@ -72,7 +72,7 @@ async function renderWithState(trial: TrialState, role: UserSubtype | null) {
   );
 }
 
-describe('TrialBanner — render gating', () => {
+describe('TrialBanner - render gating', () => {
   it('renders nothing when not on a trial', async () => {
     await renderWithState({ isTrial: false, isReadOnly: false, daysRemaining: null }, 'ADMIN');
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
@@ -90,7 +90,7 @@ describe('TrialBanner — render gating', () => {
   });
 });
 
-describe('TrialBanner — "Ver plano" CTA role gate', () => {
+describe('TrialBanner - "Ver plano" CTA role gate', () => {
   const activeTrial: TrialState = { isTrial: true, isReadOnly: false, daysRemaining: 10 };
   const expiredTrial: TrialState = { isTrial: true, isReadOnly: true, daysRemaining: 0 };
 

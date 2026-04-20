@@ -9,7 +9,7 @@ const RETRYABLE_STATUS = [500, 502, 503, 504, 408, 429];
  * Number of consecutive backend failures (5xx, 408, network) we
  * tolerate before broadcasting a `service:unavailable` event. The
  * AppShell listens for it and renders a banner so operators know the
- * spinning wheel isn't their internet — it's us. Two failures in a row
+ * spinning wheel isn't their internet - it's us. Two failures in a row
  * rather than one avoids false-positive banners on a single flaky
  * request, while still catching a true outage within seconds.
  */
@@ -35,7 +35,7 @@ function onRequestSuccess() {
 }
 
 function onRequestFailure(error: AxiosError) {
-  // Only count 5xx + network errors (4xx are user/client issues — not
+  // Only count 5xx + network errors (4xx are user/client issues - not
   // the platform being down). 401 is caught upstream before reaching
   // here in the interceptor chain, so no double-count.
   const status = error.response?.status;
@@ -99,7 +99,7 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (correlationId) {
     config.headers['x-correlation-id'] = correlationId;
   }
-  // Don't override Content-Type for FormData — let the browser/Axios set it
+  // Don't override Content-Type for FormData - let the browser/Axios set it
   // with the correct boundary. Only set it if it's not already FormData.
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type'];

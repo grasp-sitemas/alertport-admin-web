@@ -13,7 +13,7 @@ import { Card, CardContent } from '@/components/ui/card';
  * Shared wrapper every report page uses. Handles the three uniform
  * states (loading / error / empty) so each page's body only has to
  * deal with the happy path. Keeps the visual language identical
- * across the 4 reports — the "muito bem distribuído, profissional"
+ * across the 4 reports - the "muito bem distribuído, profissional"
  * bar from the product spec.
  */
 

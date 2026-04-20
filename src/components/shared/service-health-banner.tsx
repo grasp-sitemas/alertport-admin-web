@@ -9,7 +9,7 @@
  * emits `service:restored` and we hide the banner.
  *
  * Why this exists: when ms-report (or any Heroku dyno) drops, pages
- * today spin forever and users have no idea the platform is down —
+ * today spin forever and users have no idea the platform is down -
  * they blame their internet, call support, and no one knows where
  * the real problem is. A single persistent banner fixes that without
  * needing per-page error UX.
@@ -47,7 +47,7 @@ export function ServiceHealthBanner() {
         {t('serviceHealth.unavailableTitle')}
       </span>
       <span className="hidden opacity-80 sm:inline">
-        — {t('serviceHealth.unavailableDescription')}
+        - {t('serviceHealth.unavailableDescription')}
       </span>
     </div>
   );

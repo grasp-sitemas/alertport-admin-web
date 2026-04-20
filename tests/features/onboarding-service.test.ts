@@ -63,7 +63,7 @@ describe('onboardingService', () => {
   });
 
   it('only "admin" and "operator" are valid tour values at the type level', () => {
-    // Compile-time guard — if someone adds a new tour, update the
+    // Compile-time guard - if someone adds a new tour, update the
     // union type + this assertion. TypeScript will fail the build
     // if the union widens unexpectedly.
     const valid: 'admin' | 'operator' = 'admin';

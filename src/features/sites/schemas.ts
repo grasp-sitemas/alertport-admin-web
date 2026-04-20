@@ -23,7 +23,7 @@ export const siteFormSchema = z.object({
   client: z.string().min(1, { message: 'validation.required' }),
   primaryPhone: z.string().optional(),
   owner: z.string().optional(),
-  // enableFreePatrol intentionally removed — ShieldGo-only feature.
+  // enableFreePatrol intentionally removed - ShieldGo-only feature.
   address: addressSchema,
   type: z.literal('SITE'),
   status: z.enum(['ACTIVE', 'ARCHIVED']),

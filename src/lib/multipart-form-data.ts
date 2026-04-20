@@ -3,7 +3,7 @@
  * `/api/{company,users}/formdata/v1/` endpoints.
  *
  * IMPORTANT: do NOT append `file` when there is no file. The API Gateway uses
- * `multer.array('file', 100)` — if we append an empty Blob, multer treats it
+ * `multer.array('file', 100)` - if we append an empty Blob, multer treats it
  * as a valid upload, tries to persist it to `uploads/<generated-name>`, and
  * blows up with `ENOENT` on containers where that directory is ephemeral
  * (Heroku). Shieldgo-admin-web relies on the implicit "undefined file" →
@@ -26,7 +26,7 @@ export function toMultipartFormData(payload: unknown, file?: File | null): FormD
   // Triple-gate guard against empty files:
   //   1. File exists at all (might be null/undefined)
   //   2. File has size > 0 (mobile emulators sometimes return size=0)
-  //   3. Throw if a File was provided but is empty — so the caller can't
+  //   3. Throw if a File was provided but is empty - so the caller can't
   //      silently ship a 500 to the user.
   if (file) {
     if (file.size === 0) {

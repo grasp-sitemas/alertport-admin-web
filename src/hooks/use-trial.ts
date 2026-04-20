@@ -27,7 +27,7 @@ export interface TrialContextValue {
   daysRemaining: number | null;
   /**
    * Will a new instance of `resource` fit in the plan's limit?
-   * Returns { allowed, reason } — `reason` is a TrialBlockedReason or null.
+   * Returns { allowed, reason } - `reason` is a TrialBlockedReason or null.
    * For LEGACY / unlimited / unknown resources: always allows.
    */
   canCreate: (resource: GatedResource, count?: number) => { allowed: boolean; reason: string | null };
@@ -42,7 +42,7 @@ export const TrialContext = createContext<TrialContextValue | null>(null);
 export function useTrial(): TrialContextValue {
   const ctx = useContext(TrialContext);
   if (!ctx) {
-    // Safe fallback: outside the provider, never block UI — behave like legacy.
+    // Safe fallback: outside the provider, never block UI - behave like legacy.
     return LEGACY_FALLBACK;
   }
   return ctx;

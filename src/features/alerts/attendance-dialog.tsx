@@ -50,7 +50,7 @@ interface AttendanceDialogProps {
 }
 
 /**
- * AttendanceDialog — mirrors shieldgo-admin-web's attendance flow:
+ * AttendanceDialog - mirrors shieldgo-admin-web's attendance flow:
  *   1. Opens the patrol-action attendance (status: IN_PROGRESS) if not yet.
  *   2. Operator logs one or more attendance records (type + notes).
  *   3. "Fechar atendimento" is enabled only once at least one record exists
@@ -71,7 +71,7 @@ export function AttendanceDialog({
 
   const operatorId = user?._id ?? '';
   // Shieldgo only allows OPERATOR role to OPEN/CLOSE the attendance flag on a
-  // patrol-action — other roles (ADMIN/MANAGER/AUDITOR) get a 401
+  // patrol-action - other roles (ADMIN/MANAGER/AUDITOR) get a 401
   // `invalid.user.role`. Mirror that gate here so the dialog doesn't auto-fire
   // a request that will definitely fail.
   const isOperator = user?.companyUser?.subtype === 'OPERATOR';
@@ -126,7 +126,7 @@ export function AttendanceDialog({
 
   // ── Ownership gate (critical for avoiding takeover) ─────────────
   // The backend `attendanceEvent` DAO uses `$set: { attendance: ... }` which
-  // BLINDLY overwrites any existing attendance object — it's effectively a
+  // BLINDLY overwrites any existing attendance object - it's effectively a
   // takeover endpoint. The legacy shieldgo-admin-web guards against this in
   // the UI (only the operator who opened it may edit/close); we mirror that
   // contract here. See attendance-state.ts for the full lifecycle semantics.
@@ -232,13 +232,13 @@ export function AttendanceDialog({
   });
 
   // Auto-open the attendance flag when the dialog first appears for an
-  // AVAILABLE event — saves the operator one click. Critical guards:
+  // AVAILABLE event - saves the operator one click. Critical guards:
   //   • Only OPERATOR role may open/close (backend returns 401
   //     `invalid.user.role` otherwise).
-  //   • Skip if the event is already claimed (by anyone) — opening would
+  //   • Skip if the event is already claimed (by anyone) - opening would
   //     overwrite the owner's record via the DAO's `$set`. This is THE
   //     rule that prevents two operators from claiming the same event.
-  //   • Skip if CLOSED — don't re-open a historical attendance.
+  //   • Skip if CLOSED - don't re-open a historical attendance.
   useEffect(() => {
     if (!open || !event || !operatorId) return;
     if (!isOperator) return;
@@ -305,7 +305,7 @@ export function AttendanceDialog({
             )}
           </div>
 
-          {/* Locked — another operator already claimed this event. Prevents
+          {/* Locked - another operator already claimed this event. Prevents
               the takeover that the backend's blind $set would allow. */}
           {isLocked && (
             <div className="flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200">
@@ -448,14 +448,14 @@ export function AttendanceDialog({
             )}
           </div>
 
-          {/* Role gate notice — only OPERATORs can open/close attendance. */}
+          {/* Role gate notice - only OPERATORs can open/close attendance. */}
           {!isOperator && (
             <div className="flex items-start gap-2 rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-xs text-sky-200">
               <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
               <span>{t('alerts.attendance.operatorOnly')}</span>
             </div>
           )}
-          {/* Close attendance hint — only meaningful for the owner. */}
+          {/* Close attendance hint - only meaningful for the owner. */}
           {state === 'IN_PROGRESS_BY_ME' && isOperator && records.length === 0 && (
             <div className="flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200">
               <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />

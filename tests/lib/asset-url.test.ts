@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 /**
  * `resolveAssetUrl` exists because the legacy backend persists photo/logo
- * paths as `/filemanager/photo/<file>.png` — relative. Without a prefix, the
+ * paths as `/filemanager/photo/<file>.png` - relative. Without a prefix, the
  * browser fetches them from the Vercel origin and 404s. Every case here maps
  * to a real production scenario.
  */

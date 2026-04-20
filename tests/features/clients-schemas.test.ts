@@ -3,7 +3,7 @@ import { clientFormSchema } from '@/features/clients/schemas';
 import { siteFormSchema } from '@/features/sites/schemas';
 
 describe('clientFormSchema', () => {
-  // `account` is a required ObjectId ref — clients must belong to an account.
+  // `account` is a required ObjectId ref - clients must belong to an account.
   // Tests here pass a placeholder id so the positive assertions actually
   // reach the rule under test instead of dying on account validation.
   const baseValid = {

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * useCall — complete call state machine.
+ * useCall - complete call state machine.
  *
  * Replicates the call flow from shieldgo-admin-web/src/pages/Monitor/AlertMonitor/AlertMonitor.vue:
  *
@@ -28,11 +28,11 @@ import { getWebRtcIceServers } from '@/lib/webrtc-ice';
 import { useAuth } from '@/hooks/use-auth';
 
 /**
- * Silent-listen recording — transparent, automatic.
+ * Silent-listen recording - transparent, automatic.
  *
  * WebRTC is peer-to-peer: the ms-chat server never sees the actual audio
  * stream. Any "backend recording" actually has to capture audio at an endpoint
- * — here, the operator's browser. The operator UI deliberately exposes NO
+ * - here, the operator's browser. The operator UI deliberately exposes NO
  * toggle, no indicator: the recording is started silently when a SILENT_LISTEN
  * call reaches the `connected` state and uploaded when the call ends.
  *
@@ -49,7 +49,7 @@ import { useAuth } from '@/hooks/use-auth';
  * the saved file contains both sides of the conversation.
  *
  * A hard 3-minute limit auto-finalizes and uploads the recording while
- * the call continues uninterrupted — the operator may start a new
+ * the call continues uninterrupted - the operator may start a new
  * recording afterwards if they need to keep capturing. We chose 3 min
  * to match ms-chat's SILENT_LISTEN auto-finalize ceiling and keep the
  * base64 upload payload bounded (~2–3 MB for WebM/Opus).
@@ -75,7 +75,7 @@ function blobToBase64(blob: Blob): Promise<string> {
     const reader = new FileReader();
     reader.onloadend = () => {
       const result = typeof reader.result === 'string' ? reader.result : '';
-      // Strip the "data:<mime>;base64," prefix — backend accepts both, but
+      // Strip the "data:<mime>;base64," prefix - backend accepts both, but
       // smaller payload is nicer.
       const comma = result.indexOf(',');
       resolve(comma >= 0 ? result.slice(comma + 1) : result);
@@ -111,7 +111,7 @@ export interface CallState {
   /**
    * Recording state. For SILENT_LISTEN the recording auto-starts as soon
    * as the remote audio track arrives. For NORMAL calls the operator
-   * toggles recording manually via `toggleRecording()` — `canRecord`
+   * toggles recording manually via `toggleRecording()` - `canRecord`
    * gates the button's availability (mirrors the server-side
    * callRecordingEnabled flag from company-settings).
    */
@@ -288,7 +288,7 @@ export function useCall(): CallState & CallActions {
    * stream (the operator's mic is always muted in that mode).
    *
    * If either side is missing or the browser doesn't support the
-   * required APIs we fall back to the remote stream alone — one side
+   * required APIs we fall back to the remote stream alone - one side
    * is always better than dropping the recording entirely.
    */
   const createMixedStream = useCallback((): MediaStream | null => {
@@ -452,7 +452,7 @@ export function useCall(): CallState & CallActions {
       if (remoteAudioRef.current) {
         remoteAudioRef.current.srcObject = remoteStream;
         remoteAudioRef.current.play().catch(() => {
-          // Autoplay policy may block — user must click page first.
+          // Autoplay policy may block - user must click page first.
         });
       }
       // SILENT_LISTEN: transparent auto-record the moment the remote
@@ -474,7 +474,7 @@ export function useCall(): CallState & CallActions {
         setStatus('connected');
         setStatusMessage('Chamada em andamento');
       } else if (state === 'failed' || state === 'disconnected' || state === 'closed') {
-        // keep legacy behavior — cleanup on final
+        // keep legacy behavior - cleanup on final
         if (state === 'failed') {
           setStatus('error');
           setStatusMessage('Falha na conexão de áudio');
@@ -582,7 +582,7 @@ export function useCall(): CallState & CallActions {
       if (activeRoomIdRef.current) {
         setStatus('ended');
         setStatusMessage('Conexão com o chat foi perdida');
-        // Socket is down — upload will fail. Best we can do is drop buffered
+        // Socket is down - upload will fail. Best we can do is drop buffered
         // chunks so we don't leak. The call:end event will reach the server
         // on reconnect (roomId+socket tombstone), so the audit log still has
         // the session, just without audio.
@@ -612,7 +612,7 @@ export function useCall(): CallState & CallActions {
       peerUserIdRef.current = payload.from;
       callModeRef.current = payload.callMode;
       // Incoming path lacks the server's explicit `callRecordingEnabled`
-      // ack — trust the call-mode contract: SILENT_LISTEN is always
+      // ack - trust the call-mode contract: SILENT_LISTEN is always
       // recorded; NORMAL recording is a local operator decision and the
       // server gate is re-checked on upload by ms-chat anyway.
       callRecordingEnabledRef.current = true;
@@ -660,7 +660,7 @@ export function useCall(): CallState & CallActions {
 
     const onRemoteOffer = async (payload: WebRtcSignalPayload) => {
       if (payload.roomId !== activeRoomIdRef.current) {
-        // Not accepted yet — queue
+        // Not accepted yet - queue
         pendingOfferRef.current = payload;
         return;
       }
@@ -808,7 +808,7 @@ export function useCall(): CallState & CallActions {
 
           if (ack.targetOnline === false) {
             // Cross-tenant diagnostic from ms-chat: the device IS online but
-            // on a different account — multi-tenant isolation means the admin
+            // on a different account - multi-tenant isolation means the admin
             // can't reach it. Clearer copy so the operator knows to move the
             // device (scan QR on a site of their own account) rather than
             // hunting for a crashed app.
@@ -819,7 +819,7 @@ export function useCall(): CallState & CallActions {
               toast.error(msg);
             } else {
               const msg = ack.wakeupTriggered
-                ? 'Dispositivo offline — push de wake-up enviado. Aguarde o dispositivo acordar.'
+                ? 'Dispositivo offline - push de wake-up enviado. Aguarde o dispositivo acordar.'
                 : 'Dispositivo offline. Peça ao usuário para abrir o aplicativo e tente novamente.';
               setStatusMessage(msg);
               toast.warning(msg);

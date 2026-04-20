@@ -8,7 +8,7 @@ function required(name: string, value: string | undefined, fallback?: string): s
   if (value && value.length > 0) return value;
   if (fallback !== undefined) return fallback;
   if (typeof window !== 'undefined') {
-    // In the browser we warn but don't crash — the user may still need to see a usable UI.
+    // In the browser we warn but don't crash - the user may still need to see a usable UI.
     console.warn(`[env] Missing required env var: ${name}`);
   }
   return '';

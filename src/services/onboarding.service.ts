@@ -4,7 +4,7 @@ import { endpoints } from '@/config/endpoints';
 /**
  * Backend-persisted onboarding status for the logged-in user.
  * A tour is "done" (don't auto-start) whenever its `*CompletedAt`
- * timestamp is present. `skipped` is a hint for analytics — UX treats
+ * timestamp is present. `skipped` is a hint for analytics - UX treats
  * it the same as completed.
  */
 export interface OnboardingStatus {

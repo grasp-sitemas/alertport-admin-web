@@ -17,7 +17,7 @@ import type { AttendanceRow, ReportFilterParams } from '@/types/reports';
 import type { ExportPayload } from '@/features/reports/report-export';
 
 /**
- * Controle de Presença — consolidated view of every AlertPort
+ * Controle de Presença - consolidated view of every AlertPort
  * time-entry (CLOCK_IN/OUT, BREAK_START/END) in the window. Backend
  * source: `time-entries` with `source='ALERTPORT'`.
  */
@@ -79,20 +79,20 @@ function AttendancePageBody() {
         key: 'user',
         headerKey: 'attendance.employee',
         render: (r) => {
-          if (!r.user) return '—';
+          if (!r.user) return '-';
           const name = `${r.user.firstName ?? ''} ${r.user.lastName ?? ''}`.trim();
-          return name || '—';
+          return name || '-';
         },
       },
       {
         key: 'site',
         headerKey: 'common.site',
-        render: (r) => r.site?.name ?? '—',
+        render: (r) => r.site?.name ?? '-',
       },
       {
         key: 'method',
         headerKey: 'reports.attendance.method',
-        render: (r) => r.method ?? '—',
+        render: (r) => r.method ?? '-',
       },
     ],
     [],
@@ -103,7 +103,7 @@ function AttendancePageBody() {
     return {
       fileName: 'controle_presenca',
       title: t('reports.attendance.title'),
-      subtitle: `${filterValue.startDate} — ${filterValue.endDate}`,
+      subtitle: `${filterValue.startDate} - ${filterValue.endDate}`,
       generatedAt: data?.generatedAt || new Date().toISOString(),
       kpis: [
         { label: t('reports.attendance.kpi.total'), value: formatNumber(summary.total) },

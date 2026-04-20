@@ -10,7 +10,7 @@ import type {
 } from '@/types/api';
 
 // ──────────────────────────────────────────────────────────────
-// Admin users (type: USER-COMPANY) — /users page
+// Admin users (type: USER-COMPANY) - /users page
 // ──────────────────────────────────────────────────────────────
 
 export interface AdminUserFormData {
@@ -38,7 +38,7 @@ export interface AdminUserFormData {
 }
 
 // ──────────────────────────────────────────────────────────────
-// Customer users (type: USER-CUSTOMER) — /collaborators page
+// Customer users (type: USER-CUSTOMER) - /collaborators page
 // ──────────────────────────────────────────────────────────────
 
 export interface CustomerUserFilter extends FilterParams {
@@ -94,7 +94,7 @@ export const usersService = {
     userData: AdminUserFormData,
     file?: File | null,
   ): Promise<ApiSingleResponse<User>> {
-    // Don't set Content-Type — let Axios/browser set it with proper boundary
+    // Don't set Content-Type - let Axios/browser set it with proper boundary
     const fd = toFormData(userData, file);
     const { data } = await apiClient.post<ApiSingleResponse<User>>(
       endpoints.userFormData,
@@ -108,7 +108,7 @@ export const usersService = {
     userData: Partial<AdminUserFormData>,
     file?: File | null,
   ): Promise<ApiSingleResponse<User>> {
-    // Don't set Content-Type — let Axios/browser set it with proper boundary
+    // Don't set Content-Type - let Axios/browser set it with proper boundary
     const fd = toFormData(userData, file);
     const { data } = await apiClient.put<ApiSingleResponse<User>>(
       endpoints.userFormDataById(id),
@@ -144,7 +144,7 @@ export const usersService = {
     payload: CustomerUserFormData,
     file?: File | null,
   ): Promise<ApiSingleResponse<User>> {
-    // Don't set Content-Type — let Axios/browser set it with proper boundary
+    // Don't set Content-Type - let Axios/browser set it with proper boundary
     const fd = toFormData(payload, file);
     const { data } = await apiClient.post<ApiSingleResponse<User>>(
       endpoints.userFormData,
@@ -158,7 +158,7 @@ export const usersService = {
     payload: Partial<CustomerUserFormData>,
     file?: File | null,
   ): Promise<ApiSingleResponse<User>> {
-    // Don't set Content-Type — let Axios/browser set it with proper boundary
+    // Don't set Content-Type - let Axios/browser set it with proper boundary
     const fd = toFormData(payload, file);
     const { data } = await apiClient.put<ApiSingleResponse<User>>(
       endpoints.userFormDataById(id),

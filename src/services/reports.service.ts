@@ -12,7 +12,7 @@ import type {
  * Client for the AlertPort reports endpoints exposed by ms-report
  * under `/api/reports/alertport/*`. All responses share the shape
  * `{ status, messageId, summary, results, totalCount, generatedAt,
- * durationMs }` — we unwrap the inner envelope so callers see a
+ * durationMs }` - we unwrap the inner envelope so callers see a
  * plain ReportEnvelope<T, R>.
  *
  * The backend enforces a hard 30-day window on the date range;
@@ -24,7 +24,7 @@ function unwrap<T>(data: unknown): T {
   // The backend wraps with `instantiateMessage` so `data` has
   // `{ status, messageId, summary, results, totalCount, generatedAt,
   // durationMs, operators? }`. The inner envelope is the whole
-  // response minus the status/messageId/message fields — cheapest
+  // response minus the status/messageId/message fields - cheapest
   // to just return the full object and let callers read what they need.
   return data as T;
 }

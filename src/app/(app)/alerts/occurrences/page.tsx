@@ -50,17 +50,17 @@ export default function AlertOccurrencesPage() {
     {
       key: 'site',
       headerKey: 'common.site',
-      render: (item) => (typeof item.site === 'object' ? item.site?.name : '—'),
+      render: (item) => (typeof item.site === 'object' ? item.site?.name : '-'),
     },
     {
       key: 'client',
       headerKey: 'common.client',
-      render: (item) => (typeof item.client === 'object' ? item.client?.name : '—'),
+      render: (item) => (typeof item.client === 'object' ? item.client?.name : '-'),
     },
     {
       key: 'equipment',
       headerKey: 'alerts.equipment',
-      render: (item) => (typeof item.equipment === 'object' ? item.equipment?.name : '—'),
+      render: (item) => (typeof item.equipment === 'object' ? item.equipment?.name : '-'),
     },
     {
       key: 'scheduledAt',
@@ -71,7 +71,7 @@ export default function AlertOccurrencesPage() {
       key: 'respondedAt',
       headerKey: 'alerts.respondedAt',
       render: (item) =>
-        item.respondedAt ? new Date(item.respondedAt).toLocaleString() : '—',
+        item.respondedAt ? new Date(item.respondedAt).toLocaleString() : '-',
     },
     {
       key: 'status',

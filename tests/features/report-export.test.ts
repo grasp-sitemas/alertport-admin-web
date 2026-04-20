@@ -4,7 +4,7 @@ import { exportCsv, type ExportPayload } from '@/features/reports/report-export'
 // The CSV exporter is the only format we can test reliably in jsdom
 // without heavy mocking (xlsx needs Uint8Array workers, jspdf needs a
 // canvas). CSV is also the format the "fast" operator-export path
-// relies on — quoting/escaping bugs there are the most common export
+// relies on - quoting/escaping bugs there are the most common export
 // regression in real-world dashboards.
 
 interface Row {
@@ -72,7 +72,7 @@ describe('exportCsv', () => {
 
   async function readBlob(blob: Blob): Promise<string> {
     // jsdom Blob.text() is sometimes flaky; use arrayBuffer → TextDecoder.
-    // `ignoreBOM: false` is explicit — without it TextDecoder strips the
+    // `ignoreBOM: false` is explicit - without it TextDecoder strips the
     // BOM silently and our "starts with BOM" assertion fires negative.
     const buf = await blob.arrayBuffer();
     return new TextDecoder('utf-8', { ignoreBOM: true }).decode(buf);

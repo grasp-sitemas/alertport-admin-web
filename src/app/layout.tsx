@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     default: 'AlertPort Admin',
     template: '%s · AlertPort Admin',
   },
-  description: 'Vigilância conectada — painel administrativo do AlertPort',
+  description: 'Vigilância conectada - painel administrativo do AlertPort',
   icons: {
     icon: '/favicon.ico',
   },

@@ -97,7 +97,7 @@ describe('useAlertportRealtime routing', () => {
     );
     expect(keys).toContain(JSON.stringify(['patrol-actions']));
     expect(keys).toContain(JSON.stringify(['occurrences']));
-    // NOT the time-entries cache — that would be a waste.
+    // NOT the time-entries cache - that would be a waste.
     expect(keys).not.toContain(JSON.stringify(['time-entries']));
   });
 
@@ -211,7 +211,7 @@ describe('useAlertportRealtime routing', () => {
   it('forwards every event to the onEvent callback from the caller', async () => {
     // Re-mount with a spy consumer. The hook reads options?.onEvent via a
     // ref set after mount; our harness doesn't forward options, but the
-    // default exported hook does accept them — just verify it does not
+    // default exported hook does accept them - just verify it does not
     // throw when not supplied.
     const { fire } = await mountHook();
     expect(() => fire({ kind: 'media', siteId: 'sit-1', data: {} })).not.toThrow();

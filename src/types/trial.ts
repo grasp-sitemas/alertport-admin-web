@@ -1,4 +1,4 @@
-// Trial / Plan contracts — mirror the shieldgo-microservices backend shape.
+// Trial / Plan contracts - mirror the shieldgo-microservices backend shape.
 // Keep these field names in sync with hp-shield-crud/services/trial/*.
 
 export type TrialStatus = 'ACTIVE' | 'EXPIRED' | 'CONVERTED' | 'CANCELED' | null;
@@ -100,12 +100,12 @@ export interface TrialHistoryEntry {
 }
 
 /**
- * Resource keys accepted by canCreate() gating — matches backend plan-config.
+ * Resource keys accepted by canCreate() gating - matches backend plan-config.
  */
 export type GatedResource = 'users' | 'devices' | 'sites' | 'clients' | 'incidents' | 'integrations';
 
 /**
- * Feature keys accepted by canUseFeature() gating — matches backend plan-config.
+ * Feature keys accepted by canUseFeature() gating - matches backend plan-config.
  */
 export type GatedFeature =
   | 'users'

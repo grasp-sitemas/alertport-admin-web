@@ -74,7 +74,7 @@ export function single<T>(result: T) {
 
 /**
  * Canonical sample rows the smoke tests load into the CRUD lists.
- * Intentionally kept minimal — what we're testing is "edit form opens and
+ * Intentionally kept minimal - what we're testing is "edit form opens and
  * the form dialog can submit without silent drop", not data completeness.
  */
 export const sampleAccount = {

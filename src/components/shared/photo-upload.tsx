@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { resolveAssetUrl } from '@/lib/asset-url';
 
 interface PhotoUploadProps {
-  /** Controlled File value — null when no new file is selected. */
+  /** Controlled File value - null when no new file is selected. */
   value: File | null;
   /** Current stored photo URL (from the server) to show as preview when no File is picked. */
   previewUrl?: string | null;
@@ -49,7 +49,7 @@ function isPlaceholder(url?: string | null): boolean {
  * clear button.
  *
  * Parent keeps the File in state and passes it to the service's
- * `create(payload, file)` / `update(id, payload, file)` methods — the
+ * `create(payload, file)` / `update(id, payload, file)` methods - the
  * existing multipart upload path in the API Gateway handles persistence.
  */
 export function PhotoUpload({
@@ -101,7 +101,7 @@ export function PhotoUpload({
       onChange(null);
       return;
     }
-    // Reject empty files — some mobile browsers/emulators return a File
+    // Reject empty files - some mobile browsers/emulators return a File
     // with metadata but zero bytes, which the backend then tries to persist
     // as a 0-byte image and blows up.
     if (file.size === 0) {

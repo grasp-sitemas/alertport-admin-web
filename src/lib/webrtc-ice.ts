@@ -3,7 +3,7 @@
  * Mirrors src/services/webrtcIceConfig.js from shieldgo-admin-web.
  *
  * Priority:
- *   1. NEXT_PUBLIC_WEBRTC_ICE_SERVERS (full JSON array) — takes precedence
+ *   1. NEXT_PUBLIC_WEBRTC_ICE_SERVERS (full JSON array) - takes precedence
  *   2. NEXT_PUBLIC_WEBRTC_TURN_URLS (comma-separated) + TURN_USERNAME + TURN_PASSWORD
  *   3. Always includes default Google STUN
  */

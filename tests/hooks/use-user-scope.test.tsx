@@ -1,7 +1,7 @@
 /**
  * Tests for useUserScope.
  *
- * siteGroupId is the field that gates realtime attendance events — if
+ * siteGroupId is the field that gates realtime attendance events - if
  * we stop extracting it correctly, the monitor stops seeing the
  * claim/close events firefighter-style, and two operators can race.
  * These tests lock the extraction against every shape the backend has
@@ -105,7 +105,7 @@ describe('applyUserScope', () => {
     );
     expect(out.account).toBe('user-pick');
     // Empty string / undefined are still considered unset, so they
-    // pick up the session fallback — matches the legacy shieldgo rule.
+    // pick up the session fallback - matches the legacy shieldgo rule.
     expect(out.client).toBe('cli-session');
     expect(out.site).toBe('sit-session');
   });

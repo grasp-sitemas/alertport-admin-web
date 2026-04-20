@@ -98,7 +98,7 @@ export function DataTable<T>({
                   <TableCell key={col.key} className={col.className}>
                     {col.render
                       ? col.render(item)
-                      : String((item as Record<string, unknown>)[col.key] ?? '—')}
+                      : String((item as Record<string, unknown>)[col.key] ?? '-')}
                   </TableCell>
                 ))}
               </TableRow>

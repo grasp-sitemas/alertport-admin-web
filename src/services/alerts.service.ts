@@ -40,7 +40,7 @@ export const alertsService = {
       | { status: number; result?: AlertSchedule; results?: AlertSchedule[] }
     >(endpoints.scheduleById(id));
     // Legacy endpoint sometimes returns `result`, sometimes `results[0]`,
-    // sometimes a top-level doc — normalize both shapes.
+    // sometimes a top-level doc - normalize both shapes.
     if (data && typeof data === 'object') {
       if ('result' in data && data.result) return data.result as AlertSchedule;
       if ('results' in data && Array.isArray(data.results) && data.results[0]) {
@@ -76,7 +76,7 @@ export const alertsService = {
    * them with the new config. Mirrors the "Edit Series" modal in
    * shieldgo-admin-web's AlertOccurrence calendar.
    *
-   * Required payload fields: `schedule` (the schedule _id — NOT `_id`),
+   * Required payload fields: `schedule` (the schedule _id - NOT `_id`),
    * beginDate (first day of the new series), and every other field the
    * backend needs to rebuild the schedule. The controller
    * ctr.updateSchedule() in ms-schedule reads `schedule` as the target id.
@@ -281,7 +281,7 @@ export const alertsService = {
 
   /**
    * Fetches the attendance type catalog. The legacy API returns
-   * `{ status, results: [{_id, name}] }` — NOT `{ status, result }` — so we
+   * `{ status, results: [{_id, name}] }` - NOT `{ status, result }` - so we
    * normalize to a bare array and let callers consume it directly.
    * Matches shieldgo-admin-web's Services.getAttendancesOptionsTypes.
    */

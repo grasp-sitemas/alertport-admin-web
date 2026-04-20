@@ -12,7 +12,7 @@ import { isSuperAdminMaster } from '@/config/roles';
  *
  * Mirrors the legacy shieldgo behaviour:
  *   1. Accounts load ONLY for SUPER_ADMIN_MASTER (other roles don't pick an
- *      account — theirs is fixed in the session).
+ *      account - theirs is fixed in the session).
  *   2. Clients load ONLY once an account is known (either picked in the UI
  *      by a super admin, or pulled from the session user for ADMIN+).
  *   3. Sites load ONLY once a client is known.
@@ -52,7 +52,7 @@ export function useClientsLookup(account?: string) {
         status: 'ACTIVE',
         account: effectiveAccount,
       }),
-    // Do not fire until we know WHICH account to scope by — legacy changeAccount
+    // Do not fire until we know WHICH account to scope by - legacy changeAccount
     // pattern: clients are only loaded after an account is chosen.
     enabled: !!effectiveAccount,
     staleTime: 5 * 60 * 1000,
@@ -60,7 +60,7 @@ export function useClientsLookup(account?: string) {
 }
 
 /**
- * `account` is optional but — when available — *always* goes on the
+ * `account` is optional but - when available - *always* goes on the
  * payload. The legacy backend's auto-scope rules blow up when a non-SAM
  * user queries `type=SITE` with only `client`: multi-tenant guards
  * intercept it and the endpoint returns an empty list. Passing `account`

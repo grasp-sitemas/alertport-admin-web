@@ -98,7 +98,7 @@ export function CallDialog(props: CallDialogProps) {
             </div>
 
             <div className="text-center">
-              <p className="text-lg font-semibold text-white">{peerLabel || '—'}</p>
+              <p className="text-lg font-semibold text-white">{peerLabel || '-'}</p>
               <div className="flex items-center justify-center gap-2 mt-1 flex-wrap">
                 {isSilent && (
                   <Badge variant="warning">

@@ -73,14 +73,14 @@ export default function SitesPage() {
     {
       key: 'client',
       headerKey: 'common.client',
-      render: (item) => (typeof item.client === 'object' ? item.client?.name : '—'),
+      render: (item) => (typeof item.client === 'object' ? item.client?.name : '-'),
     },
     {
       key: 'address',
       headerKey: 'common.address',
       render: (item) => {
         const a = item.address;
-        if (!a) return '—';
+        if (!a) return '-';
         const parts = [a.address, a.number, a.neighborhood, a.city, a.state].filter(Boolean);
         return parts.length > 0 ? (
           <span className="inline-flex items-center gap-1 text-text-secondary">
@@ -88,14 +88,14 @@ export default function SitesPage() {
             {parts.join(', ')}
           </span>
         ) : (
-          '—'
+          '-'
         );
       },
     },
     {
       key: 'primaryPhone',
       headerKey: 'common.phone',
-      render: (item) => (item.primaryPhone ? maskPhoneBR(item.primaryPhone) : '—'),
+      render: (item) => (item.primaryPhone ? maskPhoneBR(item.primaryPhone) : '-'),
     },
     {
       key: 'status',
@@ -155,6 +155,7 @@ export default function SitesPage() {
           action={
             <GatedCreateButton
               resource="sites"
+              data-tour="page-sites-create"
               onClick={() => {
                 setEditing(undefined);
                 setFormOpen(true);

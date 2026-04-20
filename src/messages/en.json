@@ -217,7 +217,7 @@
       "pdf": "PDF (.pdf)",
       "success": "Export complete",
       "failed": "Export failed. Try again.",
-      "nothingToExport": "Nothing to export — run a search first."
+      "nothingToExport": "Nothing to export - run a search first."
     },
     "adherence": {
       "title": "Patrol Adherence",
@@ -279,7 +279,7 @@
     },
     "sla": {
       "title": "Attendance SLA",
-      "description": "Response and resolution times for SOS — contractual proof of SLA.",
+      "description": "Response and resolution times for SOS - contractual proof of SLA.",
       "tableTitle": "Attended SOS",
       "operatorBreakdown": "Per operator",
       "operatorAttendances": "{count} attendances",
@@ -660,7 +660,7 @@
     "qrPrint": "Print"
   },
   "trial": {
-    "badgeAria": "Trial — {days} days remaining",
+    "badgeAria": "Trial - {days} days remaining",
     "badgeExpiredAria": "Trial expired",
     "badgeExpired": "Expired",
     "badgeEndingToday": "Ends today",
@@ -756,7 +756,7 @@
       "title": "All set!",
       "subtitle": "We sent you an email with an activation code.",
       "emailSent": "Confirm your email",
-      "checkInbox": "We sent the code to {email}. It may take a couple of minutes — check your spam folder too.",
+      "checkInbox": "We sent the code to {email}. It may take a couple of minutes - check your spam folder too.",
       "nextSteps": "Next steps",
       "step1": "Open the email we just sent",
       "step2": "Copy the activation code",
@@ -769,7 +769,7 @@
       "linkStep2": "Click the \"Activate my account\" button",
       "linkStep3": "Your account is activated and ready to sign in",
       "resendLinkCta": "Resend link",
-      "spamNote": "Didn't arrive? Check your spam folder — it may take a few minutes."
+      "spamNote": "Didn't arrive? Check your spam folder - it may take a few minutes."
     },
     "activation": {
       "title": "Activate your account",
@@ -858,126 +858,135 @@
       "close": "Close",
       "finish": "Finish",
       "next": "Next",
+      "nextWithProgress": "Next ({current} of {total})",
       "skip": "Skip"
     },
     "admin": {
       "welcome": {
-        "title": "Welcome to AlertPort",
-        "content": "Hi! Let me walk you through the essentials of setting up your operation in a few minutes. You can skip anytime — this tour is always available from your profile menu at the top-right."
+        "title": "Welcome to the AlertPort platform",
+        "content": "Hello! I'll walk you through the essentials of setting up your operation in just a few minutes. You can skip anytime. The tour is always available from your profile menu in the top-right corner."
       },
-      "clients": {
-        "title": "1. Start with your Clients",
-        "content": "The first step is adding your Clients — the companies or residential complexes you serve. Everything (sites, schedules, reports) is organized around them."
+      "dashboard": {
+        "title": "Dashboard: your overview",
+        "content": "These cards show, in real time, the day's total alerts, pending, answered and missed. It's the first thing you see when you log in."
       },
-      "sites": {
-        "title": "2. Then, add Sites",
-        "content": "For each Client, register their Sites (the physical locations your guards patrol). Without sites, you can't schedule rounds or link devices."
+      "clientsMenu": {
+        "title": "1. Start with Clients",
+        "content": "The first step is registering your Clients: the companies or residential complexes you serve. Everything (sites, patrols, reports) is organized around them. I'll take you to that screen now."
+      },
+      "clientsCreate": {
+        "title": "Register a Client",
+        "content": "Click this button to create your first Client. You'll enter name, tax ID and contact details. Next we move on to that Client's Sites."
+      },
+      "sitesMenu": {
+        "title": "2. Register the Sites",
+        "content": "For each Client you register the Sites (physical locations where your Guards work). Without a Site you can't schedule patrols or link devices."
+      },
+      "sitesCreate": {
+        "title": "Create a Site",
+        "content": "This is the button to register a Site. Once saved, the Site generates a unique QR Code, used to link the Guard's device."
       },
       "qrcode": {
         "title": "3. Site QR Code + AlertPort app",
-        "content": "Each site generates a unique QR Code. In the guard's AlertPort app, they scan it to link the device (phone) to this site. Only then will the device show up as available in your schedules."
+        "content": "Each Site generates a unique QR Code. In the AlertPort app installed on the Guard's phone, they scan the QR Code and the device becomes linked to that Site. Only after this scan does the device show up as available in Schedules."
       },
-      "equipment": {
+      "equipmentMenu": {
         "title": "4. Linked equipment",
-        "content": "Here you see every device linked to your sites. Each row shows which site has which device and its status."
+        "content": "Here you see every device linked to your Sites. Each row shows which Site has which device and its status (online, inactive, blocked)."
+      },
+      "equipmentCreate": {
+        "title": "New equipment",
+        "content": "If you ever need to register a device manually before scanning the QR Code (rare scenarios), use this button. The recommended flow is still to scan the QR Code with the app."
       },
       "collaborators": {
-        "title": "5. Collaborators (guards)",
-        "content": "Register your guards here. They're the ones who receive alerts on the AlertPort app and press to confirm presence or respond to events."
+        "title": "5. Collaborators (Guards)",
+        "content": "Register your Guards here. They're the ones who receive alerts on the AlertPort app, clock in and respond to events. Set their shift and the Sites where each one works."
       },
       "users": {
         "title": "6. Central operators",
-        "content": "Operators monitor the system 24/7 — they respond to SOS, handle calls, and manage events. Register them here with OPERATOR role."
+        "content": "Operators monitor the system 24/7, handle SOS and make calls. Register them here with OPERATOR role. Admins are also managed from this screen."
       },
-      "scheduling": {
+      "schedulingMenu": {
         "title": "7. Alert scheduling",
-        "content": "Once you have client + site + linked device, create alert schedules. The guard receives them on the app and has to press to confirm they're active and on-site — the \"don't fall asleep\" feature."
+        "content": "With Client + Site + linked device in place, you create alert schedules. The Guard receives them on the app and must press to confirm they're active at the Site. It's the classic \"don't fall asleep on the job\"."
+      },
+      "schedulingCalendar": {
+        "title": "Scheduling calendar",
+        "content": "This is the calendar where you create and view schedules. Drag to create a new one, click to edit. Daily, weekly or monthly recurrence."
       },
       "monitor": {
         "title": "8. Alert Monitor",
-        "content": "This is where your operator lives all day. Real-time SOS, scheduled events, and time entries show up here. Supports phone calls and silent listening."
+        "content": "This is the screen your operator keeps open throughout the shift. Real-time SOS, scheduled events and time entries appear here. It supports phone calls and silent listening."
       },
       "attendance": {
         "title": "9. Attendance Control",
-        "content": "Guard time entries (clock-in/out, breaks) appear here. Useful for shift tracking and labor compliance."
+        "content": "Guard time entries (clock-in, clock-out, breaks) appear here. Useful for shift tracking and labor compliance."
       },
       "recordings": {
         "title": "10. Call recordings",
-        "content": "Every call made through the platform is recorded and kept here. Useful for auditing, contractual proof, and training."
+        "content": "Every call made through the platform is recorded and kept here. Useful for auditing, contractual proof and training."
       },
       "reports": {
         "title": "11. Reports",
-        "content": "Four key reports: Patrol Adherence (the main one — proof the guard responded), Attendance SLA, SOS Alerts, and Attendance Log. Exportable as XLSX, CSV, and PDF."
-      },
-      "settings": {
-        "title": "12. Company settings",
-        "content": "Logo, registration data, timezone, internal policies. Any account admin can adjust these."
+        "content": "Four key reports: Patrol Adherence (the main one, proof that the Guard responded), Attendance SLA, SOS Alerts and Attendance Control. Exportable as XLSX, CSV and PDF."
       },
       "plan": {
-        "title": "13. Your Plan",
-        "content": "Track your plan, trial period, and limits here. Upgrade from this page when ready."
+        "title": "12. Your Plan",
+        "content": "Track your plan, trial period and limits here. When you're ready to subscribe or upgrade, this is the place."
       },
       "finish": {
         "title": "All set!",
-        "content": "You know the essentials. Remember: start with Clients → Sites → QR Code in the app → link devices → create schedules. You can replay this tour anytime from your profile menu."
+        "content": "You know the essentials. Remember the path: Clients, then Sites, then QR Code in the app, then link devices, then create schedules. You can replay this tour anytime from the profile menu."
       }
     },
     "operator": {
       "welcome": {
         "title": "Welcome, operator",
-        "content": "Your shift just started. Let me show you where everything lives and how to handle alerts. You can skip and replay later from your profile menu."
-      },
-      "monitor": {
-        "title": "The Monitor is your home",
-        "content": "Alert Monitor is your main screen. Keep it open the whole shift — this is where SOS and events come in for you to handle."
-      },
-      "sosGlobal": {
-        "title": "SOS arrives from any screen",
-        "content": "Regardless of which page you're on, an SOS plays a 2-second alarm and shows a red banner at the top. Click \"Attend now\" to jump straight to it."
+        "content": "Your shift has started. I'll show you where everything lives and how to respond to alerts. You can skip and replay later from your profile menu."
       },
       "kpis": {
         "title": "Today's indicators (KPIs)",
-        "content": "At the top of the Monitor: total events, SOS of the day, Available (not attended yet), In-progress, and Time Entries. The \"Available\" card is what you need to attend to."
+        "content": "At the top of the Monitor: total events, SOS of the day, Available (not attended yet), In progress and Time Entries. The \"Available\" card is what you need to attend to."
       },
       "eventCard": {
         "title": "Event cards",
-        "content": "Each alert becomes a card. The \"Attend\" button starts the attendance. Once attended, it moves to the \"In-progress by you\" section."
+        "content": "Each alert becomes a card with time, Site, Guard and priority. The \"Open attendance\" button starts the attendance. Once attended, the card moves to the \"In progress by you\" section."
+      },
+      "sosGlobal": {
+        "title": "SOS reaches any screen",
+        "content": "Regardless of which page you're on, an SOS triggers an audible alarm and shows a red banner at the top. Click \"Attend now\" to jump straight to the alert."
       },
       "attendanceOwner": {
-        "title": "Attendance lock: one operator per event",
-        "content": "When you open an attendance, the event gets locked to you — no one else can attend the same one. This prevents two operators from handling the same SOS simultaneously."
+        "title": "Exclusive attendance: one operator per event",
+        "content": "When you open an attendance, the event gets locked to you. No other operator can attend the same one. This prevents two operators from handling the same SOS simultaneously."
       },
       "callActions": {
         "title": "Normal call and silent listen",
-        "content": "During attendance, you can make a normal call (two-way conversation) or silent listen (you listen without the guard knowing — useful in emergencies). Use the button on the event card."
+        "content": "During attendance you can make a normal call (conversation) or silent listen (you listen without the Guard knowing, useful in emergencies)."
       },
       "recording": {
         "title": "Call recording",
-        "content": "While on a call, hit the record button. You have up to 3 minutes; then the recording is saved automatically and you can start a new one."
+        "content": "While on a call, press the record button. You have up to 3 minutes; after that the recording is saved automatically and you can start a new one."
       },
       "recordingsHistory": {
         "title": "Recording history",
-        "content": "All recorded calls land here. You can filter by client, site, date, and play them again. Useful for reports and audit."
+        "content": "Every recorded call lives here. You can filter by Client, Site, date and play them again. Useful for reports and audits."
       },
       "occurrences": {
         "title": "Event history",
-        "content": "Here's the full list of every event (SOS, incidents) that happened. Search by date, site, or guard."
+        "content": "Full list of every event (SOS, incidents) in the operation. Search by date, Site or Guard."
       },
       "timeEntries": {
-        "title": "Time entries",
-        "content": "Guards clock in from the app. You can check clock-in, clock-out, and breaks for each collaborator here."
-      },
-      "scheduling": {
-        "title": "Schedules",
-        "content": "See the active schedules (recurring alerts guards must respond to). Useful to understand what's about to land on the Monitor."
+        "title": "Time Entries",
+        "content": "Guards clock in from the app. Here you check the clock-in, clock-out and breaks of each collaborator during the shift."
       },
       "reports": {
         "title": "Your reports",
-        "content": "You have access to Patrol Adherence, SOS Alerts, and Attendance reports. Exportable as XLSX, CSV, and PDF to share with clients."
+        "content": "You have access to the SOS Alerts and Attendance reports. Exportable as XLSX, CSV and PDF to share with clients."
       },
       "finish": {
-        "title": "You're ready for your shift",
-        "content": "You now know the full flow. Tip: keep the Monitor open at all times, attend SOS quickly, and record calls when needed. Have a good shift!"
+        "title": "Ready for your shift",
+        "content": "You now know the full flow. Tip: keep the Monitor open at all times, attend SOS quickly and record calls when needed. Have a good shift!"
       }
     }
   }

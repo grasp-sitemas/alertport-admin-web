@@ -58,13 +58,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </main>
           </div>
 
-          {/* Global SOS banner — shown on any page. Provider owns the
+          {/* Global SOS banner - shown on any page. Provider owns the
               Firestore subscription; banner is pure presentation. */}
           <SosBanner />
 
           {/* Blocking modal shown when the trial has expired. Rendered
               at the shell level so it sits above every page including
-              the call dialog. Non-dismissible — only way out is upgrade
+              the call dialog. Non-dismissible - only way out is upgrade
               (admins) or logout. */}
           <TrialExpiredModal />
         </div>

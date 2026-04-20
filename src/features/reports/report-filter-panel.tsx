@@ -19,8 +19,8 @@ import {
 /**
  * Compact filter panel used by every report page.
  *
- * Layout rule: everything — hierarchy (account / client / site),
- * date range, report-specific extras (e.g. SLA threshold), actions —
+ * Layout rule: everything - hierarchy (account / client / site),
+ * date range, report-specific extras (e.g. SLA threshold), actions -
  * lives in ONE responsive grid so operators get the most vertical
  * space possible for the actual report body. On desktop (lg+) the
  * panel collapses to a single visible row.

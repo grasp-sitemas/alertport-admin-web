@@ -26,7 +26,7 @@ import { signupService } from '@/services/signup.service';
  *   4. On failure (missing / invalid / expired / user not found): friendly
  *      error screen + "Reenviar link" button.
  *
- * No manual code input — we don't want users to type a 43-char base64 token.
+ * No manual code input - we don't want users to type a 43-char base64 token.
  * If they lose the email, they press "Reenviar link".
  */
 export default function ActivatePage() {

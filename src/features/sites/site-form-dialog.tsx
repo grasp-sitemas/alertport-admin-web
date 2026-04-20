@@ -118,7 +118,7 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
   const saveMutation = useMutation({
     mutationFn: async (data: SiteFormValues) => {
       const payload = { ...data, type: 'SITE' as const };
-      // Try geolocation (non-blocking — don't break save if geo fails)
+      // Try geolocation (non-blocking - don't break save if geo fails)
       if (
         payload.address?.cep &&
         payload.address?.address &&
@@ -142,7 +142,7 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
             payload.address.lng = lng;
           }
         } catch {
-          /* ignore — geolocation is optional */
+          /* ignore - geolocation is optional */
         }
       }
       // Strip empty-string ObjectId refs + normalize masked fields before POST.

@@ -2,7 +2,7 @@ import type { PatrolAction } from '@/types/api';
 
 /**
  * Firestore `notifications/{siteId}` carries only `{ type, source, date }`
- * — no patrol-action id. To deep-link the operator from a global SOS
+ * - no patrol-action id. To deep-link the operator from a global SOS
  * banner to the specific event in the monitor, we correlate the fired
  * notification to the matching Mongo row by type + a recency window.
  *
@@ -13,7 +13,7 @@ import type { PatrolAction } from '@/types/api';
  *   - Clock drift between the device, Heroku dyno and the operator's
  *     browser can be up to tens of seconds.
  *   - Picking the wrong row (within 60s, same type, same site) is
- *     nearly impossible in practice — operators have one SOS at a time
+ *     nearly impossible in practice - operators have one SOS at a time
  *     per site; if two SOS land within a minute from the same site they
  *     are effectively the same emergency response.
  */
@@ -30,13 +30,13 @@ export interface SosCorrelationInput {
 
 /**
  * Pick the PatrolAction that most likely produced `notification`. Returns
- * `null` when no row is within the correlation window — caller should
+ * `null` when no row is within the correlation window - caller should
  * fall back to "most recent SOS_ALERT" or just open the monitor without
  * a pre-selection.
  *
  * Rules, in order:
  *   1. Same type as the notification.
- *   2. `attendance.isAttendance !== true` — we prefer an unclaimed row
+ *   2. `attendance.isAttendance !== true` - we prefer an unclaimed row
  *      so the operator can actually do something when they land on the
  *      monitor. If every match is already claimed (closed or in progress
  *      by another), we still return the closest match so the URL deep-

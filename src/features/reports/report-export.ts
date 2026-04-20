@@ -2,10 +2,10 @@
  * Client-side exports for the reports module.
  *
  * Three formats:
- *   - CSV  — native, no dependency, RFC 4180-ish quoting.
- *   - XLSX — SheetJS (`xlsx`), lazy-imported so it doesn't bloat
+ *   - CSV  - native, no dependency, RFC 4180-ish quoting.
+ *   - XLSX - SheetJS (`xlsx`), lazy-imported so it doesn't bloat
  *            the shell chunk for operators who never export.
- *   - PDF  — `jspdf` + `jspdf-autotable`, also lazy-imported. Layout
+ *   - PDF  - `jspdf` + `jspdf-autotable`, also lazy-imported. Layout
  *            is professional by default: title, date range, KPI
  *            block, tabulated rows, pagination footer.
  *
@@ -30,7 +30,7 @@ export interface ExportPayload<Row> {
   fileName: string;
   /** Human-readable title for PDF header. */
   title: string;
-  /** Shown below the title on the PDF, e.g. "01/04/2026 — 30/04/2026". */
+  /** Shown below the title on the PDF, e.g. "01/04/2026 - 30/04/2026". */
   subtitle?: string;
   kpis?: ExportKpi[];
   columns: ExportColumn<Row>[];

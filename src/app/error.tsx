@@ -6,7 +6,7 @@
  * Catches any render/data-fetch exception inside a page segment and
  * renders a recoverable fallback instead of a white screen. Without
  * this, a single unhandled throw in a child component unmounts the
- * whole tree — operator has to F5 to keep working.
+ * whole tree - operator has to F5 to keep working.
  *
  * `reset()` is injected by Next and retries the failing segment
  * without a full page reload (preserves React Query cache + socket).

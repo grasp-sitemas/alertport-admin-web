@@ -12,10 +12,10 @@ export const loginSchema = z.object({
 export type LoginFormValues = z.infer<typeof loginSchema>;
 
 // ──────────────────────────────────────────────────────────────
-// Recovery password — mirrors shieldgo-admin-web/src/pages/Login/RecoveryPassword
+// Recovery password - mirrors shieldgo-admin-web/src/pages/Login/RecoveryPassword
 // ──────────────────────────────────────────────────────────────
 
-/** Step 1 — ask for email */
+/** Step 1 - ask for email */
 export const recoveryEmailSchema = z.object({
   email: z
     .string()
@@ -25,7 +25,7 @@ export const recoveryEmailSchema = z.object({
 
 export type RecoveryEmailValues = z.infer<typeof recoveryEmailSchema>;
 
-/** Step 2 — code (8 chars uppercase) + new password + confirmation */
+/** Step 2 - code (8 chars uppercase) + new password + confirmation */
 export const recoveryResetSchema = z
   .object({
     code: z

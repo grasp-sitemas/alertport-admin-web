@@ -34,10 +34,13 @@ export default function DashboardPage() {
       />
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div
+        data-tour="dashboard-kpis"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      >
         <KpiCard
           title={t('dashboard.totalAlerts')}
-          value={isLoading ? '—' : totalCount}
+          value={isLoading ? '-' : totalCount}
           icon={Bell}
           accent="brand"
           isLoading={isLoading}
@@ -45,21 +48,21 @@ export default function DashboardPage() {
         />
         <KpiCard
           title={t('dashboard.pendingAlerts')}
-          value={isLoading ? '—' : pendingCount}
+          value={isLoading ? '-' : pendingCount}
           icon={Clock}
           accent="warning"
           isLoading={isLoading}
         />
         <KpiCard
           title={t('dashboard.respondedAlerts')}
-          value={isLoading ? '—' : respondedCount}
+          value={isLoading ? '-' : respondedCount}
           icon={CheckCircle2}
           accent="success"
           isLoading={isLoading}
         />
         <KpiCard
           title={t('dashboard.missedAlerts')}
-          value={isLoading ? '—' : missedCount}
+          value={isLoading ? '-' : missedCount}
           icon={XCircle}
           accent="danger"
           isLoading={isLoading}
@@ -70,14 +73,14 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <KpiCard
           title={t('dashboard.activeEquipments')}
-          value={isLoading ? '—' : equipmentCount.data?.totalCount ?? 0}
+          value={isLoading ? '-' : equipmentCount.data?.totalCount ?? 0}
           icon={Cpu}
           accent="info"
           isLoading={isLoading}
         />
         <KpiCard
           title={t('dashboard.activeCollaborators')}
-          value={isLoading ? '—' : collaboratorCount.data?.totalCount ?? 0}
+          value={isLoading ? '-' : collaboratorCount.data?.totalCount ?? 0}
           icon={UserCheck}
           accent="brand"
           isLoading={isLoading}
@@ -157,9 +160,9 @@ export default function DashboardPage() {
 }
 
 function safeDateString(value: unknown): string {
-  if (!value) return '—';
+  if (!value) return '-';
   const d = new Date(value as string);
-  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString();
+  return Number.isNaN(d.getTime()) ? '-' : d.toLocaleString();
 }
 
 function groupByDay(occurrences: AlertOccurrence[]): Record<string, number> {

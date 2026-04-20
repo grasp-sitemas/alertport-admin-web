@@ -105,7 +105,7 @@ function AlertMonitor() {
     ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
   });
 
-  // Prefetch attendance types catalog — speeds up the first AttendanceDialog open.
+  // Prefetch attendance types catalog - speeds up the first AttendanceDialog open.
   useAttendanceTypes();
 
   const events = useMemo<PatrolAction[]>(() => patrolQuery.data?.results || [], [patrolQuery.data]);
@@ -113,7 +113,7 @@ function AlertMonitor() {
 
   // When another operator claims/closes the event this dialog is showing,
   // the `events` list refreshes but the `attendanceEvent` state still holds
-  // the old snapshot — the dialog would keep its old "available" button
+  // the old snapshot - the dialog would keep its old "available" button
   // and the lock-out would not kick in. Rebind to the live row so the
   // dialog's state-derived UI stays in sync with the realtime feed.
   const liveAttendanceEvent = useMemo(() => {
@@ -136,10 +136,10 @@ function AlertMonitor() {
 
   // Realtime: handled globally by SosNotificationProvider. Having a
   // second listener here would race on the Firestore doc-deletion
-  // pattern and produce duplicate toasts — we deliberately don't
+  // pattern and produce duplicate toasts - we deliberately don't
   // call useAlertportRealtime inside the page anymore.
 
-  // ── Stable handlers — keep the EventCard memos effective ─────────
+  // ── Stable handlers - keep the EventCard memos effective ─────────
   const handleAttend = useCallback((event: PatrolAction) => {
     setAttendanceEvent(event);
   }, []);
@@ -203,7 +203,7 @@ function AlertMonitor() {
     if (deepLinkPatrolActionId) {
       target = events.find((e) => e._id === deepLinkPatrolActionId) ?? null;
     }
-    // Fallback: no hint or hint missed — grab the newest SOS that's
+    // Fallback: no hint or hint missed - grab the newest SOS that's
     // still available for attendance. Better than dead-ending the
     // operator on an empty monitor.
     if (!target && deepLinkAutoClaim) {
@@ -244,7 +244,7 @@ function AlertMonitor() {
   );
   // Counts keyed to the classifier so the KPIs tell the same story the
   // cards tell. "Disponíveis" (AVAILABLE) is the operator's actionable
-  // queue — worth pulsing in the UI when > 0.
+  // queue - worth pulsing in the UI when > 0.
   const availableCount = useMemo(
     () => events.filter((e) => classifyAttendance(e, currentUserId) === 'AVAILABLE').length,
     [events, currentUserId],
@@ -289,7 +289,7 @@ function AlertMonitor() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2" data-tour="monitor-events">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="h-4 w-4 text-brand-500" />
@@ -393,15 +393,15 @@ interface KpiGridProps {
 /**
  * Memoized KPI grid. The monitor re-renders often (realtime toasts,
  * scroll, dialog open/close) and the KPI cards carry their own subtree
- * with spinners and icons — keeping them out of the parent's render
+ * with spinners and icons - keeping them out of the parent's render
  * loop materially reduces work per frame.
  *
  * KPI order reflects the operator's priority:
- *   1. Total today — context.
- *   2. SOS — lethal priority.
- *   3. Disponíveis — the actionable queue (pulses when > 0).
- *   4. Em atendimento — what someone (including this user) is handling.
- *   5. Registros de ponto — workforce signal.
+ *   1. Total today - context.
+ *   2. SOS - lethal priority.
+ *   3. Disponíveis - the actionable queue (pulses when > 0).
+ *   4. Em atendimento - what someone (including this user) is handling.
+ *   5. Registros de ponto - workforce signal.
  */
 const MonitorKpiGrid = memo(function MonitorKpiGridImpl({
   eventsCount,
@@ -414,7 +414,10 @@ const MonitorKpiGrid = memo(function MonitorKpiGridImpl({
 }: KpiGridProps) {
   const t = useTranslations();
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+    <div
+      data-tour="monitor-kpis"
+      className="grid grid-cols-2 lg:grid-cols-5 gap-4"
+    >
       <KpiCard
         title={t('dashboard.todayOccurrences')}
         value={eventsCount}
@@ -466,13 +469,13 @@ interface FlashState {
  * the clock.
  *
  * Flash expiry is driven by a one-second tick state only while there's
- * at least one live flash — no wasted renders while idle.
+ * at least one live flash - no wasted renders while idle.
  */
 function useFreshlyArrivedFlash<T extends { _id: string }>(
   list: T[],
   windowMs: number,
 ): FlashState {
-  // Refs are ONLY used to decide what's fresh after the first load — never
+  // Refs are ONLY used to decide what's fresh after the first load - never
   // read during render (ESLint refs rule). `flashing` is the state surfaced
   // to the renderer; a per-id timer removes each entry after windowMs.
   const seenIds = useRef<Set<string>>(new Set());

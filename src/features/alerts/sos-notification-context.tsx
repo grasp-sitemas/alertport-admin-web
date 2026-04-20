@@ -10,7 +10,7 @@
  *   1. Owns the single `useAlertportRealtime` subscription for the app.
  *      Having exactly one listener avoids the race where two
  *      `onSnapshot` handlers on the same `notifications/{siteId}` doc
- *      each try to deleteDoc and only one wins — duplicate UI fires.
+ *      each try to deleteDoc and only one wins - duplicate UI fires.
  *
  *   2. Maintains a short-lived "inbox" of unacknowledged SOS alerts,
  *      shown by <SosBanner /> at the top of every authenticated page.
@@ -25,7 +25,7 @@
  *      pre-selected so `AttendanceDialog` auto-opens the attendance.
  *
  * Non-SOS realtime events (TIME_ENTRY, attendance:update|close, media)
- * still fire their React Query cache invalidations here — we moved the
+ * still fire their React Query cache invalidations here - we moved the
  * logic out of the monitor page so it applies globally without a
  * second listener on the same Firestore doc.
  */
@@ -62,7 +62,7 @@ const MAX_INBOX = 10;
 const DEDUP_WINDOW_MS = 5_000;
 
 export interface SosNotification {
-  /** Client-side UUID — Firestore docs carry no id of their own. */
+  /** Client-side UUID - Firestore docs carry no id of their own. */
   id: string;
   siteId: string;
   type: string;
@@ -116,7 +116,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
 
   const playAlarmSound = useCallback(() => {
     // Modern 2-second emergency alert. Six alternating hi/lo pulses
-    // with short attack/release envelopes per pulse — reads as an
+    // with short attack/release envelopes per pulse - reads as an
     // "urgent" tone (think PagerDuty / smartwatch emergency) without
     // being shrill. Pure Web Audio so no static asset to ship.
     //
@@ -125,7 +125,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
     //   - ~0.25 s per pulse, 0.08 s gap → 6 pulses ≈ 1.98 s total.
     //   - Peak gain 0.22, ramped via linearRampToValueAtTime so the
     //     pulse envelope is smooth (no audible click at on/off).
-    //   - Hard stop at 2.0 s via ctx.close() — matches the product
+    //   - Hard stop at 2.0 s via ctx.close() - matches the product
     //     requirement "toque por 2 segundos e pare".
     //   - If a previous alarm is still running, we close its context
     //     first so rapid-fire SOS doesn't layer into chaos.
@@ -179,7 +179,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Smooth master ramp so the whole thing fades in (12 ms) and
-      // out (40 ms) — prevents click artifacts on the audio buss.
+      // out (40 ms) - prevents click artifacts on the audio buss.
       master.gain.setValueAtTime(0, ctx.currentTime);
       master.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.012);
       master.gain.setValueAtTime(1, ctx.currentTime + DURATION_SEC - 0.04);
@@ -196,7 +196,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
         }
       }, DURATION_SEC * 1000 + 50);
     } catch {
-      /* ignore — audio is a courtesy, never a requirement */
+      /* ignore - audio is a courtesy, never a requirement */
     }
   }, []);
 
@@ -204,7 +204,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
     (notif: SosNotification, title: string, body: string) => {
       if (typeof Notification === 'undefined') return;
       if (Notification.permission !== 'granted') return;
-      // Only notify when the tab is hidden — otherwise the in-page
+      // Only notify when the tab is hidden - otherwise the in-page
       // banner + audio is enough and a native popup becomes noise.
       if (typeof document !== 'undefined' && !document.hidden) return;
       try {
@@ -240,7 +240,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
           String(Date.now()),
         );
       } catch {
-        /* ignore — quota, private mode, etc. */
+        /* ignore - quota, private mode, etc. */
       }
       return result;
     } catch {
@@ -323,7 +323,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
       });
 
       // Best-effort correlation in the background. Not blocking the
-      // banner — the operator can already act on a degraded banner.
+      // banner - the operator can already act on a degraded banner.
       void correlateInBackground(notif);
 
       return notif;
@@ -331,7 +331,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
     [correlateInBackground],
   );
 
-  // Main realtime subscription — owned by this provider exclusively.
+  // Main realtime subscription - owned by this provider exclusively.
   useEffect(() => {
     if (!scope.accountId && !scope.clientId && !scope.siteId && !scope.siteGroupId) {
       return;
@@ -372,7 +372,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
             }
             // Other ALERTPORT notifications (INCIDENT/CRASH/...) still
             // inform the operator but don't claim the top-of-page
-            // banner — those are non-blocking.
+            // banner - those are non-blocking.
             toast.info(type, { description: t('alerts.eventDetails') });
             return;
           }

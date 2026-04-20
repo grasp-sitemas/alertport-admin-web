@@ -11,7 +11,7 @@
  *                                     the whole key is removed
  *   - primitives (number, bool, 0)  → kept as-is, including `0` and `false`
  *
- * Safe to call with unknown input — non-object values are returned untouched.
+ * Safe to call with unknown input - non-object values are returned untouched.
  */
 export function stripEmpty<T>(value: T): T {
   if (Array.isArray(value)) {

@@ -86,37 +86,37 @@ export default function EquipmentPage() {
       key: 'code',
       headerKey: 'equipment.code',
       render: (item) => (
-        <p className="font-medium text-white">{item.code ?? item.name ?? '—'}</p>
+        <p className="font-medium text-white">{item.code ?? item.name ?? '-'}</p>
       ),
     },
     {
       key: 'type',
       headerKey: 'equipment.typeField',
       render: (item) =>
-        item.type ? typeLabels[item.type] ?? translateDynamicLabel(item.type, t) : '—',
+        item.type ? typeLabels[item.type] ?? translateDynamicLabel(item.type, t) : '-',
     },
     {
       key: 'brand',
       headerKey: 'equipment.brand',
       render: (item) =>
-        item.brand ? brandLabels[item.brand] ?? translateDynamicLabel(item.brand, t) : '—',
+        item.brand ? brandLabels[item.brand] ?? translateDynamicLabel(item.brand, t) : '-',
     },
     {
       key: 'client',
       headerKey: 'common.client',
-      render: (item) => (typeof item.client === 'object' ? item.client?.name : '—'),
+      render: (item) => (typeof item.client === 'object' ? item.client?.name : '-'),
     },
     {
       key: 'site',
       headerKey: 'common.site',
-      render: (item) => (typeof item.site === 'object' ? item.site?.name : '—'),
+      render: (item) => (typeof item.site === 'object' ? item.site?.name : '-'),
     },
     {
       key: 'createDate',
       headerKey: 'common.createdAt',
       render: (item) => {
         const d = item.createDate ?? item.createdDate;
-        return d ? new Date(d).toLocaleDateString() : '—';
+        return d ? new Date(d).toLocaleDateString() : '-';
       },
     },
     {
@@ -165,6 +165,7 @@ export default function EquipmentPage() {
           action={
             <GatedCreateButton
               resource="devices"
+              data-tour="page-equipment-create"
               onClick={() => {
                 setEditing(undefined);
                 setFormOpen(true);

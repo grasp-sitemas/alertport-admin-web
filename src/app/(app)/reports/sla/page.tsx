@@ -25,7 +25,7 @@ import type { ExportPayload } from '@/features/reports/report-export';
 const DEFAULT_SLA_THRESHOLD_SEC = 60;
 
 /**
- * SLA de Atendimento — KPI contratual de resposta a SOS. Mede o
+ * SLA de Atendimento - KPI contratual de resposta a SOS. Mede o
  * tempo entre disparo (`patrol_action.date`) e abertura de
  * atendimento (`attendance.openedDate`), além do tempo de
  * resolução (`openedDate → closedDate`). Inclui p50/p95 e % dentro
@@ -89,15 +89,15 @@ function SlaPageBody() {
       {
         key: 'site',
         headerKey: 'common.site',
-        render: (r) => r.site?.name ?? '—',
+        render: (r) => r.site?.name ?? '-',
       },
       {
         key: 'operator',
         headerKey: 'reports.sla.operator',
         render: (r) =>
           r.operator
-            ? `${r.operator.firstName ?? ''} ${r.operator.lastName ?? ''}`.trim() || '—'
-            : '—',
+            ? `${r.operator.firstName ?? ''} ${r.operator.lastName ?? ''}`.trim() || '-'
+            : '-',
       },
       {
         key: 'responseTime',
@@ -112,7 +112,7 @@ function SlaPageBody() {
       {
         key: 'status',
         headerKey: 'reports.sla.attendanceStatus',
-        render: (r) => r.attendance?.status ?? '—',
+        render: (r) => r.attendance?.status ?? '-',
       },
     ],
     [],
@@ -123,7 +123,7 @@ function SlaPageBody() {
     return {
       fileName: 'sla_atendimento',
       title: t('reports.sla.title'),
-      subtitle: `${filterValue.startDate} — ${filterValue.endDate}`,
+      subtitle: `${filterValue.startDate} - ${filterValue.endDate}`,
       generatedAt: data?.generatedAt || new Date().toISOString(),
       kpis: [
         { label: t('reports.sla.kpi.compliance'), value: formatPercent(summary.slaCompliance) },
@@ -275,13 +275,13 @@ function SlaPageBody() {
               {operators.map((op) => {
                 const name = op.operator
                   ? `${op.operator.firstName ?? ''} ${op.operator.lastName ?? ''}`.trim()
-                  : '—';
+                  : '-';
                 return (
                   <div
                     key={op._id}
                     className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"
                   >
-                    <p className="text-sm font-medium text-white truncate">{name || '—'}</p>
+                    <p className="text-sm font-medium text-white truncate">{name || '-'}</p>
                     <p className="text-xs text-text-muted mt-0.5">
                       {t('reports.sla.operatorAttendances', { count: op.count })} ·{' '}
                       {t('reports.sla.operatorAvg', {

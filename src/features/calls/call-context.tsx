@@ -21,7 +21,7 @@ const CallContext = createContext<CallContextValue>(null);
 export function CallProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
 
-  // Only instantiate the socket/call machinery while authenticated — otherwise
+  // Only instantiate the socket/call machinery while authenticated - otherwise
   // we'd be trying to register with ms-chat without a userId.
   if (!isAuthenticated) {
     return <CallContext.Provider value={null}>{children}</CallContext.Provider>;
@@ -36,7 +36,7 @@ function AuthenticatedCallProvider({ children }: { children: React.ReactNode }) 
   return (
     <CallContext.Provider value={call}>
       {children}
-      {/* Global call dialog — shows on any page whenever a call is active */}
+      {/* Global call dialog - shows on any page whenever a call is active */}
       <CallDialog {...call} />
     </CallContext.Provider>
   );
@@ -44,7 +44,7 @@ function AuthenticatedCallProvider({ children }: { children: React.ReactNode }) 
 
 /**
  * Consume the global call state from any page / component.
- * Returns `null` when the user is not authenticated — callers should handle
+ * Returns `null` when the user is not authenticated - callers should handle
  * that case (e.g. render nothing or disable call actions).
  */
 export function useCallContext(): CallContextValue {

@@ -11,9 +11,9 @@ import { validateReportFilter } from './report-filter-validator';
  * - Guarded by a client-side `validateReportFilter` check so an
  *   invalid filter never triggers a network request.
  * - 30s staleTime: reports aren't real-time dashboards; clients
- *   scroll, filter, come back — caching a minute's-worth avoids
+ *   scroll, filter, come back - caching a minute's-worth avoids
  *   unnecessary Heroku round-trips.
- * - retry: 1 — backend returns 400 for most user errors; auto-retry
+ * - retry: 1 - backend returns 400 for most user errors; auto-retry
  *   would only amplify bad filters. A single retry covers transient
  *   network hiccups without flooding the API.
  */

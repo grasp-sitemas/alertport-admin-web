@@ -34,7 +34,7 @@ function extractSessionOption(v: unknown): { _id: string; name: string } | null 
   return null;
 }
 
-/** Prepend `preferred` to `list` when missing — keeps React keys stable. */
+/** Prepend `preferred` to `list` when missing - keeps React keys stable. */
 function mergeSessionOption<T extends { _id: string; name: string }>(
   list: T[],
   preferred: { _id: string; name: string } | null,
@@ -103,7 +103,7 @@ export function HierarchyFilters({
   //                         inside it (some ops cover multiple clients)
   //   AUDITOR             → locked to account+client; picks Site only
   //
-  // Account dropdown is the only one that's role-gated here — the Client
+  // Account dropdown is the only one that's role-gated here - the Client
   // and Site dropdowns are controlled by the parent via showClient/showSite
   // props, and by the user's own selection.
   const canSelectAccount = isSuperAdminMaster(userSubtype);
@@ -129,7 +129,7 @@ export function HierarchyFilters({
 
   // Merge the session's own hierarchy (account/client/site) as a fallback
   // option. Reason: for non-SUPER_ADMIN roles the backend
-  // `/api/company/filter/v1/` endpoint can return an empty list — either
+  // `/api/company/filter/v1/` endpoint can return an empty list - either
   // because the api-gateway auto-scopes too aggressively or because the
   // user doesn't have permission to list siblings. In that case the
   // dropdown would be empty and the user couldn't even pick their own

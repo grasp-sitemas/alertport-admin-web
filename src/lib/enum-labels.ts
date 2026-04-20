@@ -8,7 +8,7 @@ export function normalizeEnumToken(value: unknown): string | undefined {
 export function formatEnumLabel(
   value: unknown,
   labels: Record<string, string>,
-  fallback = '—',
+  fallback = '-',
 ): string {
   const token = normalizeEnumToken(value);
   if (!token) return fallback;
