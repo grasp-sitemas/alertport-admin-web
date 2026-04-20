@@ -9,15 +9,17 @@
  *    tours never auto-start again).
  *  - Auto-start the correct tour after the shell has fully mounted
  *    and the user has landed on /dashboard or /alerts/monitor.
- *  - Route-aware stepping: when a step is pinned to a different
- *    route, navigate there before rendering so the spotlight lands
- *    on a real component, not an empty viewport.
+ *  - Route-aware stepping: navigate to the step's route before
+ *    rendering so the spotlight lands on a real component.
  *  - Persist completion via onboardingService.complete() so the next
  *    session doesn't ask again.
- *  - Expose `replay()` so the user can re-run the tour from the
- *    header menu; that path does NOT re-persist.
- *  - Stay out of the way: never start while a call is in progress,
- *    an SOS banner is pending, or any modal is open.
+ *  - Yield to real emergencies: if an SOS banner appears or a call
+ *    becomes active mid-tour, dismiss the overlay immediately so the
+ *    operator can handle the event. We mark the tour as "skipped" so
+ *    it won't auto-start again; the user can replay from the header
+ *    menu when the shift settles.
+ *  - Expose `replay()` (no-persist) for the header menu, and `skip()`
+ *    for manual dismissal.
  */
 
 import {
@@ -34,11 +36,11 @@ import { useTranslations } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
 import type { EventData, Options, Step, Styles } from 'react-joyride';
 import { useAuth } from '@/hooks/use-auth';
+import { useCallContext } from '@/features/calls/call-context';
+import { useSosNotifications } from '@/features/alerts/sos-notification-context';
 import { onboardingService, type OnboardingTour } from '@/services/onboarding.service';
 import { getTourSteps, pickTourForRole, type TourStepI18n } from './tours';
 
-// Joyride is a named export in v3; wrap for next/dynamic's default
-// export contract.
 const Joyride = dynamic(
   () => import('react-joyride').then((mod) => ({ default: mod.Joyride })),
   { ssr: false },
@@ -55,8 +57,10 @@ const OnboardingContext = createContext<OnboardingContextValue | null>(null);
 
 const TOUR_ROUTES = new Set(['/dashboard', '/alerts/monitor']);
 
-// v3 split: visual tokens go on `options`, element CSS overrides go on
-// `styles`. See node_modules/react-joyride/dist/index.d.cts.
+// Call statuses that count as a live emergency / active session and
+// therefore demand the tour get out of the way.
+const ACTIVE_CALL_STATUSES = new Set(['incoming', 'outgoing', 'connecting', 'connected']);
+
 const JOYRIDE_OPTIONS: Partial<Options> = {
   primaryColor: '#B3261E',
   backgroundColor: '#1a2234',
@@ -68,7 +72,6 @@ const JOYRIDE_OPTIONS: Partial<Options> = {
   buttons: ['back', 'skip', 'primary'],
   overlayClickAction: false,
   blockTargetInteraction: true,
-  // Extra headroom for navigation + data fetch between steps.
   targetWaitTimeout: 4000,
 };
 
@@ -122,6 +125,8 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   const { user } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const call = useCallContext();
+  const { notifications } = useSosNotifications();
 
   const [isRunning, setIsRunning] = useState(false);
   const [activeTour, setActiveTour] = useState<OnboardingTour | null>(null);
@@ -131,16 +136,21 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     operator: boolean;
   } | null>(null);
 
-  // When a replay is running we want Joyride to behave normally but we
-  // must NOT re-persist on finish; a user re-running the tour isn't
-  // re-confirming anything.
+  // Replay runs must never re-persist: the user already finished the
+  // tour once, replay is just a refresher.
   const replayRef = useRef(false);
+  // Guard against double-persist within a single run. Joyride can
+  // fire status=finished AND our step:after last-step path in the
+  // same microtask; first successful persist flips this.
+  const persistedRef = useRef(false);
 
   const roleTour = pickTourForRole(user?.companyUser?.subtype);
 
   // ── Bootstrap: fetch backend status once per session ────────────
   useEffect(() => {
     if (!user) {
+      // Reset on logout is an external-state sync, not a cascade.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCompletedStatus(null);
       return;
     }
@@ -164,6 +174,35 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     };
   }, [user?._id, user]);
 
+  // Single exit point for a tour run: clears state, optionally
+  // persists the outcome. Idempotent within one run.
+  const finishRun = useCallback(
+    async (tour: OnboardingTour, result: 'completed' | 'skipped') => {
+      setIsRunning(false);
+      setActiveTour(null);
+      setStepIndex(0);
+
+      if (replayRef.current) {
+        replayRef.current = false;
+        return;
+      }
+      if (persistedRef.current) return;
+      persistedRef.current = true;
+
+      try {
+        await onboardingService.complete(tour, result);
+      } catch {
+        /* best-effort: backend may be unavailable during incidents */
+      }
+      setCompletedStatus((prev) =>
+        prev
+          ? { ...prev, [tour]: true }
+          : { admin: tour === 'admin', operator: tour === 'operator' },
+      );
+    },
+    [],
+  );
+
   // ── Auto-start gate ────────────────────────────────────────────
   useEffect(() => {
     if (!user) return;
@@ -173,6 +212,10 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     if (isRunning) return;
     if (!pathname || !TOUR_ROUTES.has(pathname)) return;
 
+    // Don't hijack an operator who is responding to a real event.
+    if (call && ACTIVE_CALL_STATUSES.has(call.status)) return;
+    if (notifications.some((n) => !n.acknowledged)) return;
+
     if (typeof document !== 'undefined') {
       if (document.querySelector('[role="dialog"][data-state="open"]')) return;
       if (document.querySelector('[data-tour-busy="true"]')) return;
@@ -180,16 +223,33 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
     const id = setTimeout(() => {
       replayRef.current = false;
+      persistedRef.current = false;
       setStepIndex(0);
       setActiveTour(roleTour);
       setIsRunning(true);
     }, 700);
     return () => clearTimeout(id);
-  }, [user, roleTour, completedStatus, isRunning, pathname]);
+  }, [user, roleTour, completedStatus, isRunning, pathname, call, notifications]);
 
-  // Route-aware stepping: navigate to the next step's route before
-  // rendering it. Called from handleCallback so Joyride can wait
-  // (targetWaitTimeout) while Next.js mounts the new page.
+  // ── Emergency yield ────────────────────────────────────────────
+  // If an SOS fires or a call becomes active while the tour is
+  // running, bail out immediately. Mark the tour as skipped so it
+  // doesn't auto-start again next login; the user can replay from
+  // the header menu when calm.
+  useEffect(() => {
+    if (!isRunning || !activeTour) return;
+    const hasLiveSos = notifications.some((n) => !n.acknowledged);
+    const callActive = !!call && ACTIVE_CALL_STATUSES.has(call.status);
+    if (hasLiveSos || callActive) {
+      // Intentional: responding to external state (SOS/call) by
+      // tearing down the tour overlay. This is the whole point of
+      // the effect - an emergency must not wait for the next render.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      finishRun(activeTour, 'skipped');
+    }
+  }, [isRunning, activeTour, notifications, call, finishRun]);
+
+  // Route-aware stepping: navigate before rendering the next step.
   const routeToStepIfNeeded = useCallback(
     (steps: TourStepI18n[], nextIndex: number) => {
       const step = steps[nextIndex];
@@ -214,55 +274,45 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         const clamped = Math.max(0, nextIndex);
 
         if (clamped >= tourSteps.length) {
-          // Fall through to finish-handling below.
-        } else {
-          routeToStepIfNeeded(tourSteps, clamped);
-          setStepIndex(clamped);
+          // User clicked "Finish" on the last step. Persist now:
+          // waiting for tour:end can race with an SOS dialog mount
+          // and leave the overlay stuck without persistence.
+          await finishRun(tour, 'completed');
           return;
         }
-      }
 
-      const finished = status === 'finished' || status === 'skipped';
-      if (!finished) return;
-
-      const tour = activeTour;
-      setIsRunning(false);
-      setActiveTour(null);
-      setStepIndex(0);
-
-      if (!tour) return;
-      if (replayRef.current) {
-        replayRef.current = false;
+        routeToStepIfNeeded(tourSteps, clamped);
+        setStepIndex(clamped);
         return;
       }
 
-      const result = status === 'skipped' ? 'skipped' : 'completed';
-      try {
-        await onboardingService.complete(tour, result);
-      } catch {
-        /* best-effort */
-      } finally {
-        setCompletedStatus((prev) =>
-          prev
-            ? { ...prev, [tour]: true }
-            : { admin: tour === 'admin', operator: tour === 'operator' },
-        );
+      if (status === 'finished' || status === 'skipped') {
+        const tour = activeTour;
+        if (!tour) return;
+        const result = status === 'skipped' ? 'skipped' : 'completed';
+        await finishRun(tour, result);
       }
     },
-    [activeTour, routeToStepIfNeeded],
+    [activeTour, finishRun, routeToStepIfNeeded],
   );
 
   const replay = useCallback(
     (tour?: OnboardingTour) => {
-      // Never allow an OPERATOR to replay the ADMIN tour or vice-versa:
-      // fall back to the role-specific tour regardless of the arg.
+      // Role-lock: an operator can never be forced into the admin tour
+      // from the header menu, and vice-versa. Fall back to the
+      // requested tour only when no role tour is available (tests).
       const target = roleTour ?? tour ?? 'admin';
       const tourSteps = getTourSteps(target);
       const firstRoute = tourSteps[0]?.route;
-      if (firstRoute && typeof window !== 'undefined' && window.location.pathname !== firstRoute) {
+      if (
+        firstRoute &&
+        typeof window !== 'undefined' &&
+        window.location.pathname !== firstRoute
+      ) {
         router.push(firstRoute);
       }
       replayRef.current = true;
+      persistedRef.current = false;
       setStepIndex(0);
       setActiveTour(target);
       setIsRunning(true);
@@ -271,21 +321,9 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   );
 
   const skip = useCallback(() => {
-    if (!isRunning) return;
-    const tour = activeTour;
-    setIsRunning(false);
-    setActiveTour(null);
-    setStepIndex(0);
-    if (tour && !replayRef.current) {
-      onboardingService.complete(tour, 'skipped').catch(() => {});
-      setCompletedStatus((prev) =>
-        prev
-          ? { ...prev, [tour]: true }
-          : { admin: tour === 'admin', operator: tour === 'operator' },
-      );
-    }
-    replayRef.current = false;
-  }, [isRunning, activeTour]);
+    if (!isRunning || !activeTour) return;
+    finishRun(activeTour, 'skipped');
+  }, [isRunning, activeTour, finishRun]);
 
   const steps = useMemo<Step[]>(() => {
     if (!activeTour) return [];
