@@ -850,5 +850,135 @@
   "serviceHealth": {
     "unavailableTitle": "Serviço temporariamente indisponível",
     "unavailableDescription": "Estamos reconectando com o servidor. Tente novamente em instantes."
+  },
+  "onboarding": {
+    "replayMenuItem": "Refazer tour guiado",
+    "controls": {
+      "back": "Voltar",
+      "close": "Fechar",
+      "finish": "Concluir",
+      "next": "Próximo",
+      "skip": "Pular"
+    },
+    "admin": {
+      "welcome": {
+        "title": "Bem-vindo à plataforma AlertPort",
+        "content": "Olá! Vou te guiar em poucos minutos pelos passos essenciais para configurar sua operação. Você pode pular a qualquer momento — este tour fica disponível no menu do seu perfil, canto superior direito."
+      },
+      "clients": {
+        "title": "1. Comece pelos seus Clientes",
+        "content": "O primeiro passo é cadastrar seus Clientes — as empresas ou condomínios que você atende. Tudo (postos, rondas, relatórios) é organizado em torno deles."
+      },
+      "sites": {
+        "title": "2. Depois, cadastre os Postos",
+        "content": "Para cada Cliente você cadastra os Postos (locais físicos onde seus vigias atuam). Sem postos, não dá para agendar rondas nem vincular dispositivos."
+      },
+      "qrcode": {
+        "title": "3. QR Code do Posto + AlertPort app",
+        "content": "Cada posto gera um QR Code único. No aplicativo AlertPort do vigia, ele escaneia o QR Code para vincular o dispositivo (celular) a este posto. Só depois desse scan o dispositivo aparece como disponível nos agendamentos."
+      },
+      "equipment": {
+        "title": "4. Equipamentos vinculados",
+        "content": "Aqui você vê todos os dispositivos vinculados aos seus postos. Cada linha mostra qual posto está com qual aparelho e seu status."
+      },
+      "collaborators": {
+        "title": "5. Colaboradores (vigias)",
+        "content": "Cadastre seus vigias aqui. Eles são quem recebe os alertas no aplicativo AlertPort e pressiona o botão para confirmar presença e responder ocorrências."
+      },
+      "users": {
+        "title": "6. Operadores da central",
+        "content": "Operadores monitoram o sistema 24/7. Eles atendem SOS, fazem ligações e controlam as ocorrências. Cadastre-os aqui com perfil OPERATOR."
+      },
+      "scheduling": {
+        "title": "7. Agendamento de alertas",
+        "content": "Com cliente + posto + dispositivo vinculado, você cria agendamentos de alertas. O vigia recebe no app e precisa pressionar para confirmar que está ativo e no posto — é o famoso \"não dormir no ponto\"."
+      },
+      "monitor": {
+        "title": "8. Monitor de Alertas",
+        "content": "Esta é a tela que seu operador fica o dia todo. Aqui aparecem SOS em tempo real, ocorrências de agendamento e pontos registrados. Permite ligar e ouvir em escuta ativa."
+      },
+      "attendance": {
+        "title": "9. Controle de Presença",
+        "content": "Registros de ponto dos vigias (entrada, saída, intervalos) aparecem aqui. Útil para controle de jornada e conformidade trabalhista."
+      },
+      "recordings": {
+        "title": "10. Gravações de ligação",
+        "content": "Toda ligação feita via plataforma é gravada e fica disponível aqui. Útil para auditoria, prova contratual e treinamento."
+      },
+      "reports": {
+        "title": "11. Relatórios",
+        "content": "Quatro relatórios-chave: Aderência de Ronda (o principal — prova que o vigia respondeu), SLA de Atendimento, Alertas de SOS e Controle de Presença. Exportáveis em XLSX, CSV e PDF."
+      },
+      "settings": {
+        "title": "12. Configurações da empresa",
+        "content": "Logo, dados cadastrais, timezone, políticas internas. Qualquer admin da conta pode ajustar."
+      },
+      "plan": {
+        "title": "13. Seu Plano",
+        "content": "Acompanhe aqui seu plano, período de teste e limites. Quando quiser contratar, é por aqui."
+      },
+      "finish": {
+        "title": "Pronto!",
+        "content": "Você conhece o essencial da plataforma. Lembre-se: comece pelos Clientes → Postos → QR Code no app → vincule dispositivos → crie agendamentos. Você pode refazer este tour a qualquer momento pelo menu do perfil."
+      }
+    },
+    "operator": {
+      "welcome": {
+        "title": "Bem-vindo, operador",
+        "content": "Seu turno começou. Vou te mostrar onde cada coisa fica e como responder aos alertas. Você pode pular e refazer depois pelo menu do seu perfil."
+      },
+      "monitor": {
+        "title": "Sua tela principal é o Monitor",
+        "content": "O Monitor de Alertas é sua home. Fica aberta o turno todo — é aqui que chegam os SOS e as ocorrências para atender."
+      },
+      "sosGlobal": {
+        "title": "SOS chega em qualquer tela",
+        "content": "Independente da página em que você esteja, um SOS faz tocar um alarme de 2 segundos e aparece um aviso vermelho no topo da tela. Clique em \"Atender agora\" para ir direto ao alerta."
+      },
+      "kpis": {
+        "title": "Indicadores do dia (KPIs)",
+        "content": "No topo do Monitor: total de ocorrências, SOS do dia, Disponíveis (não atendidos ainda), Em andamento e Registros de Ponto. O card \"Disponíveis\" é o que você precisa atender."
+      },
+      "eventCard": {
+        "title": "Cards de eventos",
+        "content": "Cada alerta vira um card. O botão \"Abrir atendimento\" começa o atendimento. Quando atendido, ele vai para a seção \"Em andamento por você\"."
+      },
+      "attendanceOwner": {
+        "title": "Atendimento exclusivo: um operador por evento",
+        "content": "Quando você abre um atendimento, o evento fica travado para você — ninguém mais pode atender o mesmo. Isso evita que dois operadores façam o mesmo SOS ao mesmo tempo."
+      },
+      "callActions": {
+        "title": "Ligação normal e escuta ativa",
+        "content": "Durante o atendimento você pode fazer ligação normal (conversa) ou escuta ativa (você ouve sem o vigia saber, útil em emergência). Use o botão do card do evento."
+      },
+      "recording": {
+        "title": "Gravação de ligação",
+        "content": "Durante uma ligação, aperte o botão de gravar. Você tem até 3 minutos; depois, a gravação é salva automaticamente e você pode iniciar outra."
+      },
+      "recordingsHistory": {
+        "title": "Histórico de gravações",
+        "content": "Todas as ligações gravadas ficam aqui. Você pode filtrar por cliente, posto, data e ouvir novamente. Útil para relatórios e auditoria."
+      },
+      "occurrences": {
+        "title": "Histórico de ocorrências",
+        "content": "Aqui fica a lista completa de todas as ocorrências (SOS, incidentes) da operação. Pesquise por data, posto ou vigia."
+      },
+      "timeEntries": {
+        "title": "Registros de Ponto",
+        "content": "Vigias batem ponto pelo app. Aqui você consulta entrada, saída e intervalos de cada colaborador."
+      },
+      "scheduling": {
+        "title": "Agendamentos",
+        "content": "Veja aqui os agendamentos ativos (alertas recorrentes que vigias devem responder). Útil para entender o que vai aparecer no Monitor nas próximas horas."
+      },
+      "reports": {
+        "title": "Seus relatórios",
+        "content": "Você tem acesso aos relatórios de Aderência de Ronda, Alertas de SOS e Presença. Exportáveis em XLSX, CSV e PDF para encaminhar aos clientes."
+      },
+      "finish": {
+        "title": "Pronto para o turno",
+        "content": "Você já conhece o fluxo completo. Dica: mantenha o Monitor aberto o tempo todo, atenda SOS rápido e grave ligações quando necessário. Bom plantão!"
+      }
+    }
   }
 }

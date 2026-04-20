@@ -850,5 +850,135 @@
   "serviceHealth": {
     "unavailableTitle": "Service temporarily unavailable",
     "unavailableDescription": "Reconnecting to the server. Please try again in a moment."
+  },
+  "onboarding": {
+    "replayMenuItem": "Replay guided tour",
+    "controls": {
+      "back": "Back",
+      "close": "Close",
+      "finish": "Finish",
+      "next": "Next",
+      "skip": "Skip"
+    },
+    "admin": {
+      "welcome": {
+        "title": "Welcome to AlertPort",
+        "content": "Hi! Let me walk you through the essentials of setting up your operation in a few minutes. You can skip anytime — this tour is always available from your profile menu at the top-right."
+      },
+      "clients": {
+        "title": "1. Start with your Clients",
+        "content": "The first step is adding your Clients — the companies or residential complexes you serve. Everything (sites, schedules, reports) is organized around them."
+      },
+      "sites": {
+        "title": "2. Then, add Sites",
+        "content": "For each Client, register their Sites (the physical locations your guards patrol). Without sites, you can't schedule rounds or link devices."
+      },
+      "qrcode": {
+        "title": "3. Site QR Code + AlertPort app",
+        "content": "Each site generates a unique QR Code. In the guard's AlertPort app, they scan it to link the device (phone) to this site. Only then will the device show up as available in your schedules."
+      },
+      "equipment": {
+        "title": "4. Linked equipment",
+        "content": "Here you see every device linked to your sites. Each row shows which site has which device and its status."
+      },
+      "collaborators": {
+        "title": "5. Collaborators (guards)",
+        "content": "Register your guards here. They're the ones who receive alerts on the AlertPort app and press to confirm presence or respond to events."
+      },
+      "users": {
+        "title": "6. Central operators",
+        "content": "Operators monitor the system 24/7 — they respond to SOS, handle calls, and manage events. Register them here with OPERATOR role."
+      },
+      "scheduling": {
+        "title": "7. Alert scheduling",
+        "content": "Once you have client + site + linked device, create alert schedules. The guard receives them on the app and has to press to confirm they're active and on-site — the \"don't fall asleep\" feature."
+      },
+      "monitor": {
+        "title": "8. Alert Monitor",
+        "content": "This is where your operator lives all day. Real-time SOS, scheduled events, and time entries show up here. Supports phone calls and silent listening."
+      },
+      "attendance": {
+        "title": "9. Attendance Control",
+        "content": "Guard time entries (clock-in/out, breaks) appear here. Useful for shift tracking and labor compliance."
+      },
+      "recordings": {
+        "title": "10. Call recordings",
+        "content": "Every call made through the platform is recorded and kept here. Useful for auditing, contractual proof, and training."
+      },
+      "reports": {
+        "title": "11. Reports",
+        "content": "Four key reports: Patrol Adherence (the main one — proof the guard responded), Attendance SLA, SOS Alerts, and Attendance Log. Exportable as XLSX, CSV, and PDF."
+      },
+      "settings": {
+        "title": "12. Company settings",
+        "content": "Logo, registration data, timezone, internal policies. Any account admin can adjust these."
+      },
+      "plan": {
+        "title": "13. Your Plan",
+        "content": "Track your plan, trial period, and limits here. Upgrade from this page when ready."
+      },
+      "finish": {
+        "title": "All set!",
+        "content": "You know the essentials. Remember: start with Clients → Sites → QR Code in the app → link devices → create schedules. You can replay this tour anytime from your profile menu."
+      }
+    },
+    "operator": {
+      "welcome": {
+        "title": "Welcome, operator",
+        "content": "Your shift just started. Let me show you where everything lives and how to handle alerts. You can skip and replay later from your profile menu."
+      },
+      "monitor": {
+        "title": "The Monitor is your home",
+        "content": "Alert Monitor is your main screen. Keep it open the whole shift — this is where SOS and events come in for you to handle."
+      },
+      "sosGlobal": {
+        "title": "SOS arrives from any screen",
+        "content": "Regardless of which page you're on, an SOS plays a 2-second alarm and shows a red banner at the top. Click \"Attend now\" to jump straight to it."
+      },
+      "kpis": {
+        "title": "Today's indicators (KPIs)",
+        "content": "At the top of the Monitor: total events, SOS of the day, Available (not attended yet), In-progress, and Time Entries. The \"Available\" card is what you need to attend to."
+      },
+      "eventCard": {
+        "title": "Event cards",
+        "content": "Each alert becomes a card. The \"Attend\" button starts the attendance. Once attended, it moves to the \"In-progress by you\" section."
+      },
+      "attendanceOwner": {
+        "title": "Attendance lock: one operator per event",
+        "content": "When you open an attendance, the event gets locked to you — no one else can attend the same one. This prevents two operators from handling the same SOS simultaneously."
+      },
+      "callActions": {
+        "title": "Normal call and silent listen",
+        "content": "During attendance, you can make a normal call (two-way conversation) or silent listen (you listen without the guard knowing — useful in emergencies). Use the button on the event card."
+      },
+      "recording": {
+        "title": "Call recording",
+        "content": "While on a call, hit the record button. You have up to 3 minutes; then the recording is saved automatically and you can start a new one."
+      },
+      "recordingsHistory": {
+        "title": "Recording history",
+        "content": "All recorded calls land here. You can filter by client, site, date, and play them again. Useful for reports and audit."
+      },
+      "occurrences": {
+        "title": "Event history",
+        "content": "Here's the full list of every event (SOS, incidents) that happened. Search by date, site, or guard."
+      },
+      "timeEntries": {
+        "title": "Time entries",
+        "content": "Guards clock in from the app. You can check clock-in, clock-out, and breaks for each collaborator here."
+      },
+      "scheduling": {
+        "title": "Schedules",
+        "content": "See the active schedules (recurring alerts guards must respond to). Useful to understand what's about to land on the Monitor."
+      },
+      "reports": {
+        "title": "Your reports",
+        "content": "You have access to Patrol Adherence, SOS Alerts, and Attendance reports. Exportable as XLSX, CSV, and PDF to share with clients."
+      },
+      "finish": {
+        "title": "You're ready for your shift",
+        "content": "You now know the full flow. Tip: keep the Monitor open at all times, attend SOS quickly, and record calls when needed. Have a good shift!"
+      }
+    }
   }
 }

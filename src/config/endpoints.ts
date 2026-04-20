@@ -157,6 +157,10 @@ export const endpoints = {
   reportsSos: url('/api/reports/alertport/sos/v1/'),
   reportsSla: url('/api/reports/alertport/sla/v1/'),
 
+  // ─── Onboarding ──────────────────────────────────────────
+  onboardingStatus: url('/api/users/system/onboarding/status/v1/'),
+  onboardingComplete: url('/api/users/system/onboarding/complete/v1/'),
+
   // ─── Addresses / Geolocation ─────────────────────────────
   addressGeolocation: url('/api/address/geo/v1/'),
 

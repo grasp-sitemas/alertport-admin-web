@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Menu, LogOut } from 'lucide-react';
+import { Menu, LogOut, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -20,6 +20,8 @@ import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import { ChatConnectionBadge } from '@/features/calls/call-dialog';
 import { useCallContext } from '@/features/calls/call-context';
 import { TrialBadge } from '@/components/trial/trial-badge';
+import { useOnboarding } from '@/features/onboarding/onboarding-context';
+import { pickTourForRole } from '@/features/onboarding/tours';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -29,6 +31,8 @@ export function Header({ onMenuClick }: HeaderProps) {
   const t = useTranslations();
   const { user, logout } = useAuth();
   const call = useCallContext();
+  const onboarding = useOnboarding();
+  const replayableTour = pickTourForRole(user?.companyUser?.subtype);
 
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-white/[0.06] bg-bg-primary/80 backdrop-blur-xl">
@@ -91,6 +95,15 @@ export function Header({ onMenuClick }: HeaderProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {replayableTour && (
+                <DropdownMenuItem
+                  onClick={() => onboarding.replay(replayableTour)}
+                  disabled={onboarding.isRunning}
+                >
+                  <HelpCircle className="h-4 w-4" />
+                  {t('onboarding.replayMenuItem')}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={logout} className="text-red-400 focus:text-red-400">
                 <LogOut className="h-4 w-4" />
                 {t('auth.logout')}

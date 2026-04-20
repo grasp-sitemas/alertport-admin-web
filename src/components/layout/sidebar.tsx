@@ -69,10 +69,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     pathname === item.href || pathname?.startsWith(item.href + '/');
                   const Icon = item.icon;
 
+                  // Derive an onboarding anchor slug from the i18n key
+                  // ("sidebar.alertMonitor" -> "alertMonitor"). Used by
+                  // the guided tour to spotlight menu items by role.
+                  const tourSlug = item.titleKey.replace(/^sidebar\./, '');
+
                   return (
                     <li key={item.href}>
                       <Link
                         href={item.href}
+                        data-tour={`sidebar-${tourSlug}`}
                         onClick={() => {
                           // Close on mobile after navigation
                           if (window.innerWidth < 1024) onClose();

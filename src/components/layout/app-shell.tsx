@@ -13,6 +13,7 @@ import { TrialExpiredModal } from '@/components/trial/trial-expired-modal';
 import { ServiceHealthBanner } from '@/components/shared/service-health-banner';
 import { SosNotificationProvider } from '@/features/alerts/sos-notification-context';
 import { SosBanner } from '@/features/alerts/sos-banner';
+import { OnboardingProvider } from '@/features/onboarding/onboarding-context';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -42,6 +43,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <CallProvider>
       <SosNotificationProvider>
+        <OnboardingProvider>
         <div className="flex min-h-screen bg-app-gradient">
           <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
@@ -66,6 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               (admins) or logout. */}
           <TrialExpiredModal />
         </div>
+        </OnboardingProvider>
       </SosNotificationProvider>
     </CallProvider>
   );
