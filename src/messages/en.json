@@ -592,6 +592,7 @@
     "recording": "Recording",
     "startRecording": "Start recording",
     "stopRecording": "Stop recording",
+    "recordingUnsupportedBrowser": "This browser can't record audio - use an up-to-date Chrome, Edge, Firefox or Safari",
     "callNormal": "Call",
     "mode": {
       "silentListen": "Silent listen",

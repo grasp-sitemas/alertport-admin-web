@@ -592,6 +592,7 @@
     "recording": "Gravando",
     "startRecording": "Iniciar gravação",
     "stopRecording": "Parar gravação",
+    "recordingUnsupportedBrowser": "Este navegador não grava áudio - use Chrome, Edge, Firefox ou Safari atualizados",
     "callNormal": "Ligar",
     "mode": {
       "silentListen": "Escuta ativa",

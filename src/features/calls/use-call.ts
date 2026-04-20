@@ -56,18 +56,90 @@ import { useAuth } from '@/hooks/use-auth';
  */
 const MAX_RECORDING_DURATION_SEC = 180;
 
-function pickSupportedMimeType(): string {
+/**
+ * Cross-browser MediaRecorder MIME picker.
+ *
+ * Order is tuned so the saved file plays on the widest set of
+ * browsers possible - our top-8 target list:
+ *  Chrome, Safari, Edge, Firefox, Samsung Internet, Opera, UC, Yandex/Mi.
+ *
+ * Priority:
+ *  1. audio/mp4;codecs=mp4a.40.2  - AAC-LC in MP4. Plays on every
+ *     target browser, including Safari. Safari records this natively;
+ *     Chromium can encode it since Chrome 119 (Nov 2023).
+ *  2. audio/mp4                    - generic MP4 fallback (older Safari).
+ *  3. audio/webm;codecs=opus       - Chrome/Edge/FF/Samsung/Opera/UC-Android.
+ *                                    Not playable on Safari, but Safari
+ *                                    users will have landed on step 1.
+ *  4. audio/ogg;codecs=opus        - Firefox legacy path.
+ *  5. audio/webm                   - generic WebM fallback.
+ *  6. ''                           - let MediaRecorder pick its default.
+ */
+export function pickSupportedMimeType(): string {
   if (typeof MediaRecorder === 'undefined') return '';
   const candidates = [
-    'audio/webm;codecs=opus',
-    'audio/webm',
-    'audio/ogg;codecs=opus',
+    'audio/mp4;codecs=mp4a.40.2',
     'audio/mp4',
+    'audio/webm;codecs=opus',
+    'audio/ogg;codecs=opus',
+    'audio/webm',
   ];
   for (const type of candidates) {
-    if (MediaRecorder.isTypeSupported(type)) return type;
+    try {
+      if (MediaRecorder.isTypeSupported(type)) return type;
+    } catch {
+      // Some Safari builds throw instead of returning false; keep scanning.
+    }
   }
   return '';
+}
+
+export interface AudioCaptureCapability {
+  mediaRecorder: boolean;
+  getUserMedia: boolean;
+  audioContext: boolean;
+  /** First MIME the browser can record, or '' if none worked. */
+  preferredMimeType: string;
+  /** Rough family label for logs / UI messaging. */
+  engine: 'blink' | 'webkit' | 'gecko' | 'unknown';
+}
+
+/**
+ * Detects what the current runtime can actually do for call audio.
+ * Call from UI to gate the Record button / warn the operator. Safe
+ * to call on SSR (returns all-false) - checks for `window` explicitly.
+ */
+export function detectAudioCapture(): AudioCaptureCapability {
+  if (typeof window === 'undefined') {
+    return {
+      mediaRecorder: false,
+      getUserMedia: false,
+      audioContext: false,
+      preferredMimeType: '',
+      engine: 'unknown',
+    };
+  }
+  const ua = window.navigator?.userAgent ?? '';
+  let engine: AudioCaptureCapability['engine'] = 'unknown';
+  if (/Firefox\//.test(ua)) engine = 'gecko';
+  else if (/Chrome\/|Chromium\/|Edg\/|OPR\/|SamsungBrowser\/|UCBrowser\/|YaBrowser\/|MiuiBrowser\//.test(ua)) engine = 'blink';
+  else if (/Safari\//.test(ua)) engine = 'webkit';
+
+  const AudioCtx =
+    (window as unknown as { AudioContext?: typeof AudioContext }).AudioContext ||
+    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+
+  return {
+    mediaRecorder: typeof MediaRecorder !== 'undefined',
+    getUserMedia: !!(
+      typeof navigator !== 'undefined' &&
+      navigator.mediaDevices &&
+      typeof navigator.mediaDevices.getUserMedia === 'function'
+    ),
+    audioContext: typeof AudioCtx === 'function',
+    preferredMimeType: pickSupportedMimeType(),
+    engine,
+  };
 }
 
 function blobToBase64(blob: Blob): Promise<string> {

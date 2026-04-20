@@ -592,6 +592,7 @@
     "recording": "录制中",
     "startRecording": "开始录制",
     "stopRecording": "停止录制",
+    "recordingUnsupportedBrowser": "此浏览器无法录制音频 - 请使用最新版本的 Chrome、Edge、Firefox 或 Safari",
     "callNormal": "呼叫",
     "mode": {
       "silentListen": "静默监听",

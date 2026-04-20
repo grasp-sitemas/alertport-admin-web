@@ -592,6 +592,7 @@
     "recording": "録音中",
     "startRecording": "録音開始",
     "stopRecording": "録音停止",
+    "recordingUnsupportedBrowser": "このブラウザは音声を録音できません。最新のChrome、Edge、Firefox、Safariをご利用ください",
     "callNormal": "通話",
     "mode": {
       "silentListen": "サイレント聞き取り",

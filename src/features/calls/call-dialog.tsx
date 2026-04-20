@@ -1,7 +1,20 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, Radio, PhoneIncoming, Circle, StopCircle } from 'lucide-react';
+import {
+  Phone,
+  PhoneOff,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+  Radio,
+  PhoneIncoming,
+  Circle,
+  StopCircle,
+  AlertTriangle,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,7 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import type { CallActions, CallState } from './use-call';
+import { detectAudioCapture, type CallActions, type CallState } from './use-call';
 
 interface CallDialogProps extends CallState, CallActions {}
 
@@ -57,6 +70,15 @@ export function CallDialog(props: CallDialogProps) {
   const isRinging = status === 'incoming';
   const isConnected = status === 'connected';
   const isSilent = callMode === 'SILENT_LISTEN';
+
+  // Detect the runtime's audio-capture capabilities once per mount.
+  // If recording is enabled backend-side but the browser can't do it,
+  // we show a warning badge so the operator knows live-listen works
+  // but no recording file will be produced.
+  const capability = useMemo(() => detectAudioCapture(), []);
+  const recordingWillWork =
+    capability.mediaRecorder && capability.audioContext;
+  const showBrowserWarning = canRecord && !recordingWillWork;
 
   return (
     <>
@@ -116,6 +138,12 @@ export function CallDialog(props: CallDialogProps) {
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
                     </span>
                     {t('calls.recording')} {formatDuration(recordingDurationSec)} / {formatDuration(MAX_RECORDING_DURATION_SEC)}
+                  </Badge>
+                )}
+                {showBrowserWarning && (
+                  <Badge variant="warning" className="gap-1.5">
+                    <AlertTriangle className="h-3 w-3" />
+                    {t('calls.recordingUnsupportedBrowser')}
                   </Badge>
                 )}
               </div>
@@ -195,8 +223,15 @@ export function CallDialog(props: CallDialogProps) {
                       isRecording && 'ring-2 ring-red-500/70 ring-offset-2 ring-offset-background animate-pulse',
                     )}
                     onClick={toggleRecording}
+                    disabled={!recordingWillWork}
                     aria-label={isRecording ? t('calls.stopRecording') : t('calls.startRecording')}
-                    title={isRecording ? t('calls.stopRecording') : t('calls.startRecording')}
+                    title={
+                      !recordingWillWork
+                        ? t('calls.recordingUnsupportedBrowser')
+                        : isRecording
+                          ? t('calls.stopRecording')
+                          : t('calls.startRecording')
+                    }
                   >
                     {isRecording ? (
                       <StopCircle className="h-5 w-5" />
