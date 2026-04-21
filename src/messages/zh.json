@@ -1004,6 +1004,54 @@
       }
     }
   },
+  "bulkImport": {
+    "button": "批量导入",
+    "users": {
+      "title": "批量导入用户",
+      "description": "上传公司用户的CSV。系统逐条创建并显示结果。"
+    },
+    "collaborators": {
+      "title": "批量导入协作者",
+      "description": "上传警卫和主管的CSV。适合大型运营的入职。"
+    },
+    "equipment": {
+      "title": "批量导入设备",
+      "description": "上传 AlertPort 设备的 CSV。设备编码必填且必须唯一。"
+    },
+    "step1": "1. 下载CSV模板",
+    "step2": "2. 上传填好的CSV",
+    "step3": "3. 审核并导入",
+    "downloadTemplate": "下载CSV模板",
+    "expectedHeaders": "必需列",
+    "pickFile": "选择CSV文件",
+    "pickAnother": "选择其他文件",
+    "valid": "有效",
+    "invalid": "有错误",
+    "ok": "ok",
+    "error": "错误",
+    "result": "结果",
+    "import": "导入",
+    "importing": "正在导入",
+    "truncatedPreview": "… 还有 {count} 行",
+    "noValidRows": "没有可导入的有效行。",
+    "allFailed": "所有导入均失败。",
+    "resultToast": "{total} 条中成功导入 {ok} 条。",
+    "downloadErrors": "下载错误为CSV",
+    "parseError": {
+      "empty": "文件似乎为空。",
+      "blankHeader": "标题行中有空列名。",
+      "duplicateHeader": "标题行有重复列。",
+      "tooManyFields": "第 {line} 行字段多于标题。",
+      "missingHeaders": "缺少列：{headers}"
+    },
+    "validation": {
+      "required": "必填",
+      "invalidEmail": "邮箱无效",
+      "invalidRole": "角色无效",
+      "invalidSubtype": "子类型无效",
+      "invalidStatus": "状态无效"
+    }
+  },
   "modules": {
     "title": "企业模块",
     "description": "按企业手动管理启用的模块(定制套餐)。",

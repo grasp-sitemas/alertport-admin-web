@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, FileUp } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/page-header';
@@ -16,9 +16,12 @@ import { ModuleGuard } from '@/components/shared/module-guard';
 import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { UserFormDialog } from '@/features/users/user-form-dialog';
 import { GatedCreateButton } from '@/components/trial/gated-create-button';
+import { BulkImportDialog } from '@/features/bulk-import/bulk-import-dialog';
+import { buildUsersBulkConfig } from '@/features/bulk-import/entity-configs';
 import { usersService } from '@/services/users.service';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
+import { useAuth } from '@/hooks/use-auth';
 import type { User } from '@/types/api';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 
@@ -35,6 +38,15 @@ export default function UsersPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<User | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<User | undefined>();
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const { user: sessionUser } = useAuth();
+  const sessionAccountId =
+    typeof sessionUser?.account === 'object' && sessionUser.account
+      ? (sessionUser.account as { _id?: string })._id
+      : typeof sessionUser?.account === 'string'
+        ? sessionUser.account
+        : undefined;
+  const bulkConfig = buildUsersBulkConfig(t, { fallbackAccountId: sessionAccountId });
 
   const queryParams = {
     ...buildFilterParams(pagination.paginationParams),
@@ -140,16 +152,22 @@ export default function UsersPage() {
         <PageHeader
           title={t('users.title')}
           action={
-            <GatedCreateButton
-              resource="users"
-              onClick={() => {
-                setEditing(undefined);
-                setFormOpen(true);
-              }}
-            >
-              <Plus className="h-4 w-4" />
-              {t('users.createUser')}
-            </GatedCreateButton>
+            <div className="flex gap-2">
+              <Button type="button" variant="secondary" onClick={() => setBulkOpen(true)}>
+                <FileUp className="h-4 w-4" />
+                {t('bulkImport.button')}
+              </Button>
+              <GatedCreateButton
+                resource="users"
+                onClick={() => {
+                  setEditing(undefined);
+                  setFormOpen(true);
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                {t('users.createUser')}
+              </GatedCreateButton>
+            </div>
           }
         />
 
@@ -209,6 +227,12 @@ export default function UsersPage() {
           description={`${deleteTarget?.firstName} ${deleteTarget?.lastName}`}
           onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
           isLoading={deleteMutation.isPending}
+        />
+        <BulkImportDialog
+          open={bulkOpen}
+          onOpenChange={setBulkOpen}
+          config={bulkConfig}
+          onImported={() => invalidateHierarchyAfter(queryClient, 'user')}
         />
       </div>
       </ModuleGuard>

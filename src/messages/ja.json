@@ -1004,6 +1004,54 @@
       }
     }
   },
+  "bulkImport": {
+    "button": "一括インポート",
+    "users": {
+      "title": "ユーザーの一括インポート",
+      "description": "会社のユーザーをCSVでアップロード。1件ずつ作成し結果を表示します。"
+    },
+    "collaborators": {
+      "title": "協力者の一括インポート",
+      "description": "警備員や監督者のCSVをアップロード。大規模オペレーションのオンボーディングに便利。"
+    },
+    "equipment": {
+      "title": "機器の一括インポート",
+      "description": "AlertPortデバイスのCSVをアップロード。コードは必須かつ一意である必要があります。"
+    },
+    "step1": "1. CSVテンプレートをダウンロード",
+    "step2": "2. 入力したCSVをアップロード",
+    "step3": "3. 確認してインポート",
+    "downloadTemplate": "CSVテンプレートをダウンロード",
+    "expectedHeaders": "必須カラム",
+    "pickFile": "CSVファイルを選択",
+    "pickAnother": "別のファイルを選ぶ",
+    "valid": "有効",
+    "invalid": "エラーあり",
+    "ok": "ok",
+    "error": "エラー",
+    "result": "結果",
+    "import": "インポート",
+    "importing": "インポート中",
+    "truncatedPreview": "… 他 {count} 行",
+    "noValidRows": "インポート可能な行がありません。",
+    "allFailed": "すべてのインポートに失敗しました。",
+    "resultToast": "{total} 件中 {ok} 件インポート成功。",
+    "downloadErrors": "エラーをCSVでダウンロード",
+    "parseError": {
+      "empty": "ファイルが空のようです。",
+      "blankHeader": "ヘッダーに名前のない列があります。",
+      "duplicateHeader": "ヘッダーに重複する列があります。",
+      "tooManyFields": "{line} 行目のフィールド数がヘッダーより多いです。",
+      "missingHeaders": "不足している列: {headers}"
+    },
+    "validation": {
+      "required": "必須",
+      "invalidEmail": "メールアドレスが不正です",
+      "invalidRole": "ロールが不正です",
+      "invalidSubtype": "サブタイプが不正です",
+      "invalidStatus": "ステータスが不正です"
+    }
+  },
   "modules": {
     "title": "企業モジュール",
     "description": "企業ごとに有効化するモジュールの手動管理(カスタムプラン)。",

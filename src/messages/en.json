@@ -1004,6 +1004,54 @@
       }
     }
   },
+  "bulkImport": {
+    "button": "Bulk import",
+    "users": {
+      "title": "Bulk-import users",
+      "description": "Upload a CSV with your company users. The system creates them one at a time and reports the outcome."
+    },
+    "collaborators": {
+      "title": "Bulk-import collaborators",
+      "description": "Upload a CSV with guards and supervisors. Great for onboarding large operations."
+    },
+    "equipment": {
+      "title": "Bulk-import equipment",
+      "description": "Upload a CSV with AlertPort devices. The code is required and must be unique."
+    },
+    "step1": "1. Download the CSV template",
+    "step2": "2. Upload the filled CSV",
+    "step3": "3. Review and import",
+    "downloadTemplate": "Download CSV template",
+    "expectedHeaders": "Expected columns",
+    "pickFile": "Select CSV file",
+    "pickAnother": "Choose another file",
+    "valid": "valid",
+    "invalid": "with errors",
+    "ok": "ok",
+    "error": "error",
+    "result": "Result",
+    "import": "Import",
+    "importing": "Importing",
+    "truncatedPreview": "… and {count} more rows",
+    "noValidRows": "No valid rows to import.",
+    "allFailed": "All imports failed.",
+    "resultToast": "{ok} of {total} records imported successfully.",
+    "downloadErrors": "Download errors as CSV",
+    "parseError": {
+      "empty": "The file appears to be empty.",
+      "blankHeader": "The header has a column with no name.",
+      "duplicateHeader": "The header has duplicate columns.",
+      "tooManyFields": "Line {line} has more fields than the header.",
+      "missingHeaders": "Missing columns: {headers}"
+    },
+    "validation": {
+      "required": "Required",
+      "invalidEmail": "Invalid email",
+      "invalidRole": "Invalid role",
+      "invalidSubtype": "Invalid subtype",
+      "invalidStatus": "Invalid status"
+    }
+  },
   "modules": {
     "title": "Company Modules",
     "description": "Manual management of modules enabled per company (custom plan).",

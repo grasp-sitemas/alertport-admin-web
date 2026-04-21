@@ -1004,6 +1004,54 @@
       }
     }
   },
+  "bulkImport": {
+    "button": "Importar en masa",
+    "users": {
+      "title": "Importar usuarios en masa",
+      "description": "Sube un CSV con los usuarios de tu empresa. El sistema los crea uno por uno y muestra el resultado."
+    },
+    "collaborators": {
+      "title": "Importar colaboradores en masa",
+      "description": "Sube un CSV con vigilantes y supervisores. Útil para onboarding de grandes operaciones."
+    },
+    "equipment": {
+      "title": "Importar equipos en masa",
+      "description": "Sube un CSV con los dispositivos AlertPort. El código es obligatorio y único."
+    },
+    "step1": "1. Descarga la plantilla CSV",
+    "step2": "2. Sube el CSV relleno",
+    "step3": "3. Revisa e importa",
+    "downloadTemplate": "Descargar plantilla CSV",
+    "expectedHeaders": "Columnas esperadas",
+    "pickFile": "Seleccionar archivo CSV",
+    "pickAnother": "Elegir otro archivo",
+    "valid": "válidos",
+    "invalid": "con error",
+    "ok": "ok",
+    "error": "error",
+    "result": "Resultado",
+    "import": "Importar",
+    "importing": "Importando",
+    "truncatedPreview": "… y {count} filas más",
+    "noValidRows": "No hay filas válidas para importar.",
+    "allFailed": "Todas las importaciones fallaron.",
+    "resultToast": "{ok} de {total} registros importados con éxito.",
+    "downloadErrors": "Descargar errores como CSV",
+    "parseError": {
+      "empty": "El archivo parece estar vacío.",
+      "blankHeader": "El encabezado tiene una columna sin nombre.",
+      "duplicateHeader": "El encabezado tiene columnas duplicadas.",
+      "tooManyFields": "La línea {line} tiene más campos que el encabezado.",
+      "missingHeaders": "Faltan columnas: {headers}"
+    },
+    "validation": {
+      "required": "Obligatorio",
+      "invalidEmail": "Email inválido",
+      "invalidRole": "Rol inválido",
+      "invalidSubtype": "Subtipo inválido",
+      "invalidStatus": "Estado inválido"
+    }
+  },
   "modules": {
     "title": "Módulos de la empresa",
     "description": "Gestión manual de los módulos habilitados por empresa (plan personalizado).",

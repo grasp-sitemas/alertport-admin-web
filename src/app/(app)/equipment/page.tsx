@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, FileUp } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/page-header';
@@ -16,9 +16,12 @@ import { RoleGuard } from '@/components/shared/role-guard';
 import { ModuleGuard } from '@/components/shared/module-guard';
 import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { EquipmentFormDialog } from '@/features/equipment/equipment-form-dialog';
+import { BulkImportDialog } from '@/features/bulk-import/bulk-import-dialog';
+import { buildEquipmentBulkConfig } from '@/features/bulk-import/entity-configs';
 import { equipmentService } from '@/services/equipment.service';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
+import { useAuth } from '@/hooks/use-auth';
 import type { Equipment } from '@/types/api';
 import { translateDynamicLabel } from '@/lib/i18n-labels';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
@@ -36,6 +39,15 @@ export default function EquipmentPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Equipment | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<Equipment | undefined>();
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const { user: sessionUser } = useAuth();
+  const sessionAccountId =
+    typeof sessionUser?.account === 'object' && sessionUser.account
+      ? (sessionUser.account as { _id?: string })._id
+      : typeof sessionUser?.account === 'string'
+        ? sessionUser.account
+        : undefined;
+  const bulkConfig = buildEquipmentBulkConfig(t, { fallbackAccountId: sessionAccountId });
 
   const queryParams = {
     ...buildFilterParams(pagination.paginationParams),
@@ -165,17 +177,23 @@ export default function EquipmentPage() {
         <PageHeader
           title={t('equipment.title')}
           action={
-            <GatedCreateButton
-              resource="devices"
-              data-tour="page-equipment-create"
-              onClick={() => {
-                setEditing(undefined);
-                setFormOpen(true);
-              }}
-            >
-              <Plus className="h-4 w-4" />
-              {t('equipment.createEquipment')}
-            </GatedCreateButton>
+            <div className="flex gap-2">
+              <Button type="button" variant="secondary" onClick={() => setBulkOpen(true)}>
+                <FileUp className="h-4 w-4" />
+                {t('bulkImport.button')}
+              </Button>
+              <GatedCreateButton
+                resource="devices"
+                data-tour="page-equipment-create"
+                onClick={() => {
+                  setEditing(undefined);
+                  setFormOpen(true);
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                {t('equipment.createEquipment')}
+              </GatedCreateButton>
+            </div>
           }
         />
 
@@ -248,6 +266,12 @@ export default function EquipmentPage() {
           description={deleteTarget?.code ?? deleteTarget?.name ?? ''}
           onConfirm={() => deleteTarget && archiveMutation.mutate(deleteTarget)}
           isLoading={archiveMutation.isPending}
+        />
+        <BulkImportDialog
+          open={bulkOpen}
+          onOpenChange={setBulkOpen}
+          config={bulkConfig}
+          onImported={() => invalidateHierarchyAfter(queryClient, 'equipment')}
         />
       </div>
       </ModuleGuard>
