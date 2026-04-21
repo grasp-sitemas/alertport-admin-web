@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/select';
 import { clientFormSchema, type ClientFormValues, DEFAULT_CLIENT_VALUES } from './schemas';
 import { companyService } from '@/services/company.service';
+import { auditLogService } from '@/services/audit-log.service';
 import { useAccountsLookup } from '@/features/shared/use-hierarchy-lookups';
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
@@ -124,9 +125,16 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
       }
       return companyService.create(sanitized as never);
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       invalidateHierarchyAfter(queryClient, 'client');
       toast.success(isEdit ? t('clients.updateSuccess') : t('clients.createSuccess'));
+      const saved = (response as { result?: { _id?: string; name?: string } })?.result;
+      void auditLogService.capture({
+        action: isEdit ? 'CLIENT_UPDATED' : 'CLIENT_CREATED',
+        domain: 'CLIENT',
+        resourceId: saved?._id || client?._id,
+        resourceLabel: saved?.name || undefined,
+      });
       onOpenChange(false);
       reset();
     },

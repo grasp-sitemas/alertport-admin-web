@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   Gauge,
   SlidersHorizontal,
+  History,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserSubtype } from '@/types/api';
@@ -201,6 +202,15 @@ export const navigation: NavSection[] = [
         icon: SlidersHorizontal,
         roles: ['SUPER_ADMIN_MASTER'],
         // No moduleKey - /modules is itself the toggle UI.
+      },
+      {
+        titleKey: 'auditLog.sidebar',
+        href: '/audit-logs',
+        icon: History,
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN'],
+        // No moduleKey - audit log is a compliance surface; it must
+        // stay reachable even if an account disables individual
+        // feature modules, so admins can see what was toggled.
       },
     ],
   },

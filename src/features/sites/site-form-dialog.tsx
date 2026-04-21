@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/select';
 import { siteFormSchema, type SiteFormValues, DEFAULT_SITE_VALUES } from './schemas';
 import { companyService } from '@/services/company.service';
+import { auditLogService } from '@/services/audit-log.service';
 import { helpersService } from '@/services/helpers.service';
 import { useClientsLookup } from './use-clients-lookup';
 import { useAccountsLookup } from '@/features/shared/use-hierarchy-lookups';
@@ -150,9 +151,16 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
       if (isEdit && site) return companyService.update(site._id, sanitized as never);
       return companyService.create(sanitized as never);
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       invalidateHierarchyAfter(queryClient, 'site');
       toast.success(isEdit ? t('sites.updateSuccess') : t('sites.createSuccess'));
+      const saved = (response as { result?: { _id?: string; name?: string } })?.result;
+      void auditLogService.capture({
+        action: isEdit ? 'SITE_UPDATED' : 'SITE_CREATED',
+        domain: 'SITE',
+        resourceId: saved?._id || site?._id,
+        resourceLabel: saved?.name || undefined,
+      });
       onOpenChange(false);
       reset();
     },

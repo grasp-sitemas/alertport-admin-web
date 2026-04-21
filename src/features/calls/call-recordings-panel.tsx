@@ -6,6 +6,7 @@ import { Play, RefreshCw, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useCallRecordings, type RecordingsFilter } from './use-call-recordings';
+import { auditLogService } from '@/services/audit-log.service';
 
 function formatDuration(sec: number): string {
   if (!Number.isFinite(sec) || sec <= 0) return '0:00';
@@ -96,8 +97,19 @@ export function CallRecordingsPanel({ filter, roomId, limit = 50, hideTitle = fa
     setPlayingId(id);
     setPlayingUrl(null);
     const url = await getSignedUrl(id);
-    if (url) setPlayingUrl(url);
-    else setPlayingId(null);
+    if (url) {
+      setPlayingUrl(url);
+      // Record the playback so operators / auditors can see who
+      // listened to which recording. Fail-open - no user feedback if
+      // the capture call is rejected; the audio still plays.
+      void auditLogService.capture({
+        action: 'RECORDING_PLAYED',
+        domain: 'RECORDING',
+        resourceId: id,
+      });
+    } else {
+      setPlayingId(null);
+    }
   };
 
   return (

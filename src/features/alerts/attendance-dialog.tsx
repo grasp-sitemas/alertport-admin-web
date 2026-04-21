@@ -32,6 +32,7 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { Badge } from '@/components/ui/badge';
 import { alertsService } from '@/services/alerts.service';
+import { auditLogService } from '@/services/audit-log.service';
 import { useAuth } from '@/hooks/use-auth';
 import { translateDynamicLabel } from '@/lib/i18n-labels';
 import type { PatrolAction } from '@/types/api';
@@ -165,6 +166,14 @@ export function AttendanceDialog({
     },
     onSuccess: () => {
       toast.success(t('alerts.attendance.openedToast'));
+      void auditLogService.capture({
+        action: 'ATTENDANCE_OPENED',
+        domain: 'ATTENDANCE',
+        resourceId: eventId || undefined,
+        resourceLabel: formatEventLabel(event),
+        clientId: resolveId(event?.client),
+        siteId: resolveId(event?.site),
+      });
       invalidate();
     },
     onError: (err: unknown) => {
@@ -225,11 +234,30 @@ export function AttendanceDialog({
     },
     onSuccess: () => {
       toast.success(t('alerts.attendance.closedToast'));
+      void auditLogService.capture({
+        action: 'ATTENDANCE_CLOSED',
+        domain: 'ATTENDANCE',
+        resourceId: eventId || undefined,
+        resourceLabel: formatEventLabel(event),
+        clientId: resolveId(event?.client),
+        siteId: resolveId(event?.site),
+      });
       invalidate();
       onOpenChange(false);
     },
     onError: () => toast.error(t('notifications.errorOccurred')),
   });
+
+  // Build a human-readable label for the event being attended - used
+  // by the audit log capture so the entry is readable without having
+  // to dereference the patrol-action record. Kept inline because it
+  // depends on `event` which closes over this render.
+  function formatEventLabel(e: PatrolAction | null): string | undefined {
+    if (!e) return undefined;
+    const siteName =
+      typeof e.site === 'object' && e.site ? (e.site as { name?: string }).name : undefined;
+    return `${e.type}${siteName ? ` · ${siteName}` : ''}`;
+  }
 
   // Reset mutation state whenever the dialog targets a different event.
   // Without this, opening event B after successfully attending event A

@@ -31,6 +31,7 @@ import {
   DEFAULT_COLLABORATOR_VALUES,
 } from './schemas';
 import { usersService } from '@/services/users.service';
+import { auditLogService } from '@/services/audit-log.service';
 import type { User } from '@/types/api';
 import {
   useAccountsLookup,
@@ -192,9 +193,17 @@ export function CollaboratorFormDialog({ open, onOpenChange, collaborator }: Pro
         photoFile,
       );
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       invalidateHierarchyAfter(queryClient, 'user');
       toast.success(isEdit ? t('collaborators.updateSuccess') : t('collaborators.createSuccess'));
+      const saved = (response as { result?: { _id?: string; firstName?: string; lastName?: string; email?: string } })?.result;
+      void auditLogService.capture({
+        action: isEdit ? 'COLLABORATOR_UPDATED' : 'COLLABORATOR_CREATED',
+        domain: 'COLLABORATOR',
+        resourceId: saved?._id || collaborator?._id,
+        resourceLabel:
+          `${saved?.firstName ?? ''} ${saved?.lastName ?? ''}`.trim() || saved?.email || undefined,
+      });
       onOpenChange(false);
       reset(DEFAULT_COLLABORATOR_VALUES);
     },

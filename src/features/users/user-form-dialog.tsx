@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/select';
 import { userFormSchema, type UserFormValues, DEFAULT_USER_VALUES } from './schemas';
 import { usersService, type AdminUserFormData } from '@/services/users.service';
+import { auditLogService } from '@/services/audit-log.service';
 import { isTrialError, toastTrialError } from '@/components/trial/trial-error-toast';
 import { ROLES, isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
@@ -242,9 +243,22 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
       }
       return usersService.create(sanitized as AdminUserFormData, photoFile);
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       invalidateHierarchyAfter(queryClient, 'user');
       toast.success(isEdit ? t('users.updateSuccess') : t('users.createSuccess'));
+      // Fire-and-forget audit capture. Never awaited - the service
+      // swallows failures so a transient audit outage can't block
+      // the user from closing the dialog.
+      const saved = response?.result as { _id?: string; firstName?: string; lastName?: string; email?: string } | undefined;
+      void auditLogService.capture({
+        action: isEdit ? 'USER_UPDATED' : 'USER_CREATED',
+        domain: 'USER',
+        resourceId: saved?._id || user?._id,
+        resourceLabel:
+          `${saved?.firstName ?? ''} ${saved?.lastName ?? ''}`.trim() ||
+          saved?.email ||
+          undefined,
+      });
       onOpenChange(false);
       reset();
     },

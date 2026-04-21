@@ -31,6 +31,7 @@ import {
   DEFAULT_EQUIPMENT_VALUES,
 } from './schemas';
 import { equipmentService } from '@/services/equipment.service';
+import { auditLogService } from '@/services/audit-log.service';
 import {
   useAccountsLookup,
   useClientsLookup,
@@ -131,9 +132,16 @@ export function EquipmentFormDialog({ open, onOpenChange, equipment }: Props) {
       if (isEdit && equipment) return equipmentService.update(equipment._id, sanitized);
       return equipmentService.create(sanitized);
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       invalidateHierarchyAfter(queryClient, 'equipment');
       toast.success(isEdit ? t('equipment.updateSuccess') : t('equipment.createSuccess'));
+      const saved = (response as { result?: { _id?: string; code?: string; name?: string } })?.result;
+      void auditLogService.capture({
+        action: isEdit ? 'EQUIPMENT_UPDATED' : 'EQUIPMENT_CREATED',
+        domain: 'EQUIPMENT',
+        resourceId: saved?._id || equipment?._id,
+        resourceLabel: saved?.code || saved?.name || undefined,
+      });
       onOpenChange(false);
       reset(DEFAULT_EQUIPMENT_VALUES);
     },

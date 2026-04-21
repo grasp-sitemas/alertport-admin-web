@@ -166,6 +166,10 @@ export const endpoints = {
   accountModulesByAccount: (accountId: string) =>
     url(`/api/company/modules/by-account/${accountId}/v1/`),
 
+  // ─── Audit log (AlertPort-scoped activity trail) ──────────
+  auditLogCapture: url('/api/company/audit-log/v1/'),
+  auditLogFilter: url('/api/company/audit-log/filter/v1/'),
+
   // ─── Addresses / Geolocation ─────────────────────────────
   addressGeolocation: url('/api/address/geo/v1/'),
 
