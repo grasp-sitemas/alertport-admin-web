@@ -231,6 +231,18 @@ export function AttendanceDialog({
     onError: () => toast.error(t('notifications.errorOccurred')),
   });
 
+  // Reset mutation state whenever the dialog targets a different event.
+  // Without this, opening event B after successfully attending event A
+  // leaves `openMutation.isSuccess === true` (useMutation state survives
+  // re-renders), which blocked the auto-open effect below from firing
+  // for B. Reported by Flávio 2026-04-21.
+  useEffect(() => {
+    openMutation.reset();
+    addRecordMutation.reset();
+    closeMutation.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]);
+
   // Auto-open the attendance flag when the dialog first appears for an
   // AVAILABLE event - saves the operator one click. Critical guards:
   //   • Only OPERATOR role may open/close (backend returns 401
@@ -243,7 +255,7 @@ export function AttendanceDialog({
     if (!open || !event || !operatorId) return;
     if (!isOperator) return;
     if (state !== 'AVAILABLE') return;
-    if (openMutation.isPending || openMutation.isSuccess) return;
+    if (openMutation.isPending) return;
     openMutation.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, eventId, isOperator, state]);
