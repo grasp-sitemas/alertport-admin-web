@@ -23,38 +23,38 @@ import {
  * ms-company/controllers/ctr-audit-log.js DOMAINS.
  */
 const DOMAIN_OPTIONS: { value: AuditDomain; labelKey: string }[] = [
-  { value: 'USER', labelKey: 'auditLog.domain.USER' },
-  { value: 'COLLABORATOR', labelKey: 'auditLog.domain.COLLABORATOR' },
-  { value: 'CLIENT', labelKey: 'auditLog.domain.CLIENT' },
-  { value: 'SITE', labelKey: 'auditLog.domain.SITE' },
-  { value: 'EQUIPMENT', labelKey: 'auditLog.domain.EQUIPMENT' },
-  { value: 'MODULES', labelKey: 'auditLog.domain.MODULES' },
-  { value: 'ATTENDANCE', labelKey: 'auditLog.domain.ATTENDANCE' },
-  { value: 'RECORDING', labelKey: 'auditLog.domain.RECORDING' },
-  { value: 'COMPANY', labelKey: 'auditLog.domain.COMPANY' },
+  { value: 'USER', labelKey: 'auditLog.domains.USER' },
+  { value: 'COLLABORATOR', labelKey: 'auditLog.domains.COLLABORATOR' },
+  { value: 'CLIENT', labelKey: 'auditLog.domains.CLIENT' },
+  { value: 'SITE', labelKey: 'auditLog.domains.SITE' },
+  { value: 'EQUIPMENT', labelKey: 'auditLog.domains.EQUIPMENT' },
+  { value: 'MODULES', labelKey: 'auditLog.domains.MODULES' },
+  { value: 'ATTENDANCE', labelKey: 'auditLog.domains.ATTENDANCE' },
+  { value: 'RECORDING', labelKey: 'auditLog.domains.RECORDING' },
+  { value: 'COMPANY', labelKey: 'auditLog.domains.COMPANY' },
 ];
 
 const ACTION_OPTIONS: { value: AuditAction; labelKey: string }[] = [
-  { value: 'USER_CREATED', labelKey: 'auditLog.action.USER_CREATED' },
-  { value: 'USER_UPDATED', labelKey: 'auditLog.action.USER_UPDATED' },
-  { value: 'USER_ARCHIVED', labelKey: 'auditLog.action.USER_ARCHIVED' },
-  { value: 'COLLABORATOR_CREATED', labelKey: 'auditLog.action.COLLABORATOR_CREATED' },
-  { value: 'COLLABORATOR_UPDATED', labelKey: 'auditLog.action.COLLABORATOR_UPDATED' },
-  { value: 'COLLABORATOR_ARCHIVED', labelKey: 'auditLog.action.COLLABORATOR_ARCHIVED' },
-  { value: 'CLIENT_CREATED', labelKey: 'auditLog.action.CLIENT_CREATED' },
-  { value: 'CLIENT_UPDATED', labelKey: 'auditLog.action.CLIENT_UPDATED' },
-  { value: 'CLIENT_ARCHIVED', labelKey: 'auditLog.action.CLIENT_ARCHIVED' },
-  { value: 'SITE_CREATED', labelKey: 'auditLog.action.SITE_CREATED' },
-  { value: 'SITE_UPDATED', labelKey: 'auditLog.action.SITE_UPDATED' },
-  { value: 'SITE_ARCHIVED', labelKey: 'auditLog.action.SITE_ARCHIVED' },
-  { value: 'EQUIPMENT_CREATED', labelKey: 'auditLog.action.EQUIPMENT_CREATED' },
-  { value: 'EQUIPMENT_UPDATED', labelKey: 'auditLog.action.EQUIPMENT_UPDATED' },
-  { value: 'EQUIPMENT_ARCHIVED', labelKey: 'auditLog.action.EQUIPMENT_ARCHIVED' },
-  { value: 'MODULES_CHANGED', labelKey: 'auditLog.action.MODULES_CHANGED' },
-  { value: 'ATTENDANCE_OPENED', labelKey: 'auditLog.action.ATTENDANCE_OPENED' },
-  { value: 'ATTENDANCE_CLOSED', labelKey: 'auditLog.action.ATTENDANCE_CLOSED' },
-  { value: 'RECORDING_PLAYED', labelKey: 'auditLog.action.RECORDING_PLAYED' },
-  { value: 'COMPANY_UPDATED', labelKey: 'auditLog.action.COMPANY_UPDATED' },
+  { value: 'USER_CREATED', labelKey: 'auditLog.actions.USER_CREATED' },
+  { value: 'USER_UPDATED', labelKey: 'auditLog.actions.USER_UPDATED' },
+  { value: 'USER_ARCHIVED', labelKey: 'auditLog.actions.USER_ARCHIVED' },
+  { value: 'COLLABORATOR_CREATED', labelKey: 'auditLog.actions.COLLABORATOR_CREATED' },
+  { value: 'COLLABORATOR_UPDATED', labelKey: 'auditLog.actions.COLLABORATOR_UPDATED' },
+  { value: 'COLLABORATOR_ARCHIVED', labelKey: 'auditLog.actions.COLLABORATOR_ARCHIVED' },
+  { value: 'CLIENT_CREATED', labelKey: 'auditLog.actions.CLIENT_CREATED' },
+  { value: 'CLIENT_UPDATED', labelKey: 'auditLog.actions.CLIENT_UPDATED' },
+  { value: 'CLIENT_ARCHIVED', labelKey: 'auditLog.actions.CLIENT_ARCHIVED' },
+  { value: 'SITE_CREATED', labelKey: 'auditLog.actions.SITE_CREATED' },
+  { value: 'SITE_UPDATED', labelKey: 'auditLog.actions.SITE_UPDATED' },
+  { value: 'SITE_ARCHIVED', labelKey: 'auditLog.actions.SITE_ARCHIVED' },
+  { value: 'EQUIPMENT_CREATED', labelKey: 'auditLog.actions.EQUIPMENT_CREATED' },
+  { value: 'EQUIPMENT_UPDATED', labelKey: 'auditLog.actions.EQUIPMENT_UPDATED' },
+  { value: 'EQUIPMENT_ARCHIVED', labelKey: 'auditLog.actions.EQUIPMENT_ARCHIVED' },
+  { value: 'MODULES_CHANGED', labelKey: 'auditLog.actions.MODULES_CHANGED' },
+  { value: 'ATTENDANCE_OPENED', labelKey: 'auditLog.actions.ATTENDANCE_OPENED' },
+  { value: 'ATTENDANCE_CLOSED', labelKey: 'auditLog.actions.ATTENDANCE_CLOSED' },
+  { value: 'RECORDING_PLAYED', labelKey: 'auditLog.actions.RECORDING_PLAYED' },
+  { value: 'COMPANY_UPDATED', labelKey: 'auditLog.actions.COMPANY_UPDATED' },
 ];
 
 export default function AuditLogsPage() {
@@ -122,7 +122,7 @@ function AuditLogsBody() {
       headerKey: 'auditLog.action',
       render: (r) => (
         <Badge variant={badgeVariantFor(r.action)}>
-          {safeT(t, `auditLog.action.${r.action}`, r.action)}
+          {safeT(t, `auditLog.actions.${r.action}`, r.action)}
         </Badge>
       ),
     },
@@ -131,7 +131,7 @@ function AuditLogsBody() {
       headerKey: 'auditLog.domain',
       render: (r) => (
         <span className="text-xs text-text-muted">
-          {safeT(t, `auditLog.domain.${r.domain}`, r.domain)}
+          {safeT(t, `auditLog.domains.${r.domain}`, r.domain)}
         </span>
       ),
     },
