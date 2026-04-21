@@ -10,6 +10,7 @@ import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/share
 import { useOccurrences } from '@/features/alerts/use-occurrences';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
+import { RoleGuard } from '@/components/shared/role-guard';
 import type { AlertOccurrence } from '@/types/api';
 
 const initialFilters = {
@@ -95,7 +96,8 @@ export default function AlertOccurrencesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}>
+      <div className="space-y-6">
       <PageHeader title={t('alerts.timeline')} description={t('alerts.maxDateRange')} />
 
       <FilterPanel
@@ -133,7 +135,8 @@ export default function AlertOccurrencesPage() {
         getRowKey={(item) => item._id}
         emptyTitle={t('common.noResults')}
       />
-    </div>
+      </div>
+    </RoleGuard>
   );
 }
 

@@ -12,6 +12,7 @@ import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/share
 import { useTimeEntries } from '@/features/alerts/use-occurrences';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
+import { RoleGuard } from '@/components/shared/role-guard';
 import type { TimeEntry } from '@/types/api';
 
 const initialFilters = {
@@ -101,7 +102,8 @@ export default function AttendancePage() {
   };
 
   return (
-    <div className="space-y-6">
+    <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}>
+      <div className="space-y-6">
       <PageHeader title={t('attendance.title')} description={t('attendance.timeEntries')} />
 
       <FilterPanel
@@ -156,7 +158,8 @@ export default function AttendancePage() {
           getRowKey={(item) => item._id}
         />
       )}
-    </div>
+      </div>
+    </RoleGuard>
   );
 }
 

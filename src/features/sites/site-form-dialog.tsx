@@ -161,7 +161,10 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="max-w-3xl max-h-[90vh] overflow-y-auto"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{isEdit ? t('sites.editSite') : t('sites.createSite')}</DialogTitle>
           <DialogDescription>{t('sites.siteDetails')}</DialogDescription>

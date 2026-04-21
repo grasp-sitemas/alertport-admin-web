@@ -148,7 +148,10 @@ export function ClientFormDialog({ open, onOpenChange, client }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
+      <DialogContent
+        className="max-w-xl"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{isEdit ? t('clients.editClient') : t('clients.createClient')}</DialogTitle>
           <DialogDescription>{t('clients.clientDetails')}</DialogDescription>

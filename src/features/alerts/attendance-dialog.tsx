@@ -269,7 +269,10 @@ export function AttendanceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-0 overflow-hidden border border-white/10 bg-gradient-to-b from-bg-secondary to-bg-primary sm:rounded-2xl">
+      <DialogContent
+        className="max-w-2xl p-0 overflow-hidden border border-white/10 bg-gradient-to-b from-bg-secondary to-bg-primary sm:rounded-2xl"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader className="px-6 pt-6 pb-4 sm:px-8">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-brand-500/10 ring-1 ring-brand-500/20">

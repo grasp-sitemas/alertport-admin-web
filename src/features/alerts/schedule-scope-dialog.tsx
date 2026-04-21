@@ -57,7 +57,10 @@ export function ScheduleScopeDialog({
 
   return (
     <Dialog open={open} onOpenChange={(next) => (!next ? onCancel() : undefined)}>
-      <DialogContent className="max-w-md">
+      <DialogContent
+        className="max-w-md"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{t(titleKey)}</DialogTitle>
           <DialogDescription>

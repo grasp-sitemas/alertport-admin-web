@@ -57,6 +57,7 @@ export function LegalModal({ kind, open, onOpenChange, onAccept }: LegalModalPro
           'bg-gradient-to-b from-bg-secondary to-bg-primary',
           'sm:rounded-3xl',
         )}
+        onInteractOutside={(e) => e.preventDefault()}
       >
         {/* Ambient glow */}
         <div className="pointer-events-none absolute inset-0">

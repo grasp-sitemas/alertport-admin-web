@@ -142,7 +142,10 @@ export function RecoveryPasswordDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent
+        className="max-w-md"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="text-xl font-heading">
             {t('auth.recovery.title')}
