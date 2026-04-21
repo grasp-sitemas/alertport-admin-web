@@ -392,6 +392,8 @@
     "attendanceType": "対応種類",
     "attendanceHistory": "対応履歴",
     "noActiveEvents": "アクティブなイベントはありません",
+    "noEventsMatchFilter": "現在のフィルターに一致するイベントはありません。",
+    "searchPlaceholder": "サイト・オペレーター・機器・メモで検索…",
     "eventDetails": "イベント詳細",
     "sosAlert": "SOSアラート",
     "incident": "インシデント",

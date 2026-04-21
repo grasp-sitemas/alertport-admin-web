@@ -392,6 +392,8 @@
     "attendanceType": "Tipo de Atención",
     "attendanceHistory": "Historial de Atención",
     "noActiveEvents": "Sin eventos activos",
+    "noEventsMatchFilter": "Ningún evento coincide con los filtros actuales.",
+    "searchPlaceholder": "Buscar por sitio, operador, equipo, notas…",
     "eventDetails": "Detalles del Evento",
     "sosAlert": "Alerta SOS",
     "incident": "Incidente",

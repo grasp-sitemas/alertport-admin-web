@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { useTranslations } from 'next-intl';
-import { AlertTriangle, Circle, Lock, MapPin, Phone, Radio, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Circle, FileText, Lock, MapPin, Phone, Radio, Router, ShieldCheck, UserRound } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -69,6 +69,18 @@ function MonitorEventCardImpl({
   const ownerName = owner.name || t('alerts.attendance.anotherOperator');
   const deviceLabel = formatDeviceLabel(event);
 
+  // Extra signals surfaced in the card body when present. Rendered as a
+  // secondary line below the timestamp so the scan order stays:
+  //   TYPE → DEVICE → TIME → metadata.
+  // Operator only shows in IN_PROGRESS_BY_ME so it doesn't duplicate the
+  // IN_PROGRESS_BY_OTHER lock already rendered above.
+  const equipmentName =
+    typeof event.equipment === 'object' && event.equipment
+      ? (event.equipment as { name?: string }).name || null
+      : null;
+  const notesSnippet = event.notes ? event.notes.trim().slice(0, 140) : '';
+  const ownerLineName = state === 'IN_PROGRESS_BY_ME' ? owner.name : null;
+
   return (
     <div
       className={cn(
@@ -124,6 +136,28 @@ function MonitorEventCardImpl({
                 </>
               )}
             </p>
+            {(equipmentName || ownerLineName) && (
+              <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-muted">
+                {equipmentName && (
+                  <span className="inline-flex items-center gap-1">
+                    <Router className="h-3 w-3" />
+                    {equipmentName}
+                  </span>
+                )}
+                {ownerLineName && (
+                  <span className="inline-flex items-center gap-1">
+                    <UserRound className="h-3 w-3" />
+                    {ownerLineName}
+                  </span>
+                )}
+              </p>
+            )}
+            {notesSnippet && (
+              <p className="mt-1 flex items-start gap-1 text-xs text-text-secondary/90">
+                <FileText className="h-3 w-3 mt-0.5 shrink-0 text-text-muted" />
+                <span className="line-clamp-2">{notesSnippet}</span>
+              </p>
+            )}
           </div>
         </div>
 

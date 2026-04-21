@@ -392,6 +392,8 @@
     "attendanceType": "Attendance Type",
     "attendanceHistory": "Attendance History",
     "noActiveEvents": "No active events",
+    "noEventsMatchFilter": "No events match the current filters.",
+    "searchPlaceholder": "Search by site, operator, equipment, notes…",
     "eventDetails": "Event Details",
     "sosAlert": "SOS Alert",
     "incident": "Incident",

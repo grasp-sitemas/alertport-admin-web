@@ -392,6 +392,8 @@
     "attendanceType": "处理类型",
     "attendanceHistory": "处理历史",
     "noActiveEvents": "暂无活跃事件",
+    "noEventsMatchFilter": "当前筛选条件下没有事件。",
+    "searchPlaceholder": "按站点、操作员、设备、备注搜索…",
     "eventDetails": "事件详情",
     "sosAlert": "SOS警报",
     "incident": "事故",

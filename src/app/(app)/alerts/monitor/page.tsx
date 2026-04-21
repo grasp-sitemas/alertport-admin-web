@@ -3,11 +3,13 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { AlertTriangle, Bell, Clock, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Bell, Clock, Search, ShieldCheck, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import { RoleGuard } from '@/components/shared/role-guard';
@@ -25,14 +27,20 @@ import {
 import { usePagination } from '@/hooks/use-pagination';
 import { useUserScope, applyUserScope } from '@/hooks/use-user-scope';
 import { useAuth } from '@/hooks/use-auth';
-import type { PatrolAction, TimeEntry } from '@/types/api';
+import type { EventType, PatrolAction, TimeEntry } from '@/types/api';
 import { useCallContext } from '@/features/calls/call-context';
 import { ChatConnectionBadge } from '@/features/calls/call-dialog';
 import { formatDeviceLabel, resolveCallTargetId } from '@/features/alerts/device-label';
 import { AttendanceDialog } from '@/features/alerts/attendance-dialog';
 import { MonitorEventCard } from '@/features/alerts/monitor-event-card';
 import { MonitorTimeEntryRow } from '@/features/alerts/monitor-time-entry-row';
-import { classifyAttendance } from '@/features/alerts/attendance-state';
+import { classifyAttendance, type AttendanceState } from '@/features/alerts/attendance-state';
+import {
+  MONITOR_EVENT_TYPES,
+  MONITOR_STATUS_VALUES,
+  filterMonitorEvents,
+  type MonitorClientFilters,
+} from '@/features/alerts/monitor-filter';
 
 /**
  * Window the card-level highlight ("flash") stays on after a new event
@@ -47,6 +55,41 @@ const FLASH_WINDOW_MS = 15_000;
  * avoid unbounded memory growth on long operator shifts.
  */
 const SEEN_IDS_CAP = 500;
+
+interface DraftFilters {
+  startDate: string;
+  endDate: string;
+  type: EventType | '';
+  status: AttendanceState | '';
+}
+
+const EMPTY_DRAFT_FILTERS: DraftFilters = {
+  startDate: '',
+  endDate: '',
+  type: '',
+  status: '',
+};
+
+/**
+ * i18n keys mirrored from {@link MonitorEventCard}'s EVENT_META so the
+ * filter Select options and the card labels stay in sync without
+ * exporting internal state between the two modules.
+ */
+const EVENT_TYPE_LABEL_KEYS: Record<EventType, string> = {
+  SOS_ALERT: 'alerts.sosAlert',
+  INCIDENT: 'alerts.incident',
+  CRASH: 'alerts.crash',
+  LOWVOLTAGE: 'alerts.lowVoltage',
+  CANCEL_PATROL: 'alerts.cancelPatrol',
+  FAILURE_PATROL: 'alerts.failurePatrol',
+};
+
+const ATTENDANCE_STATUS_LABEL_KEYS: Record<AttendanceState, string> = {
+  AVAILABLE: 'alerts.attendance.statusAvailable',
+  IN_PROGRESS_BY_ME: 'alerts.attendance.statusInProgressByYou',
+  IN_PROGRESS_BY_OTHER: 'alerts.attendance.statusInProgress',
+  CLOSED: 'alerts.attendance.statusClosedBadge',
+};
 
 export default function AlertMonitorPage() {
   return (
@@ -78,11 +121,30 @@ function AlertMonitor() {
   const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
   const [attendanceEvent, setAttendanceEvent] = useState<PatrolAction | null>(null);
 
+  // Draft vs active split:
+  //   `draftFilters` follows the FilterPanel's current input state and only
+  //   becomes `activeFilters` when the operator clicks "Buscar". This keeps
+  //   the server query stable while the operator is typing, matching the
+  //   UX on the other list pages (occurrences, attendance, reports).
+  //
+  //   startDate/endDate go to the server; type/status are applied
+  //   client-side via `filterMonitorEvents` so toggling them does not
+  //   trigger a refetch.
+  const [draftFilters, setDraftFilters] = useState<DraftFilters>(EMPTY_DRAFT_FILTERS);
+  const [activeFilters, setActiveFilters] = useState<DraftFilters>(EMPTY_DRAFT_FILTERS);
+
+  // Real-time search box above the events list. Not tied to the "Buscar"
+  // button - it live-filters what's already loaded, so operators can
+  // scan a large queue without triggering round-trips.
+  const [searchText, setSearchText] = useState('');
+
   const patrolQuery = usePatrolActions({
     ...applyUserScope(
       {
         skip: patrolPagination.paginationParams.skip,
         limit: patrolPagination.paginationParams.limit,
+        ...(activeFilters.startDate ? { startDate: activeFilters.startDate } : {}),
+        ...(activeFilters.endDate ? { endDate: activeFilters.endDate } : {}),
       },
       scope,
     ),
@@ -110,6 +172,37 @@ function AlertMonitor() {
 
   const events = useMemo<PatrolAction[]>(() => patrolQuery.data?.results || [], [patrolQuery.data]);
   const timeEntries = useMemo<TimeEntry[]>(() => timeQuery.data?.results || [], [timeQuery.data]);
+
+  // Client-side slice of `events`. The type/status filters and the search
+  // box run here so toggling them is instant (no refetch). Hierarchy and
+  // date range remain server-side because they shrink the dataset before
+  // it crosses the wire.
+  const typeLabelFor = useCallback(
+    (type: EventType): string | undefined => {
+      const key = EVENT_TYPE_LABEL_KEYS[type];
+      return key ? t(key) : undefined;
+    },
+    [t],
+  );
+
+  const clientFilters = useMemo<MonitorClientFilters>(
+    () => ({
+      q: searchText,
+      type: activeFilters.type,
+      status: activeFilters.status,
+    }),
+    [searchText, activeFilters.type, activeFilters.status],
+  );
+
+  const filteredEvents = useMemo(
+    () => filterMonitorEvents(events, clientFilters, currentUserId, typeLabelFor),
+    [events, clientFilters, currentUserId, typeLabelFor],
+  );
+
+  const totalLoaded = events.length;
+  const totalShown = filteredEvents.length;
+  const hasClientFilter =
+    !!clientFilters.q.trim() || !!clientFilters.type || !!clientFilters.status;
 
   // When another operator claims/closes the event this dialog is showing,
   // the `events` list refreshes but the `attendanceEvent` state still holds
@@ -167,11 +260,19 @@ function AlertMonitor() {
   const handleClearFilters = useCallback(() => {
     setHierarchy({});
     setActiveHierarchy({});
+    setDraftFilters(EMPTY_DRAFT_FILTERS);
+    setActiveFilters(EMPTY_DRAFT_FILTERS);
+    setSearchText('');
   }, []);
 
   const handleSearch = useCallback(() => {
     setActiveHierarchy(hierarchy);
-  }, [hierarchy]);
+    setActiveFilters(draftFilters);
+  }, [hierarchy, draftFilters]);
+
+  const handleFilterChange = useCallback((key: string, value: unknown) => {
+    setDraftFilters((prev) => ({ ...prev, [key]: (value as string) ?? '' }));
+  }, []);
 
   const handleAttendanceChanged = useCallback(() => {
     patrolQuery.refetch();
@@ -271,9 +372,30 @@ function AlertMonitor() {
 
       <FilterPanel
         extras={<HierarchyFilters value={hierarchy} onChange={setHierarchy} />}
-        fields={[]}
-        values={{}}
-        onChange={() => {}}
+        fields={[
+          { key: 'startDate', labelKey: 'common.startDate', type: 'date' },
+          { key: 'endDate', labelKey: 'common.endDate', type: 'date' },
+          {
+            key: 'type',
+            labelKey: 'alerts.type',
+            type: 'select',
+            options: MONITOR_EVENT_TYPES.map((value) => ({
+              value,
+              label: t(EVENT_TYPE_LABEL_KEYS[value]),
+            })),
+          },
+          {
+            key: 'status',
+            labelKey: 'alerts.status',
+            type: 'select',
+            options: MONITOR_STATUS_VALUES.map((value) => ({
+              value,
+              label: t(ATTENDANCE_STATUS_LABEL_KEYS[value]),
+            })),
+          },
+        ]}
+        values={draftFilters as unknown as Record<string, unknown>}
+        onChange={handleFilterChange}
         onSearch={handleSearch}
         onClear={handleClearFilters}
       />
@@ -291,30 +413,67 @@ function AlertMonitor() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2" data-tour="monitor-events">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-4 w-4 text-brand-500" />
-              {t('alerts.timeline')}
-              {flashEventCount > 0 && (
-                <Badge variant="brand" className="animate-pulse">
-                  {t('alerts.realtime.newEvents', { count: flashEventCount })}
-                </Badge>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-brand-500" />
+                {t('alerts.timeline')}
+                {flashEventCount > 0 && (
+                  <Badge variant="brand" className="animate-pulse">
+                    {t('alerts.realtime.newEvents', { count: flashEventCount })}
+                  </Badge>
+                )}
+              </CardTitle>
+              {totalLoaded > 0 && (
+                <span className="text-xs text-text-muted">
+                  {hasClientFilter
+                    ? `${t('common.showing')} ${totalShown} ${t('common.of')} ${totalLoaded}`
+                    : `${totalLoaded} ${t('alerts.occurrences').toLowerCase()}`}
+                </span>
               )}
-            </CardTitle>
+            </div>
+            <div className="mt-3 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted pointer-events-none" />
+              <Input
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder={t('alerts.searchPlaceholder')}
+                className="pl-9 pr-9"
+                aria-label={t('common.search')}
+              />
+              {searchText && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSearchText('')}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                  aria-label={t('common.clearFilters')}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {patrolQuery.isLoading ? (
               <div className="py-12 flex justify-center">
                 <Spinner />
               </div>
-            ) : events.length === 0 ? (
+            ) : totalLoaded === 0 ? (
               <EmptyState
                 icon={Bell}
                 title={t('alerts.noActiveEvents')}
                 description={t('common.noData')}
               />
+            ) : filteredEvents.length === 0 ? (
+              <EmptyState
+                icon={Search}
+                title={t('common.noResults')}
+                description={t('alerts.noEventsMatchFilter')}
+              />
             ) : (
               <div className="space-y-3">
-                {events.map((event) => (
+                {filteredEvents.map((event) => (
                   <MonitorEventCard
                     key={event._id}
                     event={event}
