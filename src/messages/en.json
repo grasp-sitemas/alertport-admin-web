@@ -321,7 +321,16 @@
     "alertsByDay": "Alerts by Day",
     "alertsByType": "Alerts by Type",
     "recentActivity": "Recent Activity",
-    "overview": "Overview"
+    "overview": "Overview",
+    "statusBreakdown": "Status breakdown",
+    "statusBreakdownDescription": "Share of alerts by outcome in the selected range.",
+    "topSites": "Top sites by alerts",
+    "topSitesDescription": "Top 10 sites by volume in the selected range.",
+    "trendDescription": "Daily alert volume in the selected range.",
+    "responseRate": "response rate",
+    "range7": "7 days",
+    "range30": "30 days",
+    "range90": "90 days"
   },
   "alerts": {
     "title": "Alert Occurrences",

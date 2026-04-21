@@ -321,7 +321,16 @@
     "alertsByDay": "Alertas por Dia",
     "alertsByType": "Alertas por Tipo",
     "recentActivity": "Atividade Recente",
-    "overview": "Visão Geral"
+    "overview": "Visão Geral",
+    "statusBreakdown": "Distribuição por status",
+    "statusBreakdownDescription": "Proporção de alertas por desfecho no período.",
+    "topSites": "Sites com mais alertas",
+    "topSitesDescription": "Top 10 sites por volume no período selecionado.",
+    "trendDescription": "Volume diário de alertas no período selecionado.",
+    "responseRate": "taxa de resposta",
+    "range7": "7 dias",
+    "range30": "30 dias",
+    "range90": "90 dias"
   },
   "alerts": {
     "title": "Ocorrências de Alertas",

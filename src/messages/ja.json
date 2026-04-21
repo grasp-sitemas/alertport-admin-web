@@ -321,7 +321,16 @@
     "alertsByDay": "日別アラート",
     "alertsByType": "種類別アラート",
     "recentActivity": "最近のアクティビティ",
-    "overview": "概要"
+    "overview": "概要",
+    "statusBreakdown": "ステータス内訳",
+    "statusBreakdownDescription": "選択した期間のアラート結果の割合。",
+    "topSites": "アラートの多いサイト",
+    "topSitesDescription": "選択した期間のサイト別上位10件。",
+    "trendDescription": "選択した期間の日別アラート件数。",
+    "responseRate": "対応率",
+    "range7": "7日間",
+    "range30": "30日間",
+    "range90": "90日間"
   },
   "alerts": {
     "title": "アラート発生",

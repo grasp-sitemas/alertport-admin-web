@@ -321,7 +321,16 @@
     "alertsByDay": "按日警报",
     "alertsByType": "按类型警报",
     "recentActivity": "最近活动",
-    "overview": "概览"
+    "overview": "概览",
+    "statusBreakdown": "状态分布",
+    "statusBreakdownDescription": "所选时间范围内警报结果的占比。",
+    "topSites": "警报最多的站点",
+    "topSitesDescription": "所选时间范围内前10个站点。",
+    "trendDescription": "所选时间范围内每日警报数量。",
+    "responseRate": "响应率",
+    "range7": "7天",
+    "range30": "30天",
+    "range90": "90天"
   },
   "alerts": {
     "title": "警报事件",

@@ -6,24 +6,30 @@ import { equipmentService } from '@/services/equipment.service';
 import { usersService } from '@/services/users.service';
 import { useUserScope, applyUserScope } from '@/hooks/use-user-scope';
 
-/**
- * Dashboard KPIs - all filter endpoints are scoped to the logged-in user's
- * account / client / site hierarchy, matching the legacy shieldgo behaviour.
- */
-export function useDashboardData() {
-  const scope = useUserScope();
+export interface DashboardRange {
+  /** ISO date-time (inclusive) at the start of the analysis window. */
+  startISO: string;
+  /** ISO date-time (exclusive) at the end of the analysis window. */
+  endISO: string;
+}
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const weekAgo = new Date(today);
-  weekAgo.setDate(today.getDate() - 7);
+/**
+ * Dashboard KPIs + occurrences list. All filter endpoints are scoped to
+ * the logged-in user's account / client / site hierarchy so the
+ * frontend does not have to second-guess tenancy boundaries.
+ *
+ * Caller owns the date range, so operators can switch 7/30/90 day views
+ * without the hook recomputing it on every render.
+ */
+export function useDashboardData(range: DashboardRange) {
+  const scope = useUserScope();
 
   const occurrences = useQuery({
     queryKey: [
       'dashboard',
       'occurrences',
-      weekAgo.toISOString(),
-      today.toISOString(),
+      range.startISO,
+      range.endISO,
       scope.accountId ?? '',
       scope.clientId ?? '',
       scope.siteId ?? '',
@@ -34,8 +40,8 @@ export function useDashboardData() {
           {
             skip: 1,
             limit: 500,
-            startDate: weekAgo.toISOString(),
-            endDate: new Date().toISOString(),
+            startDate: range.startISO,
+            endDate: range.endISO,
           },
           scope,
         ),

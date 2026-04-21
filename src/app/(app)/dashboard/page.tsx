@@ -1,19 +1,62 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Bell, CheckCircle2, Clock, XCircle, Cpu, UserCheck, TrendingUp } from 'lucide-react';
+import {
+  Bell,
+  CheckCircle2,
+  Clock,
+  Cpu,
+  MapPin,
+  PieChart as PieIcon,
+  TrendingUp,
+  UserCheck,
+  XCircle,
+} from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { PageHeader } from '@/components/shared/page-header';
 import { KpiCard } from '@/features/dashboard/kpi-card';
-import { useDashboardData } from '@/features/dashboard/use-dashboard-data';
+import { useDashboardData, type DashboardRange } from '@/features/dashboard/use-dashboard-data';
+import {
+  EventsTrendChart,
+  StatusDonut,
+  TopSitesBars,
+  type RankedSite,
+  type StatusSlice,
+  type TrendPoint,
+} from '@/features/dashboard/dashboard-charts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import type { AlertOccurrence } from '@/types/api';
 import { OccurrenceStatusBadge } from '@/components/shared/status-badge';
+
+/** Ranges the operator can pick. Kept small - wide ranges saturate the
+ *  API (limit=500) and the dashboard has a dedicated report page for
+ *  deeper drill-downs.
+ */
+const RANGE_PRESETS = [
+  { id: 7, labelKey: 'dashboard.range7' },
+  { id: 30, labelKey: 'dashboard.range30' },
+  { id: 90, labelKey: 'dashboard.range90' },
+] as const;
+
+type RangeId = (typeof RANGE_PRESETS)[number]['id'];
+
+function buildRange(days: RangeId): DashboardRange {
+  const end = new Date();
+  const start = new Date(end);
+  start.setDate(end.getDate() - days);
+  start.setHours(0, 0, 0, 0);
+  return { startISO: start.toISOString(), endISO: end.toISOString() };
+}
 
 export default function DashboardPage() {
   const t = useTranslations();
   const { user } = useAuth();
-  const { occurrences, equipmentCount, collaboratorCount, isLoading } = useDashboardData();
+  const [rangeDays, setRangeDays] = useState<RangeId>(7);
+  const range = useMemo(() => buildRange(rangeDays), [rangeDays]);
+  const { occurrences, equipmentCount, collaboratorCount } = useDashboardData(range);
+  const occurrencesLoading = occurrences.isLoading;
 
   const occurrenceList = occurrences.data?.results || [];
   const pendingCount = occurrenceList.filter((o) => o.status === 'PENDING').length;
@@ -21,73 +64,110 @@ export default function DashboardPage() {
   const missedCount = occurrenceList.filter((o) => o.status === 'MISSED').length;
   const totalCount = occurrences.data?.totalCount ?? occurrenceList.length;
 
-  // Group occurrences by day for the simple chart
-  const byDay = groupByDay(occurrenceList);
-  const maxCount = Math.max(1, ...Object.values(byDay));
-  const days = Object.keys(byDay).slice(-7);
+  // Time-series data. buildTrend always returns one point per day in the
+  // selected window so gaps render as zero instead of collapsing the axis.
+  const trendData = useMemo<TrendPoint[]>(
+    () => buildTrend(occurrenceList, rangeDays),
+    [occurrenceList, rangeDays],
+  );
+
+  // Status donut. The order keeps the "good" state (responded) first so
+  // the donut reads clockwise from success → pending → missed.
+  const statusSlices = useMemo<StatusSlice[]>(
+    () => [
+      { name: t('alerts.responded'), value: respondedCount, color: 'rgb(16,185,129)' },
+      { name: t('alerts.pending'), value: pendingCount, color: 'rgb(245,158,11)' },
+      { name: t('alerts.missed'), value: missedCount, color: 'rgb(239,68,68)' },
+    ],
+    [t, respondedCount, pendingCount, missedCount],
+  );
+
+  const topSites = useMemo<RankedSite[]>(
+    () => rankSites(occurrenceList, 10),
+    [occurrenceList],
+  );
+
+  const responseRate =
+    totalCount > 0 ? Math.round((respondedCount / totalCount) * 100) : null;
 
   return (
     <div className="space-y-6">
       <PageHeader
         title={`${t('auth.welcomeBack')}, ${user?.firstName || ''}`}
         description={t('dashboard.welcome')}
+        action={
+          <div className="inline-flex rounded-lg border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-1">
+            {RANGE_PRESETS.map((preset) => {
+              const active = preset.id === rangeDays;
+              return (
+                <Button
+                  key={preset.id}
+                  type="button"
+                  size="sm"
+                  variant={active ? 'secondary' : 'ghost'}
+                  onClick={() => setRangeDays(preset.id)}
+                  className={active ? '' : 'text-text-muted'}
+                >
+                  {t(preset.labelKey)}
+                </Button>
+              );
+            })}
+          </div>
+        }
       />
 
-      {/* KPI Grid */}
       <div
         data-tour="dashboard-kpis"
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
         <KpiCard
           title={t('dashboard.totalAlerts')}
-          value={isLoading ? '-' : totalCount}
+          value={totalCount}
           icon={Bell}
           accent="brand"
-          isLoading={isLoading}
-          trend={t('dashboard.weekSummary')}
+          isLoading={occurrencesLoading}
+          trend={responseRate !== null ? `${responseRate}% ${t('dashboard.responseRate')}` : undefined}
         />
         <KpiCard
           title={t('dashboard.pendingAlerts')}
-          value={isLoading ? '-' : pendingCount}
+          value={pendingCount}
           icon={Clock}
           accent="warning"
-          isLoading={isLoading}
+          isLoading={occurrencesLoading}
         />
         <KpiCard
           title={t('dashboard.respondedAlerts')}
-          value={isLoading ? '-' : respondedCount}
+          value={respondedCount}
           icon={CheckCircle2}
           accent="success"
-          isLoading={isLoading}
+          isLoading={occurrencesLoading}
         />
         <KpiCard
           title={t('dashboard.missedAlerts')}
-          value={isLoading ? '-' : missedCount}
+          value={missedCount}
           icon={XCircle}
           accent="danger"
-          isLoading={isLoading}
+          isLoading={occurrencesLoading}
         />
       </div>
 
-      {/* Secondary KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <KpiCard
           title={t('dashboard.activeEquipments')}
-          value={isLoading ? '-' : equipmentCount.data?.totalCount ?? 0}
+          value={equipmentCount.data?.totalCount ?? 0}
           icon={Cpu}
           accent="info"
-          isLoading={isLoading}
+          isLoading={equipmentCount.isLoading}
         />
         <KpiCard
           title={t('dashboard.activeCollaborators')}
-          value={isLoading ? '-' : collaboratorCount.data?.totalCount ?? 0}
+          value={collaboratorCount.data?.totalCount ?? 0}
           icon={UserCheck}
           accent="brand"
-          isLoading={isLoading}
+          isLoading={collaboratorCount.isLoading}
         />
       </div>
 
-      {/* Chart + recent activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="lg:col-span-2">
           <CardHeader>
@@ -95,34 +175,66 @@ export default function DashboardPage() {
               <TrendingUp className="h-4 w-4 text-brand-500" />
               {t('dashboard.alertsByDay')}
             </CardTitle>
-            <CardDescription>{t('dashboard.weekSummary')}</CardDescription>
+            <CardDescription>{t('dashboard.trendDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-end justify-between gap-2 h-40">
-              {days.length > 0 ? (
-                days.map((day) => {
-                  const count = byDay[day] ?? 0;
-                  const heightPct = (count / maxCount) * 100;
-                  return (
-                    <div key={day} className="flex flex-1 flex-col items-center gap-2 min-w-0">
-                      <div className="w-full flex items-end h-full">
-                        <div
-                          className="w-full rounded-t-lg bg-gradient-to-t from-brand-600 to-brand-400 transition-all duration-500 hover:brightness-125"
-                          style={{ height: `${Math.max(4, heightPct)}%` }}
-                          title={`${count} alerts`}
+            {occurrencesLoading ? (
+              <div className="h-[240px] animate-pulse rounded-lg bg-white/[0.02]" />
+            ) : (
+              <EventsTrendChart data={trendData} formatDay={formatDayShort} />
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PieIcon className="h-4 w-4 text-brand-500" />
+              {t('dashboard.statusBreakdown')}
+            </CardTitle>
+            <CardDescription>{t('dashboard.statusBreakdownDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {occurrencesLoading ? (
+              <div className="h-[240px] animate-pulse rounded-lg bg-white/[0.02]" />
+            ) : (
+              <>
+                <StatusDonut data={statusSlices} />
+                <ul className="mt-3 space-y-1.5 text-xs">
+                  {statusSlices.map((slice) => (
+                    <li key={slice.name} className="flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-2 text-text-secondary">
+                        <span
+                          className="inline-block h-2.5 w-2.5 rounded-full"
+                          style={{ background: slice.color }}
                         />
-                      </div>
-                      <div className="text-[10px] text-text-muted truncate w-full text-center">
-                        {formatDayShort(day)}
-                      </div>
-                      <div className="text-xs font-semibold text-white">{count}</div>
-                    </div>
-                  );
-                })
-              ) : (
-                <p className="text-sm text-text-muted w-full text-center">{t('common.noData')}</p>
-              )}
-            </div>
+                        {slice.name}
+                      </span>
+                      <span className="font-semibold text-white">{slice.value}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-brand-500" />
+              {t('dashboard.topSites')}
+            </CardTitle>
+            <CardDescription>{t('dashboard.topSitesDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {occurrencesLoading ? (
+              <div className="h-[240px] animate-pulse rounded-lg bg-white/[0.02]" />
+            ) : (
+              <TopSitesBars data={topSites} />
+            )}
           </CardContent>
         </Card>
 
@@ -131,25 +243,30 @@ export default function DashboardPage() {
             <CardTitle>{t('dashboard.recentActivity')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3 max-h-72 overflow-y-auto">
-              {occurrenceList.slice(0, 5).map((occ) => (
-                <div
-                  key={occ._id}
-                  className="flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-white/[0.03] transition-colors"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm text-white font-medium truncate">
-                      {typeof occ.site === 'object' ? occ.site?.name : t('common.site')}
-                    </p>
-                    <p className="text-xs text-text-muted">
-                      {safeDateString(occ.scheduledAt)}
-                    </p>
-                  </div>
-                  <OccurrenceStatusBadge status={occ.status} />
+            <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+              {occurrencesLoading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="h-12 animate-pulse rounded-lg bg-white/[0.02]" />
+                  ))}
                 </div>
-              ))}
-              {occurrenceList.length === 0 && (
-                <p className="text-sm text-text-muted text-center py-8">{t('common.noData')}</p>
+              ) : occurrenceList.length === 0 ? (
+                <p className="py-8 text-center text-sm text-text-muted">{t('common.noData')}</p>
+              ) : (
+                occurrenceList.slice(0, 8).map((occ) => (
+                  <div
+                    key={occ._id}
+                    className="flex items-center justify-between gap-3 rounded-lg p-2 transition-colors hover:bg-white/[0.03]"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-white">
+                        {typeof occ.site === 'object' ? occ.site?.name : t('common.site')}
+                      </p>
+                      <p className="text-xs text-text-muted">{safeDateString(occ.scheduledAt)}</p>
+                    </div>
+                    <OccurrenceStatusBadge status={occ.status} />
+                  </div>
+                ))
               )}
             </div>
           </CardContent>
@@ -165,30 +282,47 @@ function safeDateString(value: unknown): string {
   return Number.isNaN(d.getTime()) ? '-' : d.toLocaleString();
 }
 
-function groupByDay(occurrences: AlertOccurrence[]): Record<string, number> {
-  const counts: Record<string, number> = {};
-  for (const occ of occurrences) {
-    const d = new Date(occ.scheduledAt);
+function buildTrend(list: AlertOccurrence[], days: number): TrendPoint[] {
+  const bucket: Record<string, number> = {};
+  for (const occ of list) {
+    const raw = occ.scheduledAt ?? occ.createdDate;
+    if (!raw) continue;
+    const d = new Date(raw);
     if (Number.isNaN(d.getTime())) continue;
-    const day = d.toISOString().slice(0, 10);
-    counts[day] = (counts[day] ?? 0) + 1;
+    const key = d.toISOString().slice(0, 10);
+    bucket[key] = (bucket[key] ?? 0) + 1;
   }
-  // Ensure last 7 days are present
   const today = new Date();
-  for (let i = 6; i >= 0; i--) {
+  today.setHours(0, 0, 0, 0);
+  const points: TrendPoint[] = [];
+  for (let i = days - 1; i >= 0; i -= 1) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
     const key = d.toISOString().slice(0, 10);
-    if (!(key in counts)) counts[key] = 0;
+    points.push({ day: key, count: bucket[key] ?? 0 });
   }
-  return Object.fromEntries(
-    Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)),
-  );
+  return points;
+}
+
+function rankSites(list: AlertOccurrence[], limit: number): RankedSite[] {
+  const counts = new Map<string, number>();
+  for (const occ of list) {
+    const siteName =
+      typeof occ.site === 'object' && occ.site?.name ? occ.site.name : undefined;
+    if (!siteName) continue;
+    counts.set(siteName, (counts.get(siteName) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
 }
 
 function formatDayShort(day: string): string {
   try {
-    return new Date(day).toLocaleDateString(undefined, { weekday: 'short' });
+    const d = new Date(day);
+    if (Number.isNaN(d.getTime())) return day;
+    return d.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
   } catch {
     return day;
   }
