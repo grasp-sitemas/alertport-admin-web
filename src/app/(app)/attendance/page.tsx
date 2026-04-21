@@ -13,6 +13,7 @@ import { useTimeEntries } from '@/features/alerts/use-occurrences';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { ModuleGuard } from '@/components/shared/module-guard';
 import type { TimeEntry } from '@/types/api';
 
 const initialFilters = {
@@ -103,6 +104,7 @@ export default function AttendancePage() {
 
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}>
+      <ModuleGuard moduleKey="TIME_ENTRIES">
       <div className="space-y-6">
       <PageHeader title={t('attendance.title')} description={t('attendance.timeEntries')} />
 
@@ -159,6 +161,7 @@ export default function AttendancePage() {
         />
       )}
       </div>
+      </ModuleGuard>
     </RoleGuard>
   );
 }

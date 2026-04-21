@@ -26,6 +26,16 @@ export interface NavItem {
   icon: LucideIcon;
   roles: UserSubtype[];
   children?: NavItem[];
+  /**
+   * Per-account module key this nav item requires. When set, the sidebar
+   * hides this item if the account has the module disabled via /modules.
+   * Items without a `moduleKey` are treated as always-available admin
+   * surfaces (e.g. dashboard, plan, /modules itself).
+   *
+   * Fail-open semantics live in {@link useSessionAccountModules} - if
+   * the module map can't be fetched, the item stays visible.
+   */
+  moduleKey?: string;
 }
 
 export interface NavSection {
@@ -53,12 +63,14 @@ export const navigation: NavSection[] = [
         href: '/alerts/monitor',
         icon: Monitor,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR'],
+        moduleKey: 'MONITOR',
       },
       {
         titleKey: 'sidebar.callRecordings',
         href: '/alerts/recordings',
         icon: Mic,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR'],
+        moduleKey: 'RECORDINGS',
       },
     ],
   },
@@ -70,12 +82,14 @@ export const navigation: NavSection[] = [
         href: '/alerts/occurrences',
         icon: Bell,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR', 'AUDITOR'],
+        moduleKey: 'OCCURRENCES',
       },
       {
         titleKey: 'sidebar.timeEntries',
         href: '/attendance',
         icon: Clock,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR', 'AUDITOR'],
+        moduleKey: 'TIME_ENTRIES',
       },
     ],
   },
@@ -87,6 +101,7 @@ export const navigation: NavSection[] = [
         href: '/alerts/scheduling',
         icon: Calendar,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN', 'MANAGER'],
+        moduleKey: 'SCHEDULING',
       },
     ],
   },
@@ -98,24 +113,28 @@ export const navigation: NavSection[] = [
         href: '/reports/adherence',
         icon: Target,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER'],
+        moduleKey: 'REPORTS',
       },
       {
         titleKey: 'sidebar.reportAttendance',
         href: '/reports/attendance',
         icon: Clock,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR'],
+        moduleKey: 'REPORTS',
       },
       {
         titleKey: 'sidebar.reportSos',
         href: '/reports/sos',
         icon: AlertTriangle,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR'],
+        moduleKey: 'REPORTS',
       },
       {
         titleKey: 'sidebar.reportSla',
         href: '/reports/sla',
         icon: Gauge,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER'],
+        moduleKey: 'REPORTS',
       },
     ],
   },
@@ -127,30 +146,35 @@ export const navigation: NavSection[] = [
         href: '/users',
         icon: Users,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN'],
+        moduleKey: 'USERS',
       },
       {
         titleKey: 'sidebar.collaborators',
         href: '/collaborators',
         icon: UserCheck,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER'],
+        moduleKey: 'COLLABORATORS',
       },
       {
         titleKey: 'sidebar.clients',
         href: '/clients',
         icon: Briefcase,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER'],
+        moduleKey: 'CLIENTS',
       },
       {
         titleKey: 'sidebar.sites',
         href: '/sites',
         icon: MapPin,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER'],
+        moduleKey: 'SITES',
       },
       {
         titleKey: 'sidebar.equipment',
         href: '/equipment',
         icon: Cpu,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER'],
+        moduleKey: 'EQUIPMENT',
       },
     ],
   },
@@ -162,18 +186,21 @@ export const navigation: NavSection[] = [
         href: '/company',
         icon: Building2,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN'],
+        moduleKey: 'COMPANY_SETTINGS',
       },
       {
         titleKey: 'sidebar.plan',
         href: '/plan',
         icon: Gem,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN'],
+        // No moduleKey - billing surface is always available.
       },
       {
         titleKey: 'sidebar.modules',
         href: '/modules',
         icon: SlidersHorizontal,
         roles: ['SUPER_ADMIN_MASTER'],
+        // No moduleKey - /modules is itself the toggle UI.
       },
     ],
   },

@@ -1014,6 +1014,11 @@
     "emptyStateTitle": "Ninguna empresa seleccionada",
     "emptyStateDescription": "Elige una empresa en la lista de la izquierda para gestionar sus módulos.",
     "saveSuccess": "Módulos actualizados con éxito",
+    "disabled": {
+      "title": "Módulo desactivado",
+      "description": "Este módulo está desactivado para tu empresa. Contacta al administrador para habilitar el acceso.",
+      "backToDashboard": "Volver al panel"
+    },
     "categories": {
       "operations": "Operación",
       "calls": "Llamadas",

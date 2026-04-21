@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge, RoleBadge } from '@/components/shared/status-badge';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { ModuleGuard } from '@/components/shared/module-guard';
 import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { UserFormDialog } from '@/features/users/user-form-dialog';
 import { GatedCreateButton } from '@/components/trial/gated-create-button';
@@ -134,6 +135,7 @@ export default function UsersPage() {
 
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN']}>
+      <ModuleGuard moduleKey="USERS">
       <div className="space-y-6">
         <PageHeader
           title={t('users.title')}
@@ -209,6 +211,7 @@ export default function UsersPage() {
           isLoading={deleteMutation.isPending}
         />
       </div>
+      </ModuleGuard>
     </RoleGuard>
   );
 }

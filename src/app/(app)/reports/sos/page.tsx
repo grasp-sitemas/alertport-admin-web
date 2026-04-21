@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { ModuleGuard } from '@/components/shared/module-guard';
 import { useSosReport } from '@/features/reports/use-reports';
 import { ReportFilterPanel, type ReportFilterValue } from '@/features/reports/report-filter-panel';
 import { ReportExportButton } from '@/features/reports/report-export-button';
@@ -30,7 +31,9 @@ import type { ExportPayload } from '@/features/reports/report-export';
 export default function SosReportPage() {
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}>
-      <SosPageBody />
+      <ModuleGuard moduleKey="REPORTS">
+        <SosPageBody />
+      </ModuleGuard>
     </RoleGuard>
   );
 }

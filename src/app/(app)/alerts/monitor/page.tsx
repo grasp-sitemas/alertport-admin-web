@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { ModuleGuard } from '@/components/shared/module-guard';
 import { FilterPanel } from '@/components/shared/filter-panel';
 import {
   HierarchyFilters,
@@ -94,7 +95,9 @@ const ATTENDANCE_STATUS_LABEL_KEYS: Record<AttendanceState, string> = {
 export default function AlertMonitorPage() {
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}>
-      <AlertMonitor />
+      <ModuleGuard moduleKey="MONITOR">
+        <AlertMonitor />
+      </ModuleGuard>
     </RoleGuard>
   );
 }

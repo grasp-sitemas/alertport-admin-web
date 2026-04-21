@@ -1014,6 +1014,11 @@
     "emptyStateTitle": "企業が選択されていません",
     "emptyStateDescription": "左のリストから企業を選んでモジュールを管理してください。",
     "saveSuccess": "モジュールを更新しました",
+    "disabled": {
+      "title": "モジュールは無効です",
+      "description": "このモジュールは貴社で無効化されています。管理者に有効化を依頼してください。",
+      "backToDashboard": "ダッシュボードへ戻る"
+    },
     "categories": {
       "operations": "運用",
       "calls": "通話",

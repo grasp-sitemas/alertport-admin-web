@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { navigation } from '@/config/navigation';
 import { useAuth } from '@/hooks/use-auth';
+import { useSessionAccountModules } from '@/features/modules/use-session-account-modules';
 import { cn } from '@/lib/utils';
 import { Logo } from './logo';
 import { X } from 'lucide-react';
@@ -19,11 +20,20 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const t = useTranslations();
   const { userSubtype } = useAuth();
+  const modules = useSessionAccountModules();
 
+  // Two-stage filter:
+  //   1. Role - strictest, removes items the current subtype can't see.
+  //   2. Account module - per-tenant feature flag. SUPER_ADMIN_MASTER
+  //      bypasses this (modules.isEnabled returns true for SAM).
   const filteredNavigation = navigation
     .map((section) => ({
       ...section,
-      items: section.items.filter((item) => userSubtype && item.roles.includes(userSubtype)),
+      items: section.items.filter((item) => {
+        if (!userSubtype || !item.roles.includes(userSubtype)) return false;
+        if (item.moduleKey && !modules.isEnabled(item.moduleKey)) return false;
+        return true;
+      }),
     }))
     .filter((section) => section.items.length > 0);
 

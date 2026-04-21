@@ -13,6 +13,7 @@ import { GatedCreateButton } from '@/components/trial/gated-create-button';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { ModuleGuard } from '@/components/shared/module-guard';
 import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { EquipmentFormDialog } from '@/features/equipment/equipment-form-dialog';
 import { equipmentService } from '@/services/equipment.service';
@@ -159,6 +160,7 @@ export default function EquipmentPage() {
 
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER']}>
+      <ModuleGuard moduleKey="EQUIPMENT">
       <div className="space-y-6">
         <PageHeader
           title={t('equipment.title')}
@@ -248,6 +250,7 @@ export default function EquipmentPage() {
           isLoading={archiveMutation.isPending}
         />
       </div>
+      </ModuleGuard>
     </RoleGuard>
   );
 }

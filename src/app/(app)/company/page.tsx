@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { ModuleGuard } from '@/components/shared/module-guard';
 import { companyService } from '@/services/company.service';
 import { companyFormSchema, type CompanyFormValues } from '@/features/company/schemas';
 import { useCepLookup } from '@/hooks/use-cep-lookup';
@@ -183,6 +184,7 @@ export default function CompanyPage() {
     <RoleGuard
       roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}
     >
+      <ModuleGuard moduleKey="COMPANY_SETTINGS">
       <div className="space-y-6">
         <PageHeader title={t('company.title')} description={t('company.companyInfo')} />
 
@@ -379,6 +381,7 @@ export default function CompanyPage() {
           </div>
         </form>
       </div>
+      </ModuleGuard>
     </RoleGuard>
   );
 }

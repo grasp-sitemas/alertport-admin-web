@@ -1014,6 +1014,11 @@
     "emptyStateTitle": "No company selected",
     "emptyStateDescription": "Pick a company from the list on the left to manage its modules.",
     "saveSuccess": "Modules updated successfully",
+    "disabled": {
+      "title": "Module disabled",
+      "description": "This module is disabled for your company. Contact your administrator to enable access.",
+      "backToDashboard": "Back to dashboard"
+    },
     "categories": {
       "operations": "Operations",
       "calls": "Calls",

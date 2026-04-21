@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { FilterPanel } from '@/components/shared/filter-panel';
 import { Card, CardContent } from '@/components/ui/card';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { ModuleGuard } from '@/components/shared/module-guard';
 import {
   HierarchyFilters,
   type HierarchyFiltersValue,
@@ -80,6 +81,7 @@ export default function RecordingsPage() {
     <RoleGuard
       roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}
     >
+      <ModuleGuard moduleKey="RECORDINGS">
       <div className="space-y-6">
         <PageHeader
           title={t('calls.recordings.pageTitle')}
@@ -116,6 +118,7 @@ export default function RecordingsPage() {
           </CardContent>
         </Card>
       </div>
+      </ModuleGuard>
     </RoleGuard>
   );
 }

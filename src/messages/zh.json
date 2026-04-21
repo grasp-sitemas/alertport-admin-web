@@ -1014,6 +1014,11 @@
     "emptyStateTitle": "未选择企业",
     "emptyStateDescription": "请在左侧列表中选择一个企业来管理其模块。",
     "saveSuccess": "模块更新成功",
+    "disabled": {
+      "title": "模块已禁用",
+      "description": "此模块在贵公司已被禁用。请联系管理员开启访问权限。",
+      "backToDashboard": "返回仪表板"
+    },
     "categories": {
       "operations": "运营",
       "calls": "通话",

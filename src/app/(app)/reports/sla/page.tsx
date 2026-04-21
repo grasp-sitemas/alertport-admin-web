@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { ModuleGuard } from '@/components/shared/module-guard';
 import { useSlaReport } from '@/features/reports/use-reports';
 import { ReportFilterPanel, type ReportFilterValue } from '@/features/reports/report-filter-panel';
 import { ReportExportButton } from '@/features/reports/report-export-button';
@@ -34,7 +35,9 @@ const DEFAULT_SLA_THRESHOLD_SEC = 60;
 export default function SlaReportPage() {
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER']}>
-      <SlaPageBody />
+      <ModuleGuard moduleKey="REPORTS">
+        <SlaPageBody />
+      </ModuleGuard>
     </RoleGuard>
   );
 }

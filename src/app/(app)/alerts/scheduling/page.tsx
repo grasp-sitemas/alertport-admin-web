@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { ModuleGuard } from '@/components/shared/module-guard';
 import {
   HierarchyFilters,
   type HierarchyFiltersValue,
@@ -232,6 +233,7 @@ export default function AlertSchedulingPage() {
 
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER']}>
+      <ModuleGuard moduleKey="SCHEDULING">
       <div className="space-y-4">
         <PageHeader
           title={t('alerts.scheduling')}
@@ -337,6 +339,7 @@ export default function AlertSchedulingPage() {
           />
         )}
       </div>
+      </ModuleGuard>
     </RoleGuard>
   );
 }

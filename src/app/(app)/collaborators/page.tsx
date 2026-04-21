@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { ModuleGuard } from '@/components/shared/module-guard';
 import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { CollaboratorFormDialog } from '@/features/collaborators/collaborator-form-dialog';
 import { usersService } from '@/services/users.service';
@@ -153,6 +154,7 @@ export default function CollaboratorsPage() {
 
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER']}>
+      <ModuleGuard moduleKey="COLLABORATORS">
       <div className="space-y-6">
         <PageHeader
           title={t('collaborators.title')}
@@ -240,6 +242,7 @@ export default function CollaboratorsPage() {
           isLoading={deleteMutation.isPending}
         />
       </div>
+      </ModuleGuard>
     </RoleGuard>
   );
 }
