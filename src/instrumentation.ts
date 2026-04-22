@@ -17,7 +17,14 @@
 import * as Sentry from '@sentry/nextjs';
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN ?? '';
-const environment = process.env.NEXT_PUBLIC_APP_MODE ?? 'development';
+// Prefer an explicit Sentry-only env var so HML and PROD surfaces
+// can be separated in the Sentry dashboard without coupling to
+// `NEXT_PUBLIC_APP_MODE`, which drives unrelated feature flags.
+// Falls back to APP_MODE so local dev keeps working.
+const environment =
+  process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ||
+  process.env.NEXT_PUBLIC_APP_MODE ||
+  'development';
 const isProduction = process.env.NEXT_PUBLIC_IS_PRODUCTION === 'true';
 
 export async function register() {

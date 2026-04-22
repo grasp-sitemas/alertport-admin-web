@@ -17,6 +17,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import * as Sentry from '@sentry/nextjs';
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -25,9 +26,13 @@ interface ErrorProps {
 
 export default function RouteError({ error, reset }: ErrorProps) {
   useEffect(() => {
-    // Surfaces the stack to the browser console so an operator can
-    // grab it from devtools when opening a support ticket. In prod
-    // this will also land in any RUM tool we wire up later.
+    // Forward the failure to Sentry. Next.js does not auto-capture
+    // throws that reach a route-level error boundary - this is the
+    // hook that makes them show up alongside unhandled rejections.
+    // Safe no-op when Sentry was not initialized (empty DSN).
+    Sentry.captureException(error);
+    // Console fallback so an operator opening devtools to file a
+    // ticket still sees the stack locally.
     if (typeof window !== 'undefined') {
       console.error('[route-error]', error);
     }

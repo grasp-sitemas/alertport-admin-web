@@ -17,7 +17,13 @@ const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN ?? '';
 if (dsn) {
   Sentry.init({
     dsn,
-    environment: process.env.NEXT_PUBLIC_APP_MODE ?? 'development',
+    // Same resolution as the server instrumentation: prefer an
+    // explicit Sentry env tag; fall back to APP_MODE; then
+    // development. Keeps HML / PROD cleanly separated in Sentry UI.
+    environment:
+      process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ||
+      process.env.NEXT_PUBLIC_APP_MODE ||
+      'development',
     // Match the server sampling so a full trace lines up end-to-end.
     tracesSampleRate: process.env.NEXT_PUBLIC_IS_PRODUCTION === 'true' ? 0.1 : 1.0,
     // Session replay: OFF for the happy path (the admin shows

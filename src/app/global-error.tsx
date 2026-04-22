@@ -14,6 +14,7 @@
  */
 
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -22,6 +23,13 @@ interface GlobalErrorProps {
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
+    // Route-level error boundaries in Next.js App Router catch the
+    // throw but do NOT forward it to Sentry on their own - the SDK's
+    // automatic integration only hooks unhandled rejections / pre-
+    // boundary throws. Capture explicitly here so we get the worst
+    // kind of failure (root layout crash) in the Sentry dashboard.
+    // Safe no-op when Sentry was not initialized (empty DSN).
+    Sentry.captureException(error);
     if (typeof window !== 'undefined') {
       console.error('[global-error]', error);
     }
