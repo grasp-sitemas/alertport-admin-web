@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 import path from 'node:path';
+import { withSentryConfig } from '@sentry/nextjs';
 
 /**
  * Security headers applied to every response.
@@ -85,4 +86,40 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/**
+ * Sentry wrapper.
+ *
+ * `tunnelRoute` proxies outgoing Sentry traffic through
+ * `/monitoring` on our own origin. Three wins:
+ *   1. CSP stays clean - no need to allow sentry.io in connect-src.
+ *   2. Ad-blockers that ban sentry.io hostnames don't break error
+ *      reporting for real users.
+ *   3. Mixed-env proxies (Heroku, CloudFront) see plain same-origin
+ *      POSTs instead of cross-origin beacons.
+ *
+ * `org` / `project` drive source-map upload at build time. They are
+ * only consulted when `SENTRY_AUTH_TOKEN` is present; without it
+ * the wrapper silently skips the upload step (dev + preview builds).
+ *
+ * HML vs PROD project selection happens via env vars set on each
+ * Vercel project:
+ *   - admin-alertport-hml  → SENTRY_PROJECT=alerport-admin-web-hml
+ *   - admin-alertport      → SENTRY_PROJECT=alerport-admin-web
+ */
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG || 'grasp-jc',
+  project: process.env.SENTRY_PROJECT || 'alerport-admin-web',
+  silent: !process.env.CI,
+  tunnelRoute: '/monitoring',
+  // Drop the Sentry logger from the client bundle to save ~2KB.
+  disableLogger: true,
+  // Source-map lifecycle. When an auth token is present, the plugin
+  // uploads maps to Sentry and then deletes them from the bundle so
+  // browsers never download them (this replaces the legacy
+  // `hideSourceMaps` option from the v7 SDK). When no token is
+  // present, disable the step entirely so the build stays quiet.
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+    deleteSourcemapsAfterUpload: true,
+  },
+});
