@@ -18,23 +18,45 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { RoleGuard } from '@/components/shared/role-guard';
 import { useAuth } from '@/hooks/use-auth';
 import { lgpdService } from '@/services/lgpd.service';
 
 /**
- * LGPD self-service page. Exposes the two data-subject rights every
- * brasilian SaaS is required to offer by law (art. 18 LGPD):
+ * LGPD self-service page. Exposes the two data-subject rights the
+ * LGPD (art. 18) requires a controller to offer:
  *   • direito de acesso (export) - dumps everything we hold on the
  *     user as a JSON download they can take anywhere.
  *   • direito de eliminação (delete) - requires password re-entry,
  *     anonymizes the row, soft-deletes linked company/customer
  *     membership, logs the subject out.
  *
- * Accessible to every authenticated role because LGPD rights are
- * individual, not hierarchical - an OPERATOR must be able to export
- * and delete THEIR own data just like an ADMIN.
+ * **Role-scoped to ADMIN, ADMIN_MASTER, SUPER_ADMIN_MASTER** even
+ * though LGPD rights are individual, not hierarchical. The operational
+ * reason: an OPERATOR self-deleting mid-shift would nuke the active
+ * attendance they're covering and leave the site blind. Other roles
+ * still exercise their LGPD rights via their account ADMIN or by
+ * emailing the DPO (privacidade@alertport.com.br as stated in the
+ * privacy policy). The RoleGuard + sidebar role filter + backend
+ * auth check stack three-deep to make sure the UI can't be linked
+ * directly by a non-admin either.
+ *
+ * The backend endpoints (POST /api/users/me/export|delete/v1/) do
+ * NOT enforce this role restriction - they're strictly scoped to
+ * the caller's own data. If we ever expose the self-service to
+ * non-ADMIN roles via a different surface (mobile app, off-board
+ * flow), the backend is already correct and this guard just
+ * becomes redundant safety.
  */
 export default function AccountPage() {
+  return (
+    <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN']}>
+      <AccountBody />
+    </RoleGuard>
+  );
+}
+
+function AccountBody() {
   const t = useTranslations();
   const { user, logout } = useAuth();
   const [deleteOpen, setDeleteOpen] = useState(false);

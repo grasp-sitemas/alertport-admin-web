@@ -217,10 +217,14 @@ export const navigation: NavSection[] = [
         titleKey: 'account.sidebar',
         href: '/account',
         icon: Shield,
-        // Every authenticated role - LGPD rights are personal, not
-        // hierarchical. An OPERATOR must be able to export/delete
-        // their own data even if every feature module is disabled.
-        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR', 'AUDITOR'],
+        // ADMIN roles only. LGPD rights are still personal to every
+        // data subject, but an OPERATOR self-deleting mid-shift would
+        // be operationally catastrophic (their active attendance
+        // dangles, their site loses coverage). MANAGER / OPERATOR /
+        // AUDITOR who want to exercise their data-subject rights go
+        // through the ADMIN of their account or the DPO email
+        // listed in the privacy policy (privacidade@alertport.com.br).
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN'],
       },
     ],
   },
