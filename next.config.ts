@@ -32,6 +32,11 @@ const CSP = [
   // the pragmatic choice for the admin panel. Revisit with strict
   // nonce-based CSP if we ever host it under a domain touching PII.
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com",
+  // Sentry's Session Replay (and potentially other SDKs) spins up a
+  // Web Worker from a blob URL. Without an explicit worker-src the
+  // browser falls back to script-src, which blocks blob: - setting
+  // this narrow directive unblocks workers without widening script.
+  "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
