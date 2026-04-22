@@ -174,7 +174,7 @@
     "alertMonitor": "Monitor de Alertas",
     "callRecordings": "Gravações",
     "attendance": "Controle de Presença",
-    "timeEntries": "Registros de Ponto",
+    "timeEntries": "Controle de Presença",
     "management": "Gestão",
     "users": "Usuários",
     "collaborators": "Colaboradores",
@@ -471,7 +471,7 @@
     },
     "realtime": {
       "sosIncoming": "Um novo SOS foi recebido. Verifique imediatamente.",
-      "timeEntryRegistered": "Um novo registro de ponto foi lançado.",
+      "timeEntryRegistered": "Um novo Controle de Presença foi registrado.",
       "attendanceStarted": "Atendimento iniciado",
       "attendanceStartedDescription": "Um operador começou o atendimento de uma ocorrência.",
       "attendanceClosed": "Atendimento encerrado",
@@ -482,9 +482,9 @@
   },
   "attendance": {
     "title": "Controle de Presença",
-    "timeEntries": "Registros de Ponto",
-    "timeEntry": "Registro de Ponto",
-    "noTimeEntries": "Nenhum registro de ponto no período",
+    "timeEntries": "Controle de Presença",
+    "timeEntry": "Controle de Presença",
+    "noTimeEntries": "Nenhum Controle de Presença no período",
     "clockIn": "Entrada",
     "clockOut": "Saída",
     "breakStart": "Início do Intervalo",
@@ -960,7 +960,7 @@
       },
       "kpis": {
         "title": "Indicadores do dia (KPIs)",
-        "content": "No topo do Monitor: total de ocorrências, SOS do dia, Disponíveis (não atendidos ainda), Em andamento e Registros de Ponto. O card \"Disponíveis\" é o que você precisa atender."
+        "content": "No topo do Monitor: total de ocorrências, SOS do dia, Disponíveis (não atendidos ainda), Em andamento e Controle de Presença. O card \"Disponíveis\" é o que você precisa atender."
       },
       "eventCard": {
         "title": "Cards de eventos",
@@ -991,7 +991,7 @@
         "content": "Lista completa de todas as ocorrências (SOS, incidentes) da operação. Pesquise por data, Posto ou vigia."
       },
       "timeEntries": {
-        "title": "Registros de Ponto",
+        "title": "Controle de Presença",
         "content": "Vigias batem ponto pelo app. Aqui você consulta entrada, saída e intervalos de cada colaborador durante o turno."
       },
       "reports": {
