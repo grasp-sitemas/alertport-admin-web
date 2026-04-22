@@ -18,6 +18,7 @@ import { UserFormDialog } from '@/features/users/user-form-dialog';
 import { GatedCreateButton } from '@/components/trial/gated-create-button';
 import { BulkImportDialog } from '@/features/bulk-import/bulk-import-dialog';
 import { buildUsersBulkConfig } from '@/features/bulk-import/entity-configs';
+import { useBulkImportResolvers } from '@/features/bulk-import/use-resolvers';
 import { usersService } from '@/services/users.service';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
@@ -46,7 +47,16 @@ export default function UsersPage() {
       : typeof sessionUser?.account === 'string'
         ? sessionUser.account
         : undefined;
-  const bulkConfig = buildUsersBulkConfig(t, { fallbackAccountId: sessionAccountId });
+  const resolvers = useBulkImportResolvers({
+    enabled: bulkOpen,
+    sessionAccountId,
+  });
+  const bulkConfig = buildUsersBulkConfig(t, {
+    fallbackAccountId: sessionAccountId,
+    accountResolver: resolvers.accountResolver,
+    clientResolver: resolvers.clientResolver,
+    siteResolver: resolvers.siteResolver,
+  });
 
   const queryParams = {
     ...buildFilterParams(pagination.paginationParams),

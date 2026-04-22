@@ -35,6 +35,109 @@ function normalizeDigits(value: string): string {
   return value.replace(/\D/g, '');
 }
 
+/**
+ * Heuristic: does this string look like a Mongo ObjectId?
+ * 24 hex chars exactly. We use this to decide whether the CSV cell
+ * is already a canonical id or a human-readable name that needs
+ * resolution.
+ */
+const OBJECT_ID_RE = /^[a-f0-9]{24}$/i;
+function isObjectId(value: string): boolean {
+  return OBJECT_ID_RE.test(value.trim());
+}
+
+/**
+ * Case-insensitive name → _id lookup table. Built once per dialog
+ * open from the result of filterAccounts / filterClients /
+ * filterSites and handed into each parseRow through the
+ * entity-specific context.
+ *
+ * `ambiguous` lists names that appeared more than once in the
+ * resolver source. Resolving an ambiguous name returns null so the
+ * operator gets "unresolvedName" with a hint to use the id instead
+ * of silently picking whichever record happened to land first in
+ * the paginated response.
+ */
+export interface NameResolver {
+  /** Map key = name.toLowerCase().trim(); value = Mongo _id. */
+  byName: Record<string, string>;
+  /** Names that appeared more than once (set of lowercased names). */
+  ambiguous: Set<string>;
+  /** Whether the underlying page was capped (list may be incomplete). */
+  truncated: boolean;
+}
+
+/**
+ * Resolve a CSV cell that may be an id OR a human-readable name.
+ * Returns the canonical id, or null if no match (caller decides
+ * whether that's a validation error).
+ *
+ * - Empty value → null (caller treats as "omitted").
+ * - Already-ObjectId → passthrough.
+ * - Otherwise → case-insensitive lookup in the resolver map.
+ */
+function resolveId(
+  value: string,
+  resolver: NameResolver | undefined,
+): string | null {
+  const v = value.trim();
+  if (!v) return null;
+  if (isObjectId(v)) return v;
+  if (!resolver) return null;
+  const key = v.toLowerCase();
+  // Ambiguous name - two records share it. Reject instead of
+  // silently picking the first (which would send the row to the
+  // wrong tenant/site depending on pagination order).
+  if (resolver.ambiguous.has(key)) return null;
+  const hit = resolver.byName[key];
+  return hit ?? null;
+}
+
+/**
+ * Produce a user-facing error message for a cell that looks like a
+ * name but couldn't be resolved. Differs from "required missing"
+ * because the operator typed *something*, and we want to hint that
+ * the name didn't match any visible record.
+ */
+function unresolvedError(t: TranslateFn, fieldName: string): string {
+  return `${fieldName}: ${t('bulkImport.validation.unresolvedName')}`;
+}
+
+/**
+ * Builder for the resolver map. Accepts the `{ _id, name }` shape
+ * used by every hierarchy lookup in the app (accounts, clients,
+ * sites, equipment) and produces a case-insensitive lookup table.
+ *
+ * Duplicate names (two accounts called "Empresa X" under the same
+ * scope) go into `ambiguous` so resolveId refuses to guess — the
+ * operator gets an "unresolvedName" error and must use the id to
+ * disambiguate.
+ *
+ * Callers SHOULD pass `truncated: true` when the underlying page
+ * was capped (e.g. 500-row filter limit hit). A truncated resolver
+ * warns the operator in the dialog that rare names may not resolve
+ * even if they're spelled correctly.
+ */
+export function buildNameResolver(
+  items: Array<{ _id: string; name?: string } | null | undefined> | undefined,
+  options?: { truncated?: boolean },
+): NameResolver {
+  const byName: Record<string, string> = {};
+  const ambiguous = new Set<string>();
+  if (!items) return { byName, ambiguous, truncated: !!options?.truncated };
+  for (const item of items) {
+    if (!item || !item._id) continue;
+    const name = (item.name || '').trim().toLowerCase();
+    if (!name) continue;
+    if (byName[name] && byName[name] !== String(item._id)) {
+      ambiguous.add(name);
+    } else {
+      byName[name] = String(item._id);
+    }
+  }
+  return { byName, ambiguous, truncated: !!options?.truncated };
+}
+
 // ─── Users (USER-COMPANY) ────────────────────────────────────────
 
 const USER_ROLES = new Set(['ADMIN', 'MANAGER', 'OPERATOR', 'AUDITOR']);
@@ -43,6 +146,12 @@ export interface UsersBulkContext {
   /** Optional fallback account id used when the CSV doesn't spell it out.
    *  Comes from the caller's current session or page filter. */
   fallbackAccountId?: string;
+  /** name→id map for the `account` column (SAM only). */
+  accountResolver?: NameResolver;
+  /** name→id map for the `client` column. */
+  clientResolver?: NameResolver;
+  /** name→id map for the `site` column. */
+  siteResolver?: NameResolver;
 }
 
 export function buildUsersBulkConfig(
@@ -82,14 +191,33 @@ export function buildUsersBulkConfig(
       const lastName = required(row.lastName);
       const email = required(row.email);
       const role = required(row.role).toUpperCase();
-      const account = required(row.account) || context.fallbackAccountId || '';
+
+      // Resolve account: CSV may carry an id or a name. Fall back to
+      // context (session account) when the cell is blank.
+      const rawAccount = required(row.account);
+      const account = rawAccount
+        ? resolveId(rawAccount, context.accountResolver)
+        : context.fallbackAccountId || null;
+      const rawClient = required(row.client);
+      const client = rawClient ? resolveId(rawClient, context.clientResolver) : null;
+      const rawSite = required(row.site);
+      const site = rawSite ? resolveId(rawSite, context.siteResolver) : null;
 
       if (!firstName) return { kind: 'error', message: `firstName: ${t('bulkImport.validation.required')}` };
       if (!lastName) return { kind: 'error', message: `lastName: ${t('bulkImport.validation.required')}` };
       if (!email) return { kind: 'error', message: `email: ${t('bulkImport.validation.required')}` };
       if (!isEmail(email)) return { kind: 'error', message: t('bulkImport.validation.invalidEmail') };
       if (!USER_ROLES.has(role)) return { kind: 'error', message: t('bulkImport.validation.invalidRole') };
-      if (!account) return { kind: 'error', message: `account: ${t('bulkImport.validation.required')}` };
+      if (!account) {
+        return {
+          kind: 'error',
+          message: rawAccount
+            ? unresolvedError(t, 'account')
+            : `account: ${t('bulkImport.validation.required')}`,
+        };
+      }
+      if (rawClient && !client) return { kind: 'error', message: unresolvedError(t, 'client') };
+      if (rawSite && !site) return { kind: 'error', message: unresolvedError(t, 'site') };
 
       const payload: AdminUserFormData = {
         firstName,
@@ -99,8 +227,8 @@ export function buildUsersBulkConfig(
         primaryPhone: row.phone ? normalizeDigits(row.phone) : undefined,
         password: required(row.password) || undefined,
         account,
-        client: required(row.client) || undefined,
-        site: required(row.site) || undefined,
+        client: client || undefined,
+        site: site || undefined,
         status: 'ACTIVE',
         companyUser: {
           subtype: role as 'ADMIN' | 'MANAGER' | 'OPERATOR' | 'AUDITOR',
@@ -120,6 +248,9 @@ const COLLABORATOR_SUBTYPES = new Set(['VIGILANT', 'SUPERVISOR']);
 
 export interface CollaboratorsBulkContext {
   fallbackAccountId?: string;
+  accountResolver?: NameResolver;
+  clientResolver?: NameResolver;
+  siteResolver?: NameResolver;
 }
 
 export function buildCollaboratorsBulkConfig(
@@ -162,9 +293,15 @@ export function buildCollaboratorsBulkConfig(
       const email = required(row.email);
       const username = required(row.username);
       const subtype = required(row.subtype).toUpperCase();
-      const account = required(row.account) || context.fallbackAccountId || '';
-      const client = required(row.client);
-      const site = required(row.site);
+
+      const rawAccount = required(row.account);
+      const account = rawAccount
+        ? resolveId(rawAccount, context.accountResolver)
+        : context.fallbackAccountId || null;
+      const rawClient = required(row.client);
+      const client = rawClient ? resolveId(rawClient, context.clientResolver) : null;
+      const rawSite = required(row.site);
+      const site = rawSite ? resolveId(rawSite, context.siteResolver) : null;
 
       if (!firstName) return { kind: 'error', message: `firstName: ${t('bulkImport.validation.required')}` };
       if (!lastName) return { kind: 'error', message: `lastName: ${t('bulkImport.validation.required')}` };
@@ -174,9 +311,30 @@ export function buildCollaboratorsBulkConfig(
       if (!COLLABORATOR_SUBTYPES.has(subtype)) {
         return { kind: 'error', message: t('bulkImport.validation.invalidSubtype') };
       }
-      if (!account) return { kind: 'error', message: `account: ${t('bulkImport.validation.required')}` };
-      if (!client) return { kind: 'error', message: `client: ${t('bulkImport.validation.required')}` };
-      if (!site) return { kind: 'error', message: `site: ${t('bulkImport.validation.required')}` };
+      if (!account) {
+        return {
+          kind: 'error',
+          message: rawAccount
+            ? unresolvedError(t, 'account')
+            : `account: ${t('bulkImport.validation.required')}`,
+        };
+      }
+      if (!client) {
+        return {
+          kind: 'error',
+          message: rawClient
+            ? unresolvedError(t, 'client')
+            : `client: ${t('bulkImport.validation.required')}`,
+        };
+      }
+      if (!site) {
+        return {
+          kind: 'error',
+          message: rawSite
+            ? unresolvedError(t, 'site')
+            : `site: ${t('bulkImport.validation.required')}`,
+        };
+      }
 
       const payload: CustomerUserFormData = {
         firstName,
@@ -206,6 +364,9 @@ export function buildCollaboratorsBulkConfig(
 
 export interface EquipmentBulkContext {
   fallbackAccountId?: string;
+  accountResolver?: NameResolver;
+  clientResolver?: NameResolver;
+  siteResolver?: NameResolver;
 }
 
 export function buildEquipmentBulkConfig(
@@ -227,14 +388,41 @@ export function buildEquipmentBulkConfig(
     },
     parseRow: (row) => {
       const code = required(row.code);
-      const account = required(row.account) || context.fallbackAccountId || '';
-      const client = required(row.client);
-      const site = required(row.site);
+
+      const rawAccount = required(row.account);
+      const account = rawAccount
+        ? resolveId(rawAccount, context.accountResolver)
+        : context.fallbackAccountId || null;
+      const rawClient = required(row.client);
+      const client = rawClient ? resolveId(rawClient, context.clientResolver) : null;
+      const rawSite = required(row.site);
+      const site = rawSite ? resolveId(rawSite, context.siteResolver) : null;
 
       if (!code) return { kind: 'error', message: `code: ${t('bulkImport.validation.required')}` };
-      if (!account) return { kind: 'error', message: `account: ${t('bulkImport.validation.required')}` };
-      if (!client) return { kind: 'error', message: `client: ${t('bulkImport.validation.required')}` };
-      if (!site) return { kind: 'error', message: `site: ${t('bulkImport.validation.required')}` };
+      if (!account) {
+        return {
+          kind: 'error',
+          message: rawAccount
+            ? unresolvedError(t, 'account')
+            : `account: ${t('bulkImport.validation.required')}`,
+        };
+      }
+      if (!client) {
+        return {
+          kind: 'error',
+          message: rawClient
+            ? unresolvedError(t, 'client')
+            : `client: ${t('bulkImport.validation.required')}`,
+        };
+      }
+      if (!site) {
+        return {
+          kind: 'error',
+          message: rawSite
+            ? unresolvedError(t, 'site')
+            : `site: ${t('bulkImport.validation.required')}`,
+        };
+      }
 
       const payload: EquipmentFormData = {
         code,

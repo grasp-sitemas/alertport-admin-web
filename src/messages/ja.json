@@ -1004,6 +1004,36 @@
       }
     }
   },
+  "account": {
+    "sidebar": "マイアカウント",
+    "title": "マイアカウント",
+    "description": "個人データの管理（LGPD 対応）。",
+    "profile": {
+      "title": "プロフィール",
+      "description": "アカウントの基本情報。"
+    },
+    "export": {
+      "title": "データをエクスポート",
+      "description": "保管している全データを JSON でダウンロードします。",
+      "cta": "データをダウンロード",
+      "note": "ダウンロードはブラウザ内で生成されます。サーバーには残りません。",
+      "toastSuccess": "ファイルを生成しました。"
+    },
+    "delete": {
+      "title": "アカウントを削除",
+      "description": "取り消しできません。個人情報は匿名化されます。",
+      "cta": "アカウントを削除",
+      "confirmTitle": "本当によろしいですか？",
+      "confirmDescription": "確定すると個人情報は匿名化され、アカウントはアーカイブされます。監査記録と法的義務は法令に従って保持されます。",
+      "bullet1": "メール・氏名・電話・住所はプレースホルダーに置き換わります。",
+      "bullet2": "認証情報は無効化され、ログアウトされます。",
+      "bullet3": "対応記録と法定保持が必要な履歴は保管されます。",
+      "passwordPlaceholder": "パスワードを入力して確認",
+      "confirmCta": "削除を確定",
+      "toastSuccess": "アカウントを匿名化しました。さようなら。",
+      "wrongPassword": "パスワードが正しくありません。"
+    }
+  },
   "auditLog": {
     "title": "監査ログ",
     "description": "AlertPort プラットフォームで行われた操作の履歴。",
@@ -1094,7 +1124,8 @@
       "invalidEmail": "メールアドレスが不正です",
       "invalidRole": "ロールが不正です",
       "invalidSubtype": "サブタイプが不正です",
-      "invalidStatus": "ステータスが不正です"
+      "invalidStatus": "ステータスが不正です",
+      "unresolvedName": "名前が見つかりません。ID を使うかスペルを確認してください"
     }
   },
   "modules": {

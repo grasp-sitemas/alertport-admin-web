@@ -159,6 +159,21 @@ export default function LoginPage() {
           <p className="text-center text-xs text-text-muted mt-6">
             © {new Date().getFullYear()} AlertPort · {t('common.appName')}
           </p>
+          <div className="mt-3 flex items-center justify-center gap-4 text-xs text-text-muted">
+            <Link
+              href="/privacy"
+              className="transition-colors hover:text-white hover:underline underline-offset-2"
+            >
+              Política de Privacidade
+            </Link>
+            <span aria-hidden className="text-white/20">·</span>
+            <Link
+              href="/terms"
+              className="transition-colors hover:text-white hover:underline underline-offset-2"
+            >
+              Termos de Uso
+            </Link>
+          </div>
         </div>
       </main>
 

@@ -33,8 +33,8 @@ import { useCallContext } from '@/features/calls/call-context';
 import { ChatConnectionBadge } from '@/features/calls/call-dialog';
 import { formatDeviceLabel, resolveCallTargetId } from '@/features/alerts/device-label';
 import { AttendanceDialog } from '@/features/alerts/attendance-dialog';
-import { MonitorEventCard } from '@/features/alerts/monitor-event-card';
 import { MonitorTimeEntryRow } from '@/features/alerts/monitor-time-entry-row';
+import { VirtualizedEventList } from '@/features/alerts/virtualized-event-list';
 import { classifyAttendance, type AttendanceState } from '@/features/alerts/attendance-state';
 import {
   MONITOR_EVENT_TYPES,
@@ -475,21 +475,16 @@ function AlertMonitor() {
                 description={t('alerts.noEventsMatchFilter')}
               />
             ) : (
-              <div className="space-y-3">
-                {filteredEvents.map((event) => (
-                  <MonitorEventCard
-                    key={event._id}
-                    event={event}
-                    currentUserId={currentUserId}
-                    isOperator={isOperator}
-                    onAttend={handleAttend}
-                    onCall={handleCall}
-                    callInProgress={callInProgress}
-                    socketConnected={socketConnected}
-                    flash={isFlashingEvent(event._id)}
-                  />
-                ))}
-              </div>
+              <VirtualizedEventList
+                events={filteredEvents}
+                currentUserId={currentUserId}
+                isOperator={isOperator}
+                onAttend={handleAttend}
+                onCall={handleCall}
+                callInProgress={callInProgress}
+                socketConnected={socketConnected}
+                isFlashingEvent={isFlashingEvent}
+              />
             )}
           </CardContent>
         </Card>

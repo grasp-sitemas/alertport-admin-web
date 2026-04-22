@@ -1004,6 +1004,36 @@
       }
     }
   },
+  "account": {
+    "sidebar": "我的账户",
+    "title": "我的账户",
+    "description": "管理您的个人数据（遵守 LGPD）。",
+    "profile": {
+      "title": "个人资料",
+      "description": "账户基本信息。"
+    },
+    "export": {
+      "title": "导出我的数据",
+      "description": "下载我们存储的所有关于您的数据 JSON。",
+      "cta": "下载我的数据",
+      "note": "下载在浏览器中生成；服务器不保存任何内容。",
+      "toastSuccess": "文件生成成功。"
+    },
+    "delete": {
+      "title": "删除我的账户",
+      "description": "此操作不可逆，将匿名化您的个人数据。",
+      "cta": "删除我的账户",
+      "confirmTitle": "确定吗？",
+      "confirmDescription": "确认后，您的个人数据将被匿名化并存档。审计记录和法律义务按法律保留。",
+      "bullet1": "邮箱、姓名、电话和地址将替换为占位符。",
+      "bullet2": "凭证将失效，您将被注销。",
+      "bullet3": "出勤记录和合规历史按法律要求保留。",
+      "passwordPlaceholder": "输入密码以确认",
+      "confirmCta": "确认删除",
+      "toastSuccess": "您的账户已匿名化。再见。",
+      "wrongPassword": "密码错误。"
+    }
+  },
   "auditLog": {
     "title": "审计日志",
     "description": "AlertPort 平台上操作的完整历史。",
@@ -1094,7 +1124,8 @@
       "invalidEmail": "邮箱无效",
       "invalidRole": "角色无效",
       "invalidSubtype": "子类型无效",
-      "invalidStatus": "状态无效"
+      "invalidStatus": "状态无效",
+      "unresolvedName": "未找到名称；请使用 ID 或检查拼写"
     }
   },
   "modules": {

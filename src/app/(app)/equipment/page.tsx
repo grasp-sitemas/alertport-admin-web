@@ -18,6 +18,7 @@ import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/share
 import { EquipmentFormDialog } from '@/features/equipment/equipment-form-dialog';
 import { BulkImportDialog } from '@/features/bulk-import/bulk-import-dialog';
 import { buildEquipmentBulkConfig } from '@/features/bulk-import/entity-configs';
+import { useBulkImportResolvers } from '@/features/bulk-import/use-resolvers';
 import { equipmentService } from '@/services/equipment.service';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
@@ -47,7 +48,16 @@ export default function EquipmentPage() {
       : typeof sessionUser?.account === 'string'
         ? sessionUser.account
         : undefined;
-  const bulkConfig = buildEquipmentBulkConfig(t, { fallbackAccountId: sessionAccountId });
+  const resolvers = useBulkImportResolvers({
+    enabled: bulkOpen,
+    sessionAccountId,
+  });
+  const bulkConfig = buildEquipmentBulkConfig(t, {
+    fallbackAccountId: sessionAccountId,
+    accountResolver: resolvers.accountResolver,
+    clientResolver: resolvers.clientResolver,
+    siteResolver: resolvers.siteResolver,
+  });
 
   const queryParams = {
     ...buildFilterParams(pagination.paginationParams),

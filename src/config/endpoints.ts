@@ -170,6 +170,10 @@ export const endpoints = {
   auditLogCapture: url('/api/company/audit-log/v1/'),
   auditLogFilter: url('/api/company/audit-log/filter/v1/'),
 
+  // ─── LGPD data-subject (right of access + right of erasure) ─
+  lgpdExport: url('/api/users/me/export/v1/'),
+  lgpdDelete: url('/api/users/me/delete/v1/'),
+
   // ─── Addresses / Geolocation ─────────────────────────────
   addressGeolocation: url('/api/address/geo/v1/'),
 

@@ -1,0 +1,32 @@
+AlertPort — Proprietary Software License
+Copyright (c) 2025-2026 Grasp Sitemas. All rights reserved.
+
+This repository and its contents (source code, documentation, configuration,
+build artifacts, and related assets — collectively the "Software") are the
+confidential and proprietary property of Grasp Sitemas ("Grasp"). The
+Software is made available solely for the internal use of Grasp and its
+duly authorized employees, contractors, and customers under the terms of
+a separate written agreement (a "Service Agreement"). No other use,
+reproduction, distribution, display, modification, reverse engineering,
+sublicensing, or creation of derivative works is permitted without the
+prior, written consent of Grasp.
+
+Absent an executed Service Agreement, no license — express or implied,
+by estoppel or otherwise — is granted under any Grasp patent, copyright,
+trademark, or trade-secret right. The Software is NOT "open source" and
+is NOT distributed under MIT, Apache, GPL, BSD, or any other open-source
+license.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL
+GRASP BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN
+AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Unauthorized access, copying, distribution, or use of the Software may
+result in civil and/or criminal penalties and will be pursued to the
+fullest extent permitted by law.
+
+Questions: legal@alertport.com.br

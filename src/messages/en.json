@@ -1004,6 +1004,36 @@
       }
     }
   },
+  "account": {
+    "sidebar": "My account",
+    "title": "My account",
+    "description": "Manage your personal data (LGPD compliance).",
+    "profile": {
+      "title": "Profile",
+      "description": "Basic account information."
+    },
+    "export": {
+      "title": "Export my data",
+      "description": "Download a JSON snapshot of everything we hold on you.",
+      "cta": "Download my data",
+      "note": "The download is generated in your browser; nothing is stored server-side.",
+      "toastSuccess": "Your file was generated successfully."
+    },
+    "delete": {
+      "title": "Delete my account",
+      "description": "This is irreversible and anonymizes your personal data.",
+      "cta": "Delete my account",
+      "confirmTitle": "Are you sure?",
+      "confirmDescription": "On confirm, your personal data is anonymized and your account archived. Audit records and legal obligations are preserved per applicable law.",
+      "bullet1": "Email, name, phone, and address are replaced with placeholders.",
+      "bullet2": "Your credentials are invalidated and you will be logged out.",
+      "bullet3": "Attendance records and compliance history are kept for legal purposes.",
+      "passwordPlaceholder": "Type your password to confirm",
+      "confirmCta": "Confirm deletion",
+      "toastSuccess": "Your account has been anonymized. Goodbye.",
+      "wrongPassword": "Incorrect password."
+    }
+  },
   "auditLog": {
     "title": "Audit log",
     "description": "Full history of actions taken on the AlertPort platform.",
@@ -1094,7 +1124,8 @@
       "invalidEmail": "Invalid email",
       "invalidRole": "Invalid role",
       "invalidSubtype": "Invalid subtype",
-      "invalidStatus": "Invalid status"
+      "invalidStatus": "Invalid status",
+      "unresolvedName": "name not found; use the ID or check the spelling"
     }
   },
   "modules": {

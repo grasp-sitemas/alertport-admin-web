@@ -17,6 +17,7 @@ import {
   Gauge,
   SlidersHorizontal,
   History,
+  Shield,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserSubtype } from '@/types/api';
@@ -211,6 +212,15 @@ export const navigation: NavSection[] = [
         // No moduleKey - audit log is a compliance surface; it must
         // stay reachable even if an account disables individual
         // feature modules, so admins can see what was toggled.
+      },
+      {
+        titleKey: 'account.sidebar',
+        href: '/account',
+        icon: Shield,
+        // Every authenticated role - LGPD rights are personal, not
+        // hierarchical. An OPERATOR must be able to export/delete
+        // their own data even if every feature module is disabled.
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR', 'AUDITOR'],
       },
     ],
   },

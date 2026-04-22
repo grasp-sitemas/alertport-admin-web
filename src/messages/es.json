@@ -1004,6 +1004,36 @@
       }
     }
   },
+  "account": {
+    "sidebar": "Mi cuenta",
+    "title": "Mi cuenta",
+    "description": "Gestiona tus datos personales (cumplimiento LGPD).",
+    "profile": {
+      "title": "Perfil",
+      "description": "Información básica de tu cuenta."
+    },
+    "export": {
+      "title": "Exportar mis datos",
+      "description": "Descarga un JSON con todo lo que guardamos sobre ti.",
+      "cta": "Descargar mis datos",
+      "note": "La descarga se genera en tu navegador; nada se guarda en el servidor.",
+      "toastSuccess": "Tu archivo se generó correctamente."
+    },
+    "delete": {
+      "title": "Eliminar mi cuenta",
+      "description": "Esta acción es irreversible y anonimiza tus datos personales.",
+      "cta": "Eliminar mi cuenta",
+      "confirmTitle": "¿Estás seguro?",
+      "confirmDescription": "Al confirmar, tus datos personales se anonimizan y tu cuenta se archiva. Los registros de auditoría y obligaciones legales se mantienen según la ley.",
+      "bullet1": "Email, nombre, teléfono y dirección se reemplazan por marcadores.",
+      "bullet2": "Tus credenciales se invalidan y serás cerrado sesión.",
+      "bullet3": "Registros de atención e historial de cumplimiento se conservan por obligación legal.",
+      "passwordPlaceholder": "Escribe tu contraseña para confirmar",
+      "confirmCta": "Confirmar eliminación",
+      "toastSuccess": "Tu cuenta fue anonimizada. Hasta luego.",
+      "wrongPassword": "Contraseña incorrecta."
+    }
+  },
   "auditLog": {
     "title": "Registro de auditoría",
     "description": "Historial completo de las acciones realizadas en la plataforma AlertPort.",
@@ -1094,7 +1124,8 @@
       "invalidEmail": "Email inválido",
       "invalidRole": "Rol inválido",
       "invalidSubtype": "Subtipo inválido",
-      "invalidStatus": "Estado inválido"
+      "invalidStatus": "Estado inválido",
+      "unresolvedName": "nombre no encontrado; usa el ID o revisa la ortografía"
     }
   },
   "modules": {
