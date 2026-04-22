@@ -18,6 +18,12 @@ import {
   SlidersHorizontal,
   History,
   Shield,
+  Activity,
+  ListOrdered,
+  CalendarCheck,
+  BarChart3,
+  Users2,
+  Cog,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserSubtype } from '@/types/api';
@@ -42,12 +48,18 @@ export interface NavItem {
 
 export interface NavSection {
   titleKey: string;
+  /**
+   * Icon shown in the accordion section trigger. Pick something that
+   * sums up the section semantically — items keep their own icons.
+   */
+  icon: LucideIcon;
   items: NavItem[];
 }
 
 export const navigation: NavSection[] = [
   {
     titleKey: 'sidebar.dashboard',
+    icon: LayoutDashboard,
     items: [
       {
         titleKey: 'sidebar.dashboard',
@@ -59,6 +71,7 @@ export const navigation: NavSection[] = [
   },
   {
     titleKey: 'sidebar.monitoring',
+    icon: Activity,
     items: [
       {
         titleKey: 'sidebar.alertMonitor',
@@ -78,6 +91,7 @@ export const navigation: NavSection[] = [
   },
   {
     titleKey: 'sidebar.timelines',
+    icon: ListOrdered,
     items: [
       {
         titleKey: 'sidebar.alertOccurrences',
@@ -97,6 +111,7 @@ export const navigation: NavSection[] = [
   },
   {
     titleKey: 'sidebar.schedules',
+    icon: CalendarCheck,
     items: [
       {
         titleKey: 'sidebar.alertScheduling',
@@ -109,6 +124,7 @@ export const navigation: NavSection[] = [
   },
   {
     titleKey: 'sidebar.reports',
+    icon: BarChart3,
     items: [
       {
         titleKey: 'sidebar.reportAdherence',
@@ -142,6 +158,7 @@ export const navigation: NavSection[] = [
   },
   {
     titleKey: 'sidebar.management',
+    icon: Users2,
     items: [
       {
         titleKey: 'sidebar.users',
@@ -182,6 +199,7 @@ export const navigation: NavSection[] = [
   },
   {
     titleKey: 'sidebar.company',
+    icon: Cog,
     items: [
       {
         titleKey: 'sidebar.companySettings',
