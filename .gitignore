@@ -46,3 +46,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Claude Code — local/per-developer state (não commitar)
+.claude/settings.local.json
+.claude/agent-memory/last-typecheck.txt
+CLAUDE.local.md
+.worktreeinclude.log

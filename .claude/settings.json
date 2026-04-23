@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "FORCE_COLOR": "1",
+    "NODE_OPTIONS": "--max-old-space-size=4096"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(npm run build)",
+      "Bash(npm run start)",
+      "Bash(npm run typecheck)",
+      "Bash(npm run lint)",
+      "Bash(npm run lint:fix)",
+      "Bash(npm run format)",
+      "Bash(npm run test)",
+      "Bash(npm run test:watch)",
+      "Bash(npm run test:e2e)",
+      "Bash(npm run test:fixtures:snapshot)",
+      "Bash(npm run validate)",
+      "Bash(npm run clean)",
+      "Bash(npm test)",
+      "Bash(npx playwright test:*)",
+      "Bash(npx playwright show-report:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npx prettier:*)",
+      "Bash(npx eslint:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git worktree list)",
+      "Bash(git worktree add:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git restore --staged:*)",
+      "Bash(git stash:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(ls:*)",
+      "Bash(cat CLAUDE.md)",
+      "Bash(cat AGENTS.md)",
+      "Bash(cat README.md)",
+      "Bash(cat ARCHITECTURE.md)",
+      "Bash(cat MIGRATION.md)",
+      "Bash(node:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf *)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push --force-with-lease:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git checkout -- *)",
+      "Bash(git restore .:*)",
+      "Bash(git clean -f:*)",
+      "Bash(git clean -fd:*)",
+      "Bash(git branch -D:*)",
+      "Bash(git commit --amend:*)",
+      "Bash(git commit --no-verify:*)",
+      "Bash(git commit --no-gpg-sign:*)",
+      "Bash(git rebase -i:*)",
+      "Bash(git add -i:*)",
+      "Bash(git config:*)",
+      "Bash(npm publish:*)",
+      "Bash(npx npm-check-updates -u:*)",
+      "Bash(sudo:*)",
+      "Read(./.env.local)",
+      "Read(./.env.production)",
+      "Read(./.env.hml)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(npm install:*)",
+      "Bash(npm ci)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm run deploy:*)",
+      "Bash(scripts/deploy.sh:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": ".claude/hooks/format-on-write.sh" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": ".claude/hooks/pre-stop-validate.sh" }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          { "type": "command", "command": ".claude/hooks/precompact-save-learnings.sh" }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": ".claude/hooks/session-start.sh" }
+        ]
+      }
+    ]
+  }
+}

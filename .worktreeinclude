@@ -1,0 +1,7 @@
+# Arquivos/dirs carregados para worktrees novas (não tracked pelo git)
+# Usado por /worktree-new
+
+.env.local
+.env.hml
+.claude/settings.local.json
+.claude/agent-memory/
