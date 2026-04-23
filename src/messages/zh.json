@@ -192,7 +192,13 @@
     "reportAdherence": "巡更合规",
     "reportAttendance": "考勤记录",
     "reportSos": "SOS告警",
-    "reportSla": "处置 SLA"
+    "reportSla": "处置 SLA",
+    "reportPowerEvents": "电源中断与恢复",
+    "reportBatteryLow": "电量过低",
+    "reportEquipmentStatus": "设备开机/关机",
+    "reportViolation": "违规/拆机",
+    "reportRemoteRestart": "远程重启",
+    "reportsDeviceEvents": "设备运行情况"
   },
   "reports": {
     "filter": {
@@ -304,6 +310,68 @@
         "p95Resolution": "P95 解决",
         "withinSla": "SLA 内",
         "total": "处置合计"
+      }
+    },
+    "deviceEvent": {
+      "eventType": "事件类型",
+      "deviceType": "设备类型"
+    },
+    "eventCategory": {
+      "POWER_LOSS": "电源中断",
+      "POWER_RESTORED": "电源恢复",
+      "LOW_VOLTAGE": "低电压",
+      "BATTERY_LOW": "电量过低",
+      "TURNED_ON": "开机",
+      "TURNED_OFF": "关机",
+      "VIOLATION": "违规/拆机",
+      "REMOTE_RESTART": "远程重启"
+    },
+    "power-events": {
+      "title": "电源中断与恢复",
+      "description": "AlertPort 设备的交流电中断与恢复事件。",
+      "tableTitle": "电源事件",
+      "kpi": {
+        "total": "总数",
+        "lost": "中断",
+        "restored": "恢复"
+      }
+    },
+    "battery-low": {
+      "title": "电量过低",
+      "description": "设备上报的低电压与电量过低事件。",
+      "tableTitle": "电量事件",
+      "kpi": {
+        "total": "总数",
+        "lowVoltage": "低电压",
+        "batteryLow": "电量过低"
+      }
+    },
+    "equipment-status": {
+      "title": "设备开机/关机",
+      "description": "AlertPort 设备的开机与关机事件。",
+      "tableTitle": "状态事件",
+      "kpi": {
+        "total": "总数",
+        "turnedOn": "开机",
+        "turnedOff": "关机"
+      }
+    },
+    "violation": {
+      "title": "违规/拆机",
+      "description": "AlertPort 设备的物理拆机/违规事件。",
+      "tableTitle": "违规事件",
+      "kpi": {
+        "total": "总数",
+        "violations": "违规"
+      }
+    },
+    "remote-restart": {
+      "title": "远程重启",
+      "description": "对 AlertPort 设备远程触发的重启事件。",
+      "tableTitle": "远程重启",
+      "kpi": {
+        "total": "总数",
+        "restarts": "重启"
       }
     }
   },

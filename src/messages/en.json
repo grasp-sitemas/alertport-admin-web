@@ -192,7 +192,13 @@
     "reportAdherence": "Patrol Adherence",
     "reportAttendance": "Attendance Log",
     "reportSos": "SOS Alerts",
-    "reportSla": "Attendance SLA"
+    "reportSla": "Attendance SLA",
+    "reportPowerEvents": "Power Loss & Restore",
+    "reportBatteryLow": "Low Battery",
+    "reportEquipmentStatus": "Equipment On/Off",
+    "reportViolation": "Tamper / Violation",
+    "reportRemoteRestart": "Remote Restart",
+    "reportsDeviceEvents": "Device Operation"
   },
   "reports": {
     "filter": {
@@ -304,6 +310,68 @@
         "p95Resolution": "P95 resolution",
         "withinSla": "Within SLA",
         "total": "Attended total"
+      }
+    },
+    "deviceEvent": {
+      "eventType": "Event Type",
+      "deviceType": "Device Type"
+    },
+    "eventCategory": {
+      "POWER_LOSS": "Power loss",
+      "POWER_RESTORED": "Power restored",
+      "LOW_VOLTAGE": "Low voltage",
+      "BATTERY_LOW": "Battery low",
+      "TURNED_ON": "Turned on",
+      "TURNED_OFF": "Turned off",
+      "VIOLATION": "Tamper",
+      "REMOTE_RESTART": "Remote restart"
+    },
+    "power-events": {
+      "title": "Power Loss & Restore",
+      "description": "AC power loss and restore events from AlertPort devices.",
+      "tableTitle": "Power events",
+      "kpi": {
+        "total": "Total",
+        "lost": "Power losses",
+        "restored": "Power restores"
+      }
+    },
+    "battery-low": {
+      "title": "Low Battery",
+      "description": "Low-voltage and low-battery events reported by devices.",
+      "tableTitle": "Battery events",
+      "kpi": {
+        "total": "Total",
+        "lowVoltage": "Low voltage",
+        "batteryLow": "Battery low"
+      }
+    },
+    "equipment-status": {
+      "title": "Equipment On/Off",
+      "description": "Power-on and power-off events from AlertPort devices.",
+      "tableTitle": "Status events",
+      "kpi": {
+        "total": "Total",
+        "turnedOn": "Turned on",
+        "turnedOff": "Turned off"
+      }
+    },
+    "violation": {
+      "title": "Tamper / Violation",
+      "description": "Physical tamper / violation events from AlertPort devices.",
+      "tableTitle": "Violation events",
+      "kpi": {
+        "total": "Total",
+        "violations": "Violations"
+      }
+    },
+    "remote-restart": {
+      "title": "Remote Restart",
+      "description": "Restarts triggered remotely on AlertPort devices.",
+      "tableTitle": "Remote restarts",
+      "kpi": {
+        "total": "Total",
+        "restarts": "Restarts"
       }
     }
   },

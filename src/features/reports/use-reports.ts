@@ -78,3 +78,68 @@ export function useSlaReport(
     retry: 1,
   });
 }
+
+export function usePowerEventsReport(filter: ReportFilterParams | null) {
+  return useQuery({
+    queryKey: ['reports', 'power-events', filter],
+    queryFn: () => {
+      if (!filter) throw new Error('filter.required');
+      return reportsService.powerEvents(filter);
+    },
+    enabled: canRun(filter),
+    staleTime: STALE_MS,
+    retry: 1,
+  });
+}
+
+export function useBatteryLowReport(filter: ReportFilterParams | null) {
+  return useQuery({
+    queryKey: ['reports', 'battery-low', filter],
+    queryFn: () => {
+      if (!filter) throw new Error('filter.required');
+      return reportsService.batteryLow(filter);
+    },
+    enabled: canRun(filter),
+    staleTime: STALE_MS,
+    retry: 1,
+  });
+}
+
+export function useEquipmentStatusReport(filter: ReportFilterParams | null) {
+  return useQuery({
+    queryKey: ['reports', 'equipment-status', filter],
+    queryFn: () => {
+      if (!filter) throw new Error('filter.required');
+      return reportsService.equipmentStatus(filter);
+    },
+    enabled: canRun(filter),
+    staleTime: STALE_MS,
+    retry: 1,
+  });
+}
+
+export function useViolationReport(filter: ReportFilterParams | null) {
+  return useQuery({
+    queryKey: ['reports', 'violation', filter],
+    queryFn: () => {
+      if (!filter) throw new Error('filter.required');
+      return reportsService.violation(filter);
+    },
+    enabled: canRun(filter),
+    staleTime: STALE_MS,
+    retry: 1,
+  });
+}
+
+export function useRemoteRestartReport(filter: ReportFilterParams | null) {
+  return useQuery({
+    queryKey: ['reports', 'remote-restart', filter],
+    queryFn: () => {
+      if (!filter) throw new Error('filter.required');
+      return reportsService.remoteRestart(filter);
+    },
+    enabled: canRun(filter),
+    staleTime: STALE_MS,
+    retry: 1,
+  });
+}

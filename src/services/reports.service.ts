@@ -3,6 +3,7 @@ import { endpoints } from '@/config/endpoints';
 import type {
   AdherenceReport,
   AttendanceReport,
+  DeviceEventReport,
   ReportFilterParams,
   SlaReport,
   SosReport,
@@ -60,5 +61,45 @@ export const reportsService = {
       params,
     );
     return unwrap<SlaReport>(data);
+  },
+
+  async powerEvents(params: ReportFilterParams): Promise<DeviceEventReport> {
+    const { data } = await apiClient.post<DeviceEventReport>(
+      endpoints.reportsPowerEvents,
+      params,
+    );
+    return unwrap<DeviceEventReport>(data);
+  },
+
+  async batteryLow(params: ReportFilterParams): Promise<DeviceEventReport> {
+    const { data } = await apiClient.post<DeviceEventReport>(
+      endpoints.reportsBatteryLow,
+      params,
+    );
+    return unwrap<DeviceEventReport>(data);
+  },
+
+  async equipmentStatus(params: ReportFilterParams): Promise<DeviceEventReport> {
+    const { data } = await apiClient.post<DeviceEventReport>(
+      endpoints.reportsEquipmentStatus,
+      params,
+    );
+    return unwrap<DeviceEventReport>(data);
+  },
+
+  async violation(params: ReportFilterParams): Promise<DeviceEventReport> {
+    const { data } = await apiClient.post<DeviceEventReport>(
+      endpoints.reportsViolation,
+      params,
+    );
+    return unwrap<DeviceEventReport>(data);
+  },
+
+  async remoteRestart(params: ReportFilterParams): Promise<DeviceEventReport> {
+    const { data } = await apiClient.post<DeviceEventReport>(
+      endpoints.reportsRemoteRestart,
+      params,
+    );
+    return unwrap<DeviceEventReport>(data);
   },
 };

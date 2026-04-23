@@ -192,7 +192,13 @@
     "reportAdherence": "Aderência de Ronda",
     "reportAttendance": "Controle de Presença",
     "reportSos": "Alertas de SOS",
-    "reportSla": "SLA de Atendimento"
+    "reportSla": "SLA de Atendimento",
+    "reportPowerEvents": "Perda e Restauração de Energia",
+    "reportBatteryLow": "Bateria Baixa",
+    "reportEquipmentStatus": "Equipamento Ligado/Desligado",
+    "reportViolation": "Violação",
+    "reportRemoteRestart": "Reiniciado Remotamente",
+    "reportsDeviceEvents": "Operação dos Dispositivos"
   },
   "reports": {
     "filter": {
@@ -304,6 +310,68 @@
         "p95Resolution": "P95 Resolução",
         "withinSla": "Dentro do SLA",
         "total": "Total atendido"
+      }
+    },
+    "deviceEvent": {
+      "eventType": "Tipo de Evento",
+      "deviceType": "Tipo de Dispositivo"
+    },
+    "eventCategory": {
+      "POWER_LOSS": "Perda de energia",
+      "POWER_RESTORED": "Energia restaurada",
+      "LOW_VOLTAGE": "Baixa tensão",
+      "BATTERY_LOW": "Bateria baixa",
+      "TURNED_ON": "Ligado",
+      "TURNED_OFF": "Desligado",
+      "VIOLATION": "Violação",
+      "REMOTE_RESTART": "Reinício remoto"
+    },
+    "power-events": {
+      "title": "Perda e Restauração de Energia",
+      "description": "Eventos de queda e retorno de energia AC dos dispositivos AlertPort.",
+      "tableTitle": "Eventos de energia",
+      "kpi": {
+        "total": "Total",
+        "lost": "Perdas",
+        "restored": "Restaurações"
+      }
+    },
+    "battery-low": {
+      "title": "Bateria Baixa",
+      "description": "Eventos de baixa tensão e bateria fraca reportados pelos dispositivos.",
+      "tableTitle": "Eventos de bateria",
+      "kpi": {
+        "total": "Total",
+        "lowVoltage": "Baixa tensão",
+        "batteryLow": "Bateria baixa"
+      }
+    },
+    "equipment-status": {
+      "title": "Equipamento Ligado/Desligado",
+      "description": "Eventos de power-on e power-off dos dispositivos AlertPort.",
+      "tableTitle": "Eventos de status",
+      "kpi": {
+        "total": "Total",
+        "turnedOn": "Ligados",
+        "turnedOff": "Desligados"
+      }
+    },
+    "violation": {
+      "title": "Violação",
+      "description": "Eventos de violação física dos dispositivos AlertPort.",
+      "tableTitle": "Eventos de violação",
+      "kpi": {
+        "total": "Total",
+        "violations": "Violações"
+      }
+    },
+    "remote-restart": {
+      "title": "Reiniciado Remotamente",
+      "description": "Reinícios disparados remotamente nos dispositivos AlertPort.",
+      "tableTitle": "Reinícios remotos",
+      "kpi": {
+        "total": "Total",
+        "restarts": "Reinícios"
       }
     }
   },

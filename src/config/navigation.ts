@@ -24,6 +24,11 @@ import {
   BarChart3,
   Users2,
   Cog,
+  Plug,
+  BatteryLow,
+  ToggleRight,
+  ShieldAlert,
+  RotateCcw,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserSubtype } from '@/types/api';
@@ -152,6 +157,45 @@ export const navigation: NavSection[] = [
         href: '/reports/sla',
         icon: Gauge,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER'],
+        moduleKey: 'REPORTS',
+      },
+      // ── Operação dos Dispositivos ────────────────────────
+      // Five device-event slices over the same eventTypes
+      // collection (filtered server-side). Same role gating
+      // as the other reports - any operator+ can read them.
+      {
+        titleKey: 'sidebar.reportPowerEvents',
+        href: '/reports/power-events',
+        icon: Plug,
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR'],
+        moduleKey: 'REPORTS',
+      },
+      {
+        titleKey: 'sidebar.reportBatteryLow',
+        href: '/reports/battery-low',
+        icon: BatteryLow,
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR'],
+        moduleKey: 'REPORTS',
+      },
+      {
+        titleKey: 'sidebar.reportEquipmentStatus',
+        href: '/reports/equipment-status',
+        icon: ToggleRight,
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR'],
+        moduleKey: 'REPORTS',
+      },
+      {
+        titleKey: 'sidebar.reportViolation',
+        href: '/reports/violation',
+        icon: ShieldAlert,
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR'],
+        moduleKey: 'REPORTS',
+      },
+      {
+        titleKey: 'sidebar.reportRemoteRestart',
+        href: '/reports/remote-restart',
+        icon: RotateCcw,
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR'],
         moduleKey: 'REPORTS',
       },
     ],

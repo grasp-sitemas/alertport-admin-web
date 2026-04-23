@@ -156,6 +156,13 @@ export const endpoints = {
   reportsAttendance: url('/api/reports/alertport/attendance/v1/'),
   reportsSos: url('/api/reports/alertport/sos/v1/'),
   reportsSla: url('/api/reports/alertport/sla/v1/'),
+  // Device-event reports - share the same response envelope, differ
+  // only in the eventTypes the backend filters by (see ms-report).
+  reportsPowerEvents: url('/api/reports/alertport/power-events/v1/'),
+  reportsBatteryLow: url('/api/reports/alertport/battery-low/v1/'),
+  reportsEquipmentStatus: url('/api/reports/alertport/equipment-status/v1/'),
+  reportsViolation: url('/api/reports/alertport/violation/v1/'),
+  reportsRemoteRestart: url('/api/reports/alertport/remote-restart/v1/'),
 
   // ─── Onboarding ──────────────────────────────────────────
   onboardingStatus: url('/api/users/system/onboarding/status/v1/'),

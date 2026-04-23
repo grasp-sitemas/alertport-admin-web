@@ -138,6 +138,36 @@ export interface SlaRow {
   resolutionTimeSec?: number | null;
 }
 
+// ── 5. AlertPort device-event reports (power, battery, on/off, ──
+//        violation, remote-restart). All five share a single envelope
+//        shape because they're filtered slices of the same
+//        device-event collection (only the eventTypes differ).
+export interface DeviceEventSummary {
+  total: number;
+  /** Per-eventType counts keyed by the backend's category label
+   * (e.g. POWER_LOSS / POWER_RESTORED / BATTERY_LOW / ...). */
+  byType: Record<string, number>;
+  firstSeen: string | null;
+  lastSeen: string | null;
+}
+
+export interface DeviceEventRow {
+  _id: string;
+  eventDate: string;
+  eventType: number;
+  eventCategory: string;
+  /** Reported by the gateway: ALERTPORT | JWM_L5 | OTHER. */
+  deviceType: string;
+  readerCode: string;
+  tagId?: string;
+  account?: Pick<Company, '_id' | 'name'>;
+  client?: Pick<Company, '_id' | 'name'>;
+  site?: Pick<Company, '_id' | 'name'>;
+  equipment?: { _id: string; uniqueId?: string };
+}
+
+export type DeviceEventReport = ReportEnvelope<DeviceEventSummary, DeviceEventRow>;
+
 export type AdherenceReport = ReportEnvelope<AdherenceSummary, AdherenceRow>;
 export type AttendanceReport = ReportEnvelope<AttendanceSummary, AttendanceRow>;
 export type SosReport = ReportEnvelope<SosSummary, SosRow>;
@@ -145,4 +175,13 @@ export interface SlaReport extends ReportEnvelope<SlaSummary, SlaRow> {
   operators?: SlaOperatorBreakdown[];
 }
 
-export type ReportKind = 'adherence' | 'attendance' | 'sos' | 'sla';
+export type ReportKind =
+  | 'adherence'
+  | 'attendance'
+  | 'sos'
+  | 'sla'
+  | 'power-events'
+  | 'battery-low'
+  | 'equipment-status'
+  | 'violation'
+  | 'remote-restart';

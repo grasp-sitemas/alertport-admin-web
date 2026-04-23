@@ -192,7 +192,13 @@
     "reportAdherence": "巡回遵守率",
     "reportAttendance": "勤怠記録",
     "reportSos": "SOSアラート",
-    "reportSla": "対応SLA"
+    "reportSla": "対応SLA",
+    "reportPowerEvents": "電源喪失と復旧",
+    "reportBatteryLow": "バッテリー残量低下",
+    "reportEquipmentStatus": "機器の電源 ON/OFF",
+    "reportViolation": "改ざん/違反",
+    "reportRemoteRestart": "リモート再起動",
+    "reportsDeviceEvents": "デバイス運用"
   },
   "reports": {
     "filter": {
@@ -304,6 +310,68 @@
         "p95Resolution": "P95解決",
         "withinSla": "SLA以内",
         "total": "対応合計"
+      }
+    },
+    "deviceEvent": {
+      "eventType": "イベント種別",
+      "deviceType": "デバイス種別"
+    },
+    "eventCategory": {
+      "POWER_LOSS": "電源喪失",
+      "POWER_RESTORED": "電源復旧",
+      "LOW_VOLTAGE": "低電圧",
+      "BATTERY_LOW": "バッテリー残量低下",
+      "TURNED_ON": "電源ON",
+      "TURNED_OFF": "電源OFF",
+      "VIOLATION": "改ざん/違反",
+      "REMOTE_RESTART": "リモート再起動"
+    },
+    "power-events": {
+      "title": "電源喪失と復旧",
+      "description": "AlertPort デバイスの AC 電源喪失と復旧イベント。",
+      "tableTitle": "電源イベント",
+      "kpi": {
+        "total": "合計",
+        "lost": "喪失",
+        "restored": "復旧"
+      }
+    },
+    "battery-low": {
+      "title": "バッテリー残量低下",
+      "description": "デバイスから報告された低電圧およびバッテリー低下イベント。",
+      "tableTitle": "バッテリーイベント",
+      "kpi": {
+        "total": "合計",
+        "lowVoltage": "低電圧",
+        "batteryLow": "バッテリー低下"
+      }
+    },
+    "equipment-status": {
+      "title": "機器の電源 ON/OFF",
+      "description": "AlertPort デバイスの電源 ON/OFF イベント。",
+      "tableTitle": "ステータスイベント",
+      "kpi": {
+        "total": "合計",
+        "turnedOn": "ON",
+        "turnedOff": "OFF"
+      }
+    },
+    "violation": {
+      "title": "改ざん/違反",
+      "description": "AlertPort デバイスの物理的な改ざん/違反イベント。",
+      "tableTitle": "違反イベント",
+      "kpi": {
+        "total": "合計",
+        "violations": "違反"
+      }
+    },
+    "remote-restart": {
+      "title": "リモート再起動",
+      "description": "AlertPort デバイスにリモートで指示された再起動イベント。",
+      "tableTitle": "リモート再起動",
+      "kpi": {
+        "total": "合計",
+        "restarts": "再起動"
       }
     }
   },
