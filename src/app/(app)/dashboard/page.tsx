@@ -118,46 +118,51 @@ export default function DashboardPage() {
         description={t('dashboard.welcome')}
       />
 
-      <div className="flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-white/[0.01] p-3 sm:flex-row sm:items-end sm:flex-wrap">
-        <div className="flex-1 min-w-0">
+      <div className="flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-white/[0.01] p-3">
+        {/* Hierarchy row — each SAM/ADMIN select sits in its own column so
+            the three fit on one line on md+ screens, matching the shared
+            FilterPanel grid used elsewhere. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-3 gap-y-2">
           <HierarchyFilters value={hierarchy} onChange={setHierarchy} compact />
         </div>
-        <div>
-          <label className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block">
-            {t('dashboard.rangeLabel')}
-          </label>
-          <div className="inline-flex rounded-lg border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-1">
-            {RANGE_PRESETS.map((preset) => {
-              const active = preset.id === rangeDays;
-              return (
-                <Button
-                  key={preset.id}
-                  type="button"
-                  size="sm"
-                  variant={active ? 'secondary' : 'ghost'}
-                  onClick={() => setRangeDays(preset.id)}
-                  className={active ? '' : 'text-text-muted'}
-                >
-                  {t(preset.labelKey)}
-                </Button>
-              );
-            })}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <label className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block">
+              {t('dashboard.rangeLabel')}
+            </label>
+            <div className="inline-flex rounded-lg border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-1">
+              {RANGE_PRESETS.map((preset) => {
+                const active = preset.id === rangeDays;
+                return (
+                  <Button
+                    key={preset.id}
+                    type="button"
+                    size="sm"
+                    variant={active ? 'secondary' : 'ghost'}
+                    onClick={() => setRangeDays(preset.id)}
+                    className={active ? '' : 'text-text-muted'}
+                  >
+                    {t(preset.labelKey)}
+                  </Button>
+                );
+              })}
+            </div>
           </div>
-        </div>
-        <div className="flex items-end gap-2">
-          <Button
-            type="button"
-            size="sm"
-            onClick={applyFilters}
-            disabled={!hasFilterChanges && !occurrencesLoading}
-          >
-            <Search className="h-4 w-4" />
-            {t('common.search')}
-          </Button>
-          <Button type="button" size="sm" variant="ghost" onClick={clearFilters}>
-            <X className="h-4 w-4" />
-            {t('common.clear')}
-          </Button>
+          <div className="flex items-end gap-2">
+            <Button type="button" variant="ghost" size="sm" onClick={clearFilters}>
+              <X className="h-4 w-4" />
+              {t('common.clearFilters')}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={applyFilters}
+              disabled={!hasFilterChanges && !occurrencesLoading}
+            >
+              <Search className="h-4 w-4" />
+              {t('common.search')}
+            </Button>
+          </div>
         </div>
       </div>
 
