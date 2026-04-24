@@ -2,11 +2,20 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Search, X } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
-import { FilterPanel } from '@/components/shared/filter-panel';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { OccurrenceStatusBadge } from '@/components/shared/status-badge';
 import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useOccurrences } from '@/features/alerts/use-occurrences';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
@@ -122,27 +131,71 @@ export default function AlertOccurrencesPage() {
       <div className="space-y-6">
       <PageHeader title={t('alerts.timeline')} description={t('alerts.maxDateRange')} />
 
-      <FilterPanel
-        extras={<HierarchyFilters value={hierarchy} onChange={setHierarchy} />}
-        fields={[
-          { key: 'startDate', labelKey: 'common.startDate', type: 'date' },
-          { key: 'endDate', labelKey: 'common.endDate', type: 'date' },
-          {
-            key: 'status',
-            labelKey: 'alerts.status',
-            type: 'select',
-            options: [
-              { value: 'PENDING', label: t('alerts.pending') },
-              { value: 'RESPONDED', label: t('alerts.responded') },
-              { value: 'MISSED', label: t('alerts.missed') },
-            ],
-          },
-        ]}
-        values={filters}
-        onChange={setFilter}
-        onSearch={handleSearch}
-        onClear={handleClear}
-      />
+      {/* Two-row filter bar: hierarchy above, date/status + actions
+          below. Kept on-page (instead of FilterPanel) so the three
+          hierarchy selects share a row with the three detail fields
+          sharing the second, matching the user's "2 linhas ao total"
+          spec. */}
+      <div className="flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-white/[0.01] p-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-3 gap-y-2">
+          <HierarchyFilters value={hierarchy} onChange={setHierarchy} compact />
+        </div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-2 flex-1 min-w-0">
+            <div>
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block">
+                {t('common.startDate')}
+              </label>
+              <Input
+                type="date"
+                className="h-9"
+                value={(filters.startDate as string) || ''}
+                onChange={(e) => setFilter('startDate', e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block">
+                {t('common.endDate')}
+              </label>
+              <Input
+                type="date"
+                className="h-9"
+                value={(filters.endDate as string) || ''}
+                onChange={(e) => setFilter('endDate', e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block">
+                {t('alerts.status')}
+              </label>
+              <Select
+                value={(filters.status as string) || '__all__'}
+                onValueChange={(val) => setFilter('status', val === '__all__' ? '' : val)}
+              >
+                <SelectTrigger className="h-9 px-3 text-sm">
+                  <SelectValue placeholder={t('common.selectOption')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">{t('common.all')}</SelectItem>
+                  <SelectItem value="PENDING">{t('alerts.pending')}</SelectItem>
+                  <SelectItem value="RESPONDED">{t('alerts.responded')}</SelectItem>
+                  <SelectItem value="MISSED">{t('alerts.missed')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex items-end gap-2">
+            <Button type="button" variant="ghost" size="sm" onClick={handleClear}>
+              <X className="h-4 w-4" />
+              {t('common.clearFilters')}
+            </Button>
+            <Button type="button" size="sm" onClick={handleSearch}>
+              <Search className="h-4 w-4" />
+              {t('common.search')}
+            </Button>
+          </div>
+        </div>
+      </div>
 
       <DataTable
         columns={columns}
