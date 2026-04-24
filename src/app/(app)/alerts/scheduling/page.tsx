@@ -273,7 +273,9 @@ export default function AlertSchedulingPage() {
             id="alerts-scheduling-filters"
             className="rounded-xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-3 space-y-3"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {/* Row 1 — hierarchy + schedule name. Four equal columns on
+               lg+ so the four fields always line up. */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <HierarchyFilters value={hierarchy} onChange={setHierarchy} />
               <div className="space-y-1">
                 <Label className="text-xs text-text-secondary">{t('alerts.scheduleName')}</Label>
@@ -283,7 +285,13 @@ export default function AlertSchedulingPage() {
                   placeholder={t('alerts.scheduleName')}
                 />
               </div>
-              <div className="space-y-1">
+            </div>
+            {/* Row 2 — status + Limpar filtros on the same baseline. The
+               status field keeps the same width as row-1 fields (1fr out
+               of the visual 4-col grid) and the button sits to its
+               right, right-aligned at md+. */}
+            <div className="flex flex-col gap-3 md:flex-row md:items-end">
+              <div className="space-y-1 w-full md:w-1/4">
                 <Label className="text-xs text-text-secondary">{t('common.status')}</Label>
                 <select
                   value={statusFilter || '__all__'}
@@ -298,12 +306,12 @@ export default function AlertSchedulingPage() {
                   <option value="ARCHIVED">{t('common.archived')}</option>
                 </select>
               </div>
-            </div>
-            <div className="flex justify-end">
-              <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-                <X className="h-4 w-4" />
-                {t('common.clearFilters')}
-              </Button>
+              <div className="md:ml-auto">
+                <Button variant="ghost" size="sm" onClick={clearAllFilters}>
+                  <X className="h-4 w-4" />
+                  {t('common.clearFilters')}
+                </Button>
+              </div>
             </div>
           </div>
         )}
