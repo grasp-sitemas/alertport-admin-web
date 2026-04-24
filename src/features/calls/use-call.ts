@@ -94,6 +94,29 @@ export function pickSupportedMimeType(): string {
   return '';
 }
 
+/**
+ * Renders the caller identification shown on the operator's incoming-call
+ * modal. The device registers on ms-chat with `displayName = <siteName>`
+ * (see alertport-app Routes/index.tsx), so the server relays the site name
+ * as `fromLabel`/`fromDisplayName`. Combining it with the last four chars
+ * of the device's userId gives the operator enough context to answer
+ * (e.g. "Hospital Brasil - 02b2") without exposing the full id.
+ *
+ * When the device registered without a displayName, `fromLabel` falls back
+ * to the raw userId server-side; we detect that case and emit just
+ * "Dispositivo - XXXX" so the modal never shows the bare id.
+ */
+export function formatIncomingPeerLabel(payload: IncomingCallPayload): string {
+  const deviceId = String(payload.from || '').trim();
+  const last4 = deviceId.slice(-4).toLowerCase();
+
+  const rawLabel = (payload.fromLabel || payload.fromDisplayName || '').trim();
+  const fallbackToDeviceId = !rawLabel || rawLabel === deviceId;
+  const siteLabel = fallbackToDeviceId ? 'Dispositivo' : rawLabel;
+
+  return last4 ? `${siteLabel} - ${last4}` : siteLabel;
+}
+
 export interface AudioCaptureCapability {
   mediaRecorder: boolean;
   getUserMedia: boolean;
@@ -307,7 +330,21 @@ export function useCall(): CallState & CallActions {
     recorderRef.current = null;
     clearRecordingTimers();
 
-    const mode = recordingModeRef.current;
+    // Snapshot everything the upload will need BEFORE awaiting anything.
+    // A concurrent `resetCallState()` (e.g. from `onCallEnd`'s finally
+    // running while this promise is still awaiting `blobToBase64`) will
+    // wipe `activeRoomIdRef`/`peerUserIdRef`/`callModeRef` to null — and
+    // emitting the upload with `roomId: null` gets rejected server-side
+    // with ROOM_ID_REQUIRED, silently dropping the NORMAL-mode recording.
+    // SILENT_LISTEN was largely immune because its server-side
+    // auto-finalize fires before the operator can race endCall().
+    const mode = recordingModeRef.current || callModeRef.current || 'NORMAL';
+    const snapshotRoomId = activeRoomIdRef.current;
+    const snapshotPeerUserId = peerUserIdRef.current;
+    const accountId =
+      typeof user?.account === 'object' && user?.account
+        ? user.account._id
+        : (user?.account as string | undefined);
 
     try {
       await new Promise<void>((resolve) => {
@@ -336,19 +373,17 @@ export function useCall(): CallState & CallActions {
         : 0;
       recordingStartedAtRef.current = null;
 
+      if (!snapshotRoomId) return;
+
       const base64 = await blobToBase64(blob);
       const socket = getSocket();
-      const accountId =
-        typeof user?.account === 'object' && user?.account
-          ? user.account._id
-          : (user?.account as string | undefined);
 
       socket.emit('call:recording:upload', {
-        roomId: activeRoomIdRef.current,
+        roomId: snapshotRoomId,
         accountId,
-        callMode: mode || callModeRef.current || 'NORMAL',
+        callMode: mode,
         initiatedBy: user?._id,
-        peerUserId: peerUserIdRef.current,
+        peerUserId: snapshotPeerUserId,
         startedAt: startedAt?.toISOString(),
         endedAt: endedAt.toISOString(),
         durationSec,
@@ -775,7 +810,7 @@ export function useCall(): CallState & CallActions {
 
       setRoomId(payload.roomId);
       setPeerUserId(payload.from);
-      setPeerLabel(payload.fromLabel || payload.fromDisplayName || payload.from);
+      setPeerLabel(formatIncomingPeerLabel(payload));
       setCallMode(payload.callMode);
       setCallDirection('incoming');
       setStatus('incoming');

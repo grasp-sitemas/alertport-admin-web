@@ -482,6 +482,9 @@
     "failurePatrol": "Patrol Failure",
     "maxDateRange": "Maximum date range is 30 days",
     "deleteSuccess": "Schedule deleted successfully",
+    "geolocation": {
+      "openInMaps": "Open location {coords} on Google Maps"
+    },
     "attendance": {
       "openAttendance": "Open attendance",
       "continueAttendance": "Continue attendance",

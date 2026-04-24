@@ -482,6 +482,9 @@
     "failurePatrol": "巡逻失败",
     "maxDateRange": "最大日期范围为30天",
     "deleteSuccess": "已成功删除日程",
+    "geolocation": {
+      "openInMaps": "在 Google 地图中打开位置 {coords}"
+    },
     "attendance": {
       "openAttendance": "开始处理",
       "continueAttendance": "继续处理",

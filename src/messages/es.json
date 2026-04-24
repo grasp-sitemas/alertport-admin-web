@@ -482,6 +482,9 @@
     "failurePatrol": "Fallo de Patrulla",
     "maxDateRange": "El rango máximo de fechas es de 30 días",
     "deleteSuccess": "Agenda eliminada correctamente",
+    "geolocation": {
+      "openInMaps": "Abrir ubicación {coords} en Google Maps"
+    },
     "attendance": {
       "openAttendance": "Abrir atención",
       "continueAttendance": "Continuar atención",

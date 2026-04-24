@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Phone,
@@ -38,6 +38,101 @@ function formatDuration(seconds: number): string {
   return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
 }
 
+/**
+ * Incoming-call ringtone synthesized with the Web Audio API.
+ *
+ * Using an oscillator instead of a bundled MP3 keeps the bundle size
+ * unchanged and sidesteps asset-hosting on Vercel (no new file in
+ * `public/`). The pattern is a classic two-tone ring: alternating 480 Hz
+ * and 620 Hz bursts separated by silence — recognizable as "phone
+ * ringing" without being as harsh as a single sine wave.
+ *
+ * Autoplay gotcha: browsers block AudioContext until a user gesture has
+ * unlocked audio somewhere on the page. For a fresh tab where the
+ * operator hasn't interacted yet, `ctx.state` will be `suspended` and
+ * the ring will be silent. That's acceptable — once the operator starts
+ * their first call (or any click on the app shell), subsequent incoming
+ * calls ring normally. We still attempt `resume()` best-effort here.
+ */
+function useIncomingRingtone(active: boolean): void {
+  const ctxRef = useRef<AudioContext | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stoppedRef = useRef<boolean>(true);
+
+  useEffect(() => {
+    if (!active) return;
+    if (typeof window === 'undefined') return;
+
+    const AudioCtx: typeof AudioContext | undefined =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+
+    stoppedRef.current = false;
+
+    const ensureCtx = (): AudioContext | null => {
+      if (ctxRef.current) return ctxRef.current;
+      try {
+        const ctx = new AudioCtx();
+        ctxRef.current = ctx;
+        return ctx;
+      } catch {
+        return null;
+      }
+    };
+
+    const playRing = () => {
+      if (stoppedRef.current) return;
+      const ctx = ensureCtx();
+      if (!ctx) return;
+      if (ctx.state === 'suspended') {
+        void ctx.resume().catch(() => {});
+      }
+
+      const now = ctx.currentTime;
+      const pattern: Array<{ freq: number; start: number; duration: number }> = [
+        { freq: 480, start: 0, duration: 0.4 },
+        { freq: 620, start: 0.45, duration: 0.4 },
+      ];
+
+      pattern.forEach(({ freq, start, duration }) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const s = now + start;
+        const e = s + duration;
+        gain.gain.setValueAtTime(0, s);
+        gain.gain.linearRampToValueAtTime(0.18, s + 0.03);
+        gain.gain.setValueAtTime(0.18, e - 0.05);
+        gain.gain.linearRampToValueAtTime(0, e);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(s);
+        osc.stop(e + 0.02);
+      });
+    };
+
+    playRing();
+    intervalRef.current = setInterval(playRing, 2200);
+
+    return () => {
+      stoppedRef.current = true;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      if (ctxRef.current) {
+        try {
+          void ctxRef.current.close();
+        } catch {
+          /* ignore */
+        }
+        ctxRef.current = null;
+      }
+    };
+  }, [active]);
+}
+
 export function CallDialog(props: CallDialogProps) {
   const t = useTranslations();
   const {
@@ -70,6 +165,11 @@ export function CallDialog(props: CallDialogProps) {
   const isRinging = status === 'incoming';
   const isConnected = status === 'connected';
   const isSilent = callMode === 'SILENT_LISTEN';
+
+  // SILENT_LISTEN is auto-accepted — never actually shows the ringing
+  // state to the operator. Ringing the tone for it would defeat the
+  // whole "discreet listen" purpose, so gate on NORMAL only.
+  useIncomingRingtone(isRinging && callDirection === 'incoming' && !isSilent);
 
   // Detect the runtime's audio-capture capabilities once per mount.
   // If recording is enabled backend-side but the browser can't do it,

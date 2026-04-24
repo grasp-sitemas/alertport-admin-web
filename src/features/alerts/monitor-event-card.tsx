@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { useTranslations } from 'next-intl';
-import { AlertTriangle, Circle, FileText, Lock, MapPin, Phone, Radio, Router, ShieldCheck, UserRound } from 'lucide-react';
+import { AlertTriangle, Circle, ExternalLink, FileText, Lock, MapPin, Phone, Radio, Router, ShieldCheck, UserRound } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,7 @@ import {
   extractAttendanceOwner,
   type AttendanceState,
 } from './attendance-state';
+import { buildMapsUrl, formatCoordinates, resolveEventGeolocation } from './event-geolocation';
 
 const EVENT_META: Record<
   EventType,
@@ -80,6 +81,7 @@ function MonitorEventCardImpl({
       : null;
   const notesSnippet = event.notes ? event.notes.trim().slice(0, 140) : '';
   const ownerLineName = state === 'IN_PROGRESS_BY_ME' ? owner.name : null;
+  const coords = resolveEventGeolocation(event);
 
   return (
     <div
@@ -117,15 +119,6 @@ function MonitorEventCardImpl({
             <p className="text-xs text-text-muted mt-0.5">
               {(event.date || event.createdDate) &&
                 new Date(event.date || event.createdDate!).toLocaleString()}
-              {event.location && (
-                <>
-                  {' · '}
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {event.location.lat.toFixed(4)}, {event.location.lng.toFixed(4)}
-                  </span>
-                </>
-              )}
               {state === 'IN_PROGRESS_BY_OTHER' && (
                 <>
                   {' · '}
@@ -136,6 +129,29 @@ function MonitorEventCardImpl({
                 </>
               )}
             </p>
+            {coords && (
+              <a
+                href={buildMapsUrl(coords)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1',
+                  'text-xs font-medium text-emerald-300 transition-colors',
+                  'hover:bg-emerald-500/20 hover:text-emerald-200 hover:border-emerald-500/40',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                )}
+                aria-label={t('alerts.geolocation.openInMaps', {
+                  coords: formatCoordinates(coords),
+                })}
+                title={t('alerts.geolocation.openInMaps', {
+                  coords: formatCoordinates(coords),
+                })}
+              >
+                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                <span className="tabular-nums">{formatCoordinates(coords)}</span>
+                <ExternalLink className="h-3 w-3 opacity-60" aria-hidden="true" />
+              </a>
+            )}
             {(equipmentName || ownerLineName) && (
               <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-muted">
                 {equipmentName && (

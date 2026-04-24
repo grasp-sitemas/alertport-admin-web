@@ -482,6 +482,9 @@
     "failurePatrol": "Falha na Patrulha",
     "maxDateRange": "O intervalo máximo de datas é de 30 dias",
     "deleteSuccess": "Agendamento excluído com sucesso",
+    "geolocation": {
+      "openInMaps": "Abrir localização {coords} no Google Maps"
+    },
     "attendance": {
       "openAttendance": "Abrir atendimento",
       "continueAttendance": "Continuar atendimento",

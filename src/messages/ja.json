@@ -482,6 +482,9 @@
     "failurePatrol": "パトロール失敗",
     "maxDateRange": "最大日付範囲は30日間です",
     "deleteSuccess": "スケジュールを削除しました",
+    "geolocation": {
+      "openInMaps": "位置情報 {coords} を Google マップで開く"
+    },
     "attendance": {
       "openAttendance": "対応を開始",
       "continueAttendance": "対応を続ける",
