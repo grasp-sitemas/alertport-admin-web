@@ -26,6 +26,7 @@
 | Sites | ✓ | ✓ | ✓ | ✓ | — | — |
 | Equipment | ✓ | ✓ | ✓ | ✓ | — | — |
 | Company | ✓ | ✓ | ✓ | — | — | — |
+| Companies (platform) | ✓ | — | — | — | — | — |
 
 ## Implementação
 

@@ -182,6 +182,7 @@
     "sites": "拠点",
     "equipment": "機器",
     "company": "会社",
+    "companies": "会社一覧",
     "companySettings": "設定",
     "schedules": "スケジュール",
     "timelines": "タイムライン",
@@ -624,6 +625,21 @@
     "settings": "設定",
     "timezone": "タイムゾーン",
     "secondaryPhone": "副電話"
+  },
+  "companies": {
+    "title": "会社",
+    "description": "プラットフォーム上のすべての会社を管理します",
+    "createCompany": "会社を作成",
+    "editCompany": "会社を編集",
+    "companyDetails": "会社の詳細",
+    "archive": "無効化",
+    "restore": "有効化",
+    "archiveConfirm": "この会社を無効にしてもよろしいですか？",
+    "restoreConfirm": "この会社を再度有効にしてもよろしいですか？",
+    "archiveSuccess": "会社を無効にしました",
+    "restoreSuccess": "会社を再度有効にしました",
+    "createSuccess": "会社を作成しました",
+    "updateSuccess": "会社を更新しました"
   },
   "roles": {
     "superAdminMaster": "スーパー管理者",

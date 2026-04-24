@@ -182,6 +182,7 @@
     "sites": "Sites",
     "equipment": "Equipment",
     "company": "Company",
+    "companies": "Companies",
     "companySettings": "Settings",
     "schedules": "Schedules",
     "timelines": "Timelines",
@@ -624,6 +625,21 @@
     "settings": "Settings",
     "timezone": "Timezone",
     "secondaryPhone": "Secondary Phone"
+  },
+  "companies": {
+    "title": "Companies",
+    "description": "Manage every company on the platform",
+    "createCompany": "Create Company",
+    "editCompany": "Edit Company",
+    "companyDetails": "Company Details",
+    "archive": "Deactivate",
+    "restore": "Activate",
+    "archiveConfirm": "Are you sure you want to deactivate this company?",
+    "restoreConfirm": "Are you sure you want to reactivate this company?",
+    "archiveSuccess": "Company deactivated successfully",
+    "restoreSuccess": "Company reactivated successfully",
+    "createSuccess": "Company created successfully",
+    "updateSuccess": "Company updated successfully"
   },
   "roles": {
     "superAdminMaster": "Super Admin",

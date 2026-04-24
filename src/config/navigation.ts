@@ -246,6 +246,15 @@ export const navigation: NavSection[] = [
     icon: Cog,
     items: [
       {
+        titleKey: 'sidebar.companies',
+        href: '/companies',
+        icon: Building2,
+        // SUPER_ADMIN_MASTER-only platform surface: lists, edits and
+        // toggles status for every ACCOUNT across the install. Not a
+        // per-account module, so no moduleKey.
+        roles: ['SUPER_ADMIN_MASTER'],
+      },
+      {
         titleKey: 'sidebar.companySettings',
         href: '/company',
         icon: Building2,

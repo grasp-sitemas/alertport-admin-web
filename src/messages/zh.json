@@ -182,6 +182,7 @@
     "sites": "站点",
     "equipment": "设备",
     "company": "公司",
+    "companies": "公司列表",
     "companySettings": "设置",
     "schedules": "调度",
     "timelines": "时间线",
@@ -624,6 +625,21 @@
     "settings": "设置",
     "timezone": "时区",
     "secondaryPhone": "副电话"
+  },
+  "companies": {
+    "title": "公司",
+    "description": "管理平台上的所有公司",
+    "createCompany": "创建公司",
+    "editCompany": "编辑公司",
+    "companyDetails": "公司详情",
+    "archive": "停用",
+    "restore": "启用",
+    "archiveConfirm": "确定要停用此公司吗？",
+    "restoreConfirm": "确定要重新启用此公司吗？",
+    "archiveSuccess": "公司已成功停用",
+    "restoreSuccess": "公司已成功重新启用",
+    "createSuccess": "公司创建成功",
+    "updateSuccess": "公司更新成功"
   },
   "roles": {
     "superAdminMaster": "超级管理员",

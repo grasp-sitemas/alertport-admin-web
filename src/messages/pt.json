@@ -182,6 +182,7 @@
     "sites": "Postos",
     "equipment": "Equipamentos",
     "company": "Empresa",
+    "companies": "Empresas",
     "companySettings": "Configurações",
     "schedules": "Agendamentos",
     "timelines": "Timelines",
@@ -624,6 +625,21 @@
     "settings": "Configurações",
     "timezone": "Fuso Horário",
     "secondaryPhone": "Telefone Secundário"
+  },
+  "companies": {
+    "title": "Empresas",
+    "description": "Gerencie todas as empresas da plataforma",
+    "createCompany": "Criar Empresa",
+    "editCompany": "Editar Empresa",
+    "companyDetails": "Detalhes da Empresa",
+    "archive": "Desativar",
+    "restore": "Ativar",
+    "archiveConfirm": "Tem certeza que deseja desativar esta empresa?",
+    "restoreConfirm": "Tem certeza que deseja reativar esta empresa?",
+    "archiveSuccess": "Empresa desativada com sucesso",
+    "restoreSuccess": "Empresa reativada com sucesso",
+    "createSuccess": "Empresa criada com sucesso",
+    "updateSuccess": "Empresa atualizada com sucesso"
   },
   "roles": {
     "superAdminMaster": "Super Admin",

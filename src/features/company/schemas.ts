@@ -34,3 +34,43 @@ export const companyFormSchema = z.object({
 });
 
 export type CompanyFormValues = z.infer<typeof companyFormSchema>;
+
+/**
+ * Account/Company list CRUD schema (Company where type=ACCOUNT).
+ * Used exclusively by the SUPER_ADMIN_MASTER "Empresas" screen to create,
+ * edit and toggle status of accounts across the platform.
+ *
+ * `primaryPhone` is stored as digits only - the UI input masks it for display.
+ */
+export const companyListFormSchema = z.object({
+  _id: z.string().optional(),
+  name: z.string().trim().min(1, { message: 'validation.required' }),
+  fantasyName: z.string().trim().optional().or(z.literal('')),
+  personType: z.enum(['PHYSICAL', 'LEGAL']).optional(),
+  document: z.string().trim().optional().or(z.literal('')),
+  email: z
+    .string()
+    .trim()
+    .email({ message: 'validation.email' })
+    .optional()
+    .or(z.literal('')),
+  primaryPhone: z
+    .string()
+    .trim()
+    .transform((v) => v.replace(/\D/g, '')),
+  type: z.literal('ACCOUNT'),
+  status: z.enum(['ACTIVE', 'ARCHIVED']),
+});
+
+export type CompanyListFormValues = z.infer<typeof companyListFormSchema>;
+
+export const DEFAULT_COMPANY_LIST_VALUES: CompanyListFormValues = {
+  name: '',
+  fantasyName: '',
+  personType: undefined,
+  document: '',
+  email: '',
+  primaryPhone: '',
+  type: 'ACCOUNT',
+  status: 'ACTIVE',
+};
