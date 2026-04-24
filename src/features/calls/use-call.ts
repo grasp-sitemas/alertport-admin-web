@@ -269,6 +269,15 @@ export function useCall(): CallState & CallActions {
     }
   }, []);
 
+  /**
+   * Release only the per-segment graph (timers + recorder stream).
+   * The AudioContext is reused across segments during a single call —
+   * closing it between segments would force `primeAudioContext` to
+   * create a new one from a non-gesture stack (e.g. the 3-min timeout
+   * finalizing + the ontrack re-firing for SILENT_LISTEN), which would
+   * bring back the silent-recording bug. The ctx lives until
+   * `closeAudioContext()` runs at call end.
+   */
   const releaseRecordingResources = useCallback(() => {
     clearRecordingTimers();
     recordingStreamRef.current?.getTracks().forEach((t) => {
@@ -279,6 +288,9 @@ export function useCall(): CallState & CallActions {
       }
     });
     recordingStreamRef.current = null;
+  }, [clearRecordingTimers]);
+
+  const closeAudioContext = useCallback(() => {
     if (recordingAudioCtxRef.current) {
       try {
         void recordingAudioCtxRef.current.close();
@@ -287,7 +299,7 @@ export function useCall(): CallState & CallActions {
       }
       recordingAudioCtxRef.current = null;
     }
-  }, [clearRecordingTimers]);
+  }, []);
 
   const finalizeRecording = useCallback(async () => {
     const recorder = recorderRef.current;
@@ -354,6 +366,43 @@ export function useCall(): CallState & CallActions {
   }, [user, clearRecordingTimers, releaseRecordingResources]);
 
   /**
+   * Eagerly create + resume the AudioContext during a user gesture
+   * (startCall / acceptCall). Chromium keeps an AudioContext suspended
+   * unless it was created in response to a gesture, and any audio
+   * graph built under a suspended context silently drops samples -
+   * MediaRecorder then captures a valid container with zero decoded
+   * frames (valid duration, no sound on playback). This was the
+   * 2026-04-23 root cause of the "gravações sem áudio" incident.
+   *
+   * Keeping a single long-lived context per call (instead of creating
+   * one inside `buildRecordingStream` which runs in `pc.ontrack` -
+   * asynchronous, no gesture attached) guarantees the context is
+   * running by the time we wire the graph.
+   */
+  const primeAudioContext = useCallback((): AudioContext | null => {
+    if (recordingAudioCtxRef.current) {
+      // Resume again just in case the tab was backgrounded between
+      // calls - `resume()` is a no-op on a running context.
+      void recordingAudioCtxRef.current.resume().catch(() => {});
+      return recordingAudioCtxRef.current;
+    }
+    const AudioCtx: typeof AudioContext | undefined =
+      typeof window !== 'undefined'
+        ? (window.AudioContext ||
+            (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)
+        : undefined;
+    if (!AudioCtx) return null;
+    try {
+      const ctx = new AudioCtx();
+      void ctx.resume().catch(() => {});
+      recordingAudioCtxRef.current = ctx;
+      return ctx;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  /**
    * Build the MediaStream that feeds MediaRecorder.
    *
    * ALWAYS routes through an AudioContext, even when there's only one
@@ -365,64 +414,72 @@ export function useCall(): CallState & CallActions {
    * createMediaStreamDestination` forces the audio graph to actually
    * flow samples into the recorder. See Chromium issue 1142150.
    *
+   * The AudioContext is shared with `primeAudioContext` - creating
+   * (and resuming) the context early during a user gesture is what
+   * makes the recording actually contain audio.
+   *
    * NORMAL: mic + remote mixed (operator hears + talks, saved file
    * captures both sides).
    * SILENT_LISTEN: remote only (operator's mic is muted in this mode
    * so there's nothing to mix from the local side).
    */
-  const buildRecordingStream = useCallback((mode: CallMode): MediaStream | null => {
-    const remote = remoteStreamRef.current;
-    const local = localStreamRef.current;
-    if (!remote && (mode === 'SILENT_LISTEN' || !local)) return null;
+  const buildRecordingStream = useCallback(
+    async (mode: CallMode): Promise<MediaStream | null> => {
+      const remote = remoteStreamRef.current;
+      const local = localStreamRef.current;
+      if (!remote && (mode === 'SILENT_LISTEN' || !local)) return null;
 
-    const AudioCtx: typeof AudioContext | undefined =
-      typeof window !== 'undefined'
-        ? (window.AudioContext ||
-            (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)
-        : undefined;
+      const ctx = primeAudioContext();
 
-    // No AudioContext available: fall back to raw stream. Likely to
-    // produce a silent file on Chromium but it's the best we can do
-    // in environments where AudioContext isn't supported.
-    if (!AudioCtx) {
-      return mode === 'SILENT_LISTEN' ? remote : remote || local;
-    }
-
-    try {
-      const ctx = new AudioCtx();
-      // Resume eagerly: SILENT_LISTEN / NORMAL both start from a user
-      // click, so the gesture should allow it. Resume is a no-op when
-      // the context is already running.
-      void ctx.resume?.().catch(() => {});
-
-      const destination = ctx.createMediaStreamDestination();
-
-      if (remote) {
-        const remoteSource = ctx.createMediaStreamSource(remote);
-        remoteSource.connect(destination);
-      }
-      if (mode === 'NORMAL' && local) {
-        const localSource = ctx.createMediaStreamSource(local);
-        localSource.connect(destination);
+      // No AudioContext available: fall back to raw stream. Likely to
+      // produce a silent file on Chromium but it's the best we can do
+      // in environments where AudioContext isn't supported.
+      if (!ctx) {
+        return mode === 'SILENT_LISTEN' ? remote : remote || local;
       }
 
-      recordingAudioCtxRef.current = ctx;
-      return destination.stream;
-    } catch {
-      // Fallback on any AudioContext error - better to attempt a raw
-      // recording than to drop the feature entirely.
-      return mode === 'SILENT_LISTEN' ? remote : remote || local;
-    }
-  }, []);
+      // Explicitly await resume so the graph is actively pumping
+      // samples before we wire any sources into it. A suspended ctx
+      // here is the silent-file smoking gun.
+      try {
+        if (ctx.state === 'suspended') await ctx.resume();
+      } catch {
+        /* best-effort */
+      }
+
+      try {
+        const destination = ctx.createMediaStreamDestination();
+
+        if (remote) {
+          const remoteSource = ctx.createMediaStreamSource(remote);
+          remoteSource.connect(destination);
+        }
+        if (mode === 'NORMAL' && local) {
+          const localSource = ctx.createMediaStreamSource(local);
+          localSource.connect(destination);
+        }
+
+        return destination.stream;
+      } catch {
+        // Fallback on any AudioContext error - better to attempt a raw
+        // recording than to drop the feature entirely.
+        return mode === 'SILENT_LISTEN' ? remote : remote || local;
+      }
+    },
+    [primeAudioContext],
+  );
 
   const startRecording = useCallback(
-    (mode: CallMode) => {
+    async (mode: CallMode) => {
       if (recorderRef.current) return;
       if (typeof MediaRecorder === 'undefined') return;
       if (!callRecordingEnabledRef.current) return;
 
-      const stream = buildRecordingStream(mode);
+      const stream = await buildRecordingStream(mode);
       if (!stream) return;
+      // Mode may have changed (or another startRecording beat us) while we
+      // were awaiting the audio graph setup — bail instead of stacking.
+      if (recorderRef.current) return;
 
       try {
         const mime = pickSupportedMimeType();
@@ -473,7 +530,7 @@ export function useCall(): CallState & CallActions {
     if (recorderRef.current) {
       void finalizeRecording();
     } else {
-      startRecording('NORMAL');
+      void startRecording('NORMAL');
     }
   }, [finalizeRecording, startRecording]);
 
@@ -495,6 +552,10 @@ export function useCall(): CallState & CallActions {
     localStreamRef.current = null;
     remoteStreamRef.current = null;
     releaseRecordingResources();
+    // Only tear down the AudioContext at the end of the call. During
+    // the call we keep it alive so multiple REC segments reuse the
+    // same resumed context.
+    closeAudioContext();
 
     if (remoteAudioRef.current) {
       remoteAudioRef.current.srcObject = null;
@@ -517,7 +578,7 @@ export function useCall(): CallState & CallActions {
     setIsRecording(false);
     setRecordingDurationSec(0);
     setCanRecord(false);
-  }, [releaseRecordingResources]);
+  }, [closeAudioContext, releaseRecordingResources]);
 
   const ensurePeerConnection = useCallback(async (): Promise<RTCPeerConnection> => {
     if (pcRef.current) return pcRef.current;
@@ -557,7 +618,7 @@ export function useCall(): CallState & CallActions {
         callRecordingEnabledRef.current &&
         !recorderRef.current
       ) {
-        startRecording('SILENT_LISTEN');
+        void startRecording('SILENT_LISTEN');
       }
     };
 
@@ -853,6 +914,12 @@ export function useCall(): CallState & CallActions {
         return;
       }
 
+      // Capture the user gesture (button click) to create + resume the
+      // AudioContext used for recording. Without this, the graph stays
+      // suspended when `pc.ontrack` wires it later (no gesture in that
+      // stack) and the saved file has zero decoded frames.
+      primeAudioContext();
+
       const socket = getSocket();
       const accountId =
         typeof user.account === 'object' && user.account
@@ -940,11 +1007,18 @@ export function useCall(): CallState & CallActions {
         },
       );
     },
-    [user, ensurePeerConnection, resetCallState],
+    [user, ensurePeerConnection, primeAudioContext, resetCallState],
   );
 
   const acceptCall = useCallback(async () => {
     if (!activeRoomIdRef.current || !user) return;
+    // Capture the user gesture (accept button) to create + resume the
+    // AudioContext. Must happen synchronously inside this callback so
+    // Chromium attributes it to the gesture — doing it later, e.g.
+    // inside `pc.ontrack`, leaves the context suspended and the saved
+    // recording silent. This is the root cause fix for the 2026-04-23
+    // "gravações sem áudio no S3" incident.
+    primeAudioContext();
     const socket = getSocket();
     setStatus('connecting');
     setStatusMessage('Conectando...');
@@ -969,7 +1043,7 @@ export function useCall(): CallState & CallActions {
         }
       },
     );
-  }, [user, ensurePeerConnection, processQueuedSignals, resetCallState]);
+  }, [user, ensurePeerConnection, primeAudioContext, processQueuedSignals, resetCallState]);
 
   const rejectCall = useCallback(() => {
     if (!activeRoomIdRef.current || !user) return;
