@@ -399,7 +399,8 @@
     "responseRate": "响应率",
     "range7": "7天",
     "range30": "30天",
-    "range90": "90天"
+    "range90": "90天",
+    "rangeLabel": "时间范围"
   },
   "alerts": {
     "title": "警报事件",

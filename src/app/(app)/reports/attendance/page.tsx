@@ -14,6 +14,8 @@ import { ReportExportButton } from '@/features/reports/report-export-button';
 import { ReportPageLayout } from '@/features/reports/report-page-layout';
 import { ReportKpiGrid, ReportKpiTile, formatNumber } from '@/features/reports/report-kpi';
 import { defaultReportRange, validateReportFilter } from '@/features/reports/report-filter-validator';
+import { useAuth } from '@/hooks/use-auth';
+import { isSuperAdminMaster } from '@/config/roles';
 import type { AttendanceRow, ReportFilterParams } from '@/types/reports';
 import type { ExportPayload } from '@/features/reports/report-export';
 
@@ -34,6 +36,8 @@ export default function AttendanceReportPage() {
 
 function AttendancePageBody() {
   const t = useTranslations();
+  const { userSubtype } = useAuth();
+  const showAccountColumn = isSuperAdminMaster(userSubtype);
 
   const [filterValue, setFilterValue] = useState<ReportFilterValue>(() => {
     const { startDate, endDate } = defaultReportRange();
@@ -66,6 +70,9 @@ function AttendancePageBody() {
   const summary = data?.summary;
   const rows = useMemo<AttendanceRow[]>(() => data?.results ?? [], [data]);
 
+  // Column order (user-facing requirement):
+  //   1. Timestamp, 2. Tipo Evento, 3. Funcionário, 4. Conta (SAM-only),
+  //   5. Cliente, 6. Posto, 7. Método.
   const columns = useMemo<Column<AttendanceRow>[]>(
     () => [
       {
@@ -87,6 +94,20 @@ function AttendancePageBody() {
           return name || '-';
         },
       },
+      ...(showAccountColumn
+        ? ([
+            {
+              key: 'account',
+              headerKey: 'common.account',
+              render: (r: AttendanceRow) => r.account?.name ?? '-',
+            },
+          ] as Column<AttendanceRow>[])
+        : []),
+      {
+        key: 'client',
+        headerKey: 'common.client',
+        render: (r) => r.client?.name ?? '-',
+      },
       {
         key: 'site',
         headerKey: 'common.site',
@@ -98,7 +119,7 @@ function AttendancePageBody() {
         render: (r) => r.method ?? '-',
       },
     ],
-    [],
+    [showAccountColumn],
   );
 
   const getExportPayload = useCallback((): ExportPayload<AttendanceRow> | null => {
@@ -121,12 +142,16 @@ function AttendancePageBody() {
           header: t('attendance.employee'),
           value: (r) => (r.user ? `${r.user.firstName ?? ''} ${r.user.lastName ?? ''}`.trim() : ''),
         },
+        ...(showAccountColumn
+          ? [{ header: t('common.account'), value: (r: AttendanceRow) => r.account?.name ?? '' }]
+          : []),
+        { header: t('common.client'), value: (r: AttendanceRow) => r.client?.name ?? '' },
         { header: t('common.site'), value: (r) => r.site?.name ?? '' },
         { header: t('reports.attendance.method'), value: (r) => r.method ?? '' },
       ],
       rows,
     };
-  }, [data?.generatedAt, filterValue.endDate, filterValue.startDate, rows, summary, t]);
+  }, [data?.generatedAt, filterValue.endDate, filterValue.startDate, rows, showAccountColumn, summary, t]);
 
   return (
     <ReportPageLayout

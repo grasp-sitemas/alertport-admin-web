@@ -12,6 +12,8 @@ import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import { RoleGuard } from '@/components/shared/role-guard';
 import { ModuleGuard } from '@/components/shared/module-guard';
+import { useAuth } from '@/hooks/use-auth';
+import { isSuperAdminMaster } from '@/config/roles';
 import type { AlertOccurrence } from '@/types/api';
 
 const initialFilters = {
@@ -22,6 +24,8 @@ const initialFilters = {
 
 export default function AlertOccurrencesPage() {
   const t = useTranslations();
+  const { userSubtype } = useAuth();
+  const showAccountColumn = isSuperAdminMaster(userSubtype);
   const pagination = usePagination({ initialPageSize: 20 });
   const { filters, setFilter, clearFilters, buildFilterParams } = useFilters({
     initialFilters,
@@ -48,22 +52,38 @@ export default function AlertOccurrencesPage() {
     pagination.setTotalCount(totalCount);
   }
 
+  // Column order (user-facing requirement):
+  //   1. Cliente, 2. Posto, 3. Equipamento, 4. Conta (SAM-only),
+  //   5. Agendado, 6. Respondido, 7. Status.
+  // "Conta" is SUPER_ADMIN_MASTER only — every other role is already
+  // scoped to their own account via the session interceptor, so the
+  // column would just echo their own company name.
   const columns: Column<AlertOccurrence>[] = [
-    {
-      key: 'site',
-      headerKey: 'common.site',
-      render: (item) => (typeof item.site === 'object' ? item.site?.name : '-'),
-    },
     {
       key: 'client',
       headerKey: 'common.client',
       render: (item) => (typeof item.client === 'object' ? item.client?.name : '-'),
     },
     {
+      key: 'site',
+      headerKey: 'common.site',
+      render: (item) => (typeof item.site === 'object' ? item.site?.name : '-'),
+    },
+    {
       key: 'equipment',
       headerKey: 'alerts.equipment',
       render: (item) => (typeof item.equipment === 'object' ? item.equipment?.name : '-'),
     },
+    ...(showAccountColumn
+      ? ([
+          {
+            key: 'account',
+            headerKey: 'common.account',
+            render: (item: AlertOccurrence) =>
+              typeof item.account === 'object' ? (item.account?.name ?? '-') : '-',
+          },
+        ] as Column<AlertOccurrence>[])
+      : []),
     {
       key: 'scheduledAt',
       headerKey: 'alerts.scheduledAt',

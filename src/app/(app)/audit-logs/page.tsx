@@ -9,6 +9,14 @@ import { FilterPanel } from '@/components/shared/filter-panel';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { Badge } from '@/components/ui/badge';
 import { RoleGuard } from '@/components/shared/role-guard';
+import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
+import {
+  useAccountsLookup,
+  useClientsLookup,
+  useSitesLookup,
+} from '@/features/shared/use-hierarchy-lookups';
+import { useAuth } from '@/hooks/use-auth';
+import { isSuperAdminMaster } from '@/config/roles';
 import { useFilters } from '@/hooks/use-filters';
 import { usePagination } from '@/hooks/use-pagination';
 import {
@@ -67,6 +75,8 @@ export default function AuditLogsPage() {
 
 function AuditLogsBody() {
   const t = useTranslations();
+  const { userSubtype } = useAuth();
+  const showAccountColumn = isSuperAdminMaster(userSubtype);
   const pagination = usePagination({ initialPageSize: 50 });
   const { filters, setFilter, clearFilters, buildFilterParams } = useFilters({
     initialFilters: {
@@ -76,7 +86,31 @@ function AuditLogsBody() {
       endDate: '',
     },
   });
+  const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
+  const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
   const [activeFilters, setActiveFilters] = useState(filters);
+
+  // Load lookups to resolve audit-log IDs → names. These hooks self-gate by
+  // role (accounts only for SAM, clients only once an account is known).
+  const accountsLookup = useAccountsLookup();
+  const clientsLookup = useClientsLookup(activeHierarchy.account);
+  const sitesLookup = useSitesLookup(activeHierarchy.client, activeHierarchy.account);
+
+  const accountNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const a of accountsLookup.data?.results ?? []) map.set(a._id, a.name);
+    return map;
+  }, [accountsLookup.data]);
+  const clientNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const c of clientsLookup.data?.results ?? []) map.set(c._id, c.name);
+    return map;
+  }, [clientsLookup.data]);
+  const siteNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const s of sitesLookup.data?.results ?? []) map.set(s._id, s.name);
+    return map;
+  }, [sitesLookup.data]);
 
   const queryParams = useMemo(
     () => ({
@@ -84,8 +118,11 @@ function AuditLogsBody() {
       ...Object.fromEntries(
         Object.entries(activeFilters).filter(([, v]) => !!v && v !== ''),
       ),
+      ...(activeHierarchy.account ? { accountId: activeHierarchy.account } : {}),
+      ...(activeHierarchy.client ? { clientId: activeHierarchy.client } : {}),
+      ...(activeHierarchy.site ? { siteId: activeHierarchy.site } : {}),
     }),
-    [activeFilters, buildFilterParams, pagination.paginationParams],
+    [activeFilters, activeHierarchy, buildFilterParams, pagination.paginationParams],
   );
 
   const { data, isLoading } = useQuery({
@@ -135,6 +172,27 @@ function AuditLogsBody() {
         </span>
       ),
     },
+    ...(showAccountColumn
+      ? ([
+          {
+            key: 'account',
+            headerKey: 'common.account',
+            render: (r: AuditLogEntry) =>
+              r.accountId ? (accountNameById.get(r.accountId) ?? shortId(r.accountId)) : '-',
+          },
+        ] as Column<AuditLogEntry>[])
+      : []),
+    {
+      key: 'client',
+      headerKey: 'common.client',
+      render: (r) =>
+        r.clientId ? (clientNameById.get(r.clientId) ?? shortId(r.clientId)) : '-',
+    },
+    {
+      key: 'site',
+      headerKey: 'common.site',
+      render: (r) => (r.siteId ? (siteNameById.get(r.siteId) ?? shortId(r.siteId)) : '-'),
+    },
     {
       key: 'resource',
       headerKey: 'auditLog.resource',
@@ -160,6 +218,7 @@ function AuditLogsBody() {
       />
 
       <FilterPanel
+        extras={<HierarchyFilters value={hierarchy} onChange={setHierarchy} />}
         fields={[
           { key: 'startDate', labelKey: 'common.startDate', type: 'date' },
           { key: 'endDate', labelKey: 'common.endDate', type: 'date' },
@@ -184,10 +243,17 @@ function AuditLogsBody() {
         ]}
         values={filters}
         onChange={setFilter}
-        onSearch={() => setActiveFilters(filters)}
+        onSearch={() => {
+          pagination.setPage(1);
+          setActiveFilters(filters);
+          setActiveHierarchy(hierarchy);
+        }}
         onClear={() => {
           clearFilters();
           setActiveFilters({ action: '', domain: '', startDate: '', endDate: '' });
+          setHierarchy({});
+          setActiveHierarchy({});
+          pagination.setPage(1);
         }}
       />
 
@@ -239,4 +305,14 @@ function last7DaysISO(): string {
   const d = new Date();
   d.setDate(d.getDate() - 7);
   return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Fallback label when we don't have a populated name for an ObjectId.
+ * Shows the last 6 chars — enough for humans to correlate visually
+ * without dominating the column width.
+ */
+function shortId(id: string): string {
+  if (!id) return '-';
+  return id.length > 6 ? `…${id.slice(-6)}` : id;
 }

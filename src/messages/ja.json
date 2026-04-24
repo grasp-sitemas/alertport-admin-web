@@ -399,7 +399,8 @@
     "responseRate": "対応率",
     "range7": "7日間",
     "range30": "30日間",
-    "range90": "90日間"
+    "range90": "90日間",
+    "rangeLabel": "期間"
   },
   "alerts": {
     "title": "アラート発生",

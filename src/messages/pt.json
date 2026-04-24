@@ -399,7 +399,8 @@
     "responseRate": "taxa de resposta",
     "range7": "7 dias",
     "range30": "30 dias",
-    "range90": "90 dias"
+    "range90": "90 dias",
+    "rangeLabel": "Período"
   },
   "alerts": {
     "title": "Ocorrências de Alertas",

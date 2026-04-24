@@ -20,6 +20,8 @@ import {
   formatSeconds,
 } from '@/features/reports/report-kpi';
 import { defaultReportRange, validateReportFilter } from '@/features/reports/report-filter-validator';
+import { useAuth } from '@/hooks/use-auth';
+import { isSuperAdminMaster } from '@/config/roles';
 import type { ReportFilterParams, SosRow } from '@/types/reports';
 import type { ExportPayload } from '@/features/reports/report-export';
 
@@ -40,6 +42,8 @@ export default function SosReportPage() {
 
 function SosPageBody() {
   const t = useTranslations();
+  const { userSubtype } = useAuth();
+  const showAccountColumn = isSuperAdminMaster(userSubtype);
 
   const [filterValue, setFilterValue] = useState<ReportFilterValue>(() => {
     const { startDate, endDate } = defaultReportRange();
@@ -72,6 +76,9 @@ function SosPageBody() {
   const summary = data?.summary;
   const rows = useMemo<SosRow[]>(() => data?.results ?? [], [data]);
 
+  // Column order (user-facing requirement):
+  //   1. Date, 2. Conta (SAM-only), 3. Cliente, 4. Posto,
+  //   5. Vigilante, 6. Operador, 7. Status, 8. T. Resposta, 9. T. Resolução.
   const columns = useMemo<Column<SosRow>[]>(
     () => [
       {
@@ -79,15 +86,24 @@ function SosPageBody() {
         headerKey: 'reports.sos.date',
         render: (r) => new Date(r.date).toLocaleString(),
       },
-      {
-        key: 'site',
-        headerKey: 'common.site',
-        render: (r) => r.site?.name ?? '-',
-      },
+      ...(showAccountColumn
+        ? ([
+            {
+              key: 'account',
+              headerKey: 'common.account',
+              render: (r: SosRow) => r.account?.name ?? '-',
+            },
+          ] as Column<SosRow>[])
+        : []),
       {
         key: 'client',
         headerKey: 'common.client',
         render: (r) => r.client?.name ?? '-',
+      },
+      {
+        key: 'site',
+        headerKey: 'common.site',
+        render: (r) => r.site?.name ?? '-',
       },
       {
         key: 'vigilant',
@@ -121,7 +137,7 @@ function SosPageBody() {
         render: (r) => formatSeconds(r.resolutionTimeSec),
       },
     ],
-    [],
+    [showAccountColumn],
   );
 
   const getExportPayload = useCallback((): ExportPayload<SosRow> | null => {
@@ -140,8 +156,11 @@ function SosPageBody() {
       ],
       columns: [
         { header: t('reports.sos.date'), value: (r) => new Date(r.date) },
-        { header: t('common.site'), value: (r) => r.site?.name ?? '' },
+        ...(showAccountColumn
+          ? [{ header: t('common.account'), value: (r: SosRow) => r.account?.name ?? '' }]
+          : []),
         { header: t('common.client'), value: (r) => r.client?.name ?? '' },
+        { header: t('common.site'), value: (r) => r.site?.name ?? '' },
         {
           header: t('reports.sos.vigilant'),
           value: (r) =>
@@ -169,7 +188,7 @@ function SosPageBody() {
       ],
       rows,
     };
-  }, [data?.generatedAt, filterValue.endDate, filterValue.startDate, rows, summary, t]);
+  }, [data?.generatedAt, filterValue.endDate, filterValue.startDate, rows, showAccountColumn, summary, t]);
 
   return (
     <ReportPageLayout

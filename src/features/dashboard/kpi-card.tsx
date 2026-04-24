@@ -24,28 +24,32 @@ export function KpiCard({ title, value, icon: Icon, trend, accent = 'brand', isL
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-6 transition-all duration-200 hover:border-white/[0.15]',
+        'relative overflow-hidden rounded-xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-4 transition-all duration-200 hover:border-white/[0.15]',
         styles.glow,
       )}
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">{title}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+            {title}
+          </p>
           {isLoading ? (
-            <div className="mt-3 h-8 w-24 animate-pulse rounded bg-white/5" />
+            <div className="mt-2 h-7 w-20 animate-pulse rounded bg-white/5" />
           ) : (
-            <p className="mt-2 text-3xl font-bold text-white font-heading tracking-tight">{value}</p>
+            <p className="mt-1.5 text-2xl font-bold text-white font-heading tracking-tight">
+              {value}
+            </p>
           )}
-          {trend && <p className="mt-1 text-xs text-text-secondary">{trend}</p>}
+          {trend && <p className="mt-0.5 text-xs text-text-secondary">{trend}</p>}
         </div>
         <div
           className={cn(
-            'flex h-11 w-11 items-center justify-center rounded-xl border',
+            'flex h-9 w-9 items-center justify-center rounded-lg border',
             styles.bg,
             styles.border,
           )}
         >
-          <Icon className={cn('h-5 w-5', styles.text)} />
+          <Icon className={cn('h-4 w-4', styles.text)} />
         </div>
       </div>
     </div>

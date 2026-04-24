@@ -14,6 +14,8 @@ import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import { RoleGuard } from '@/components/shared/role-guard';
 import { ModuleGuard } from '@/components/shared/module-guard';
+import { useAuth } from '@/hooks/use-auth';
+import { isSuperAdminMaster } from '@/config/roles';
 import type { TimeEntry } from '@/types/api';
 
 const initialFilters = {
@@ -24,6 +26,8 @@ const initialFilters = {
 
 export default function AttendancePage() {
   const t = useTranslations();
+  const { userSubtype } = useAuth();
+  const showAccountColumn = isSuperAdminMaster(userSubtype);
   const pagination = usePagination({ initialPageSize: 20 });
   const { filters, setFilter, clearFilters, buildFilterParams } = useFilters({
     initialFilters,
@@ -49,6 +53,12 @@ export default function AttendancePage() {
     pagination.setTotalCount(totalCount);
   }
 
+  // Column order (user-facing requirement):
+  //   1. Timestamp, 2. Usuário, 3. Tipo de Evento, 4. Conta (SAM-only),
+  //   5. Cliente, 6. Posto, 7. Equipamento.
+  // Non-master roles are already scoped to their own account by the
+  // session interceptor, so the Conta column would just repeat their
+  // own company name and is hidden.
   const columns: Column<TimeEntry>[] = [
     {
       key: 'timestamp',
@@ -71,6 +81,16 @@ export default function AttendancePage() {
       headerKey: 'attendance.eventType',
       render: (item) => <TimeEntryBadge type={item.eventType} />,
     },
+    ...(showAccountColumn
+      ? ([
+          {
+            key: 'account',
+            headerKey: 'common.account',
+            render: (item: TimeEntry) =>
+              typeof item.account === 'object' ? (item.account?.name ?? '-') : '-',
+          },
+        ] as Column<TimeEntry>[])
+      : []),
     {
       key: 'client',
       headerKey: 'common.client',

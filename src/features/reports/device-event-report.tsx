@@ -20,6 +20,8 @@ import type {
   ReportFilterParams,
 } from '@/types/reports';
 import type { ExportPayload } from '@/features/reports/report-export';
+import { useAuth } from '@/hooks/use-auth';
+import { isSuperAdminMaster } from '@/config/roles';
 
 /**
  * Shared body for the five device-event reports (power, battery,
@@ -68,6 +70,8 @@ interface Props {
 
 export function DeviceEventReportBody({ variant }: Props) {
   const t = useTranslations();
+  const { userSubtype } = useAuth();
+  const showAccountColumn = isSuperAdminMaster(userSubtype);
   const ns = `reports.${variant.slug}`;
 
   const [filterValue, setFilterValue] = useState<ReportFilterValue>(() => {
@@ -119,11 +123,15 @@ export function DeviceEventReportBody({ variant }: Props) {
         headerKey: 'common.date',
         render: (r) => new Date(r.eventDate).toLocaleString(),
       },
-      {
-        key: 'account',
-        headerKey: 'common.account',
-        render: (r) => r.account?.name ?? '-',
-      },
+      ...(showAccountColumn
+        ? ([
+            {
+              key: 'account',
+              headerKey: 'common.account',
+              render: (r: DeviceEventRow) => r.account?.name ?? '-',
+            },
+          ] as Column<DeviceEventRow>[])
+        : []),
       {
         key: 'client',
         headerKey: 'common.client',
@@ -150,7 +158,7 @@ export function DeviceEventReportBody({ variant }: Props) {
         render: (r) => r.deviceType ?? '-',
       },
     ],
-    [eventCategoryLabel],
+    [eventCategoryLabel, showAccountColumn],
   );
 
   const getExportPayload = useCallback((): ExportPayload<DeviceEventRow> | null => {
@@ -170,7 +178,9 @@ export function DeviceEventReportBody({ variant }: Props) {
       kpis: kpiEntries,
       columns: [
         { header: t('common.date'), value: (r) => new Date(r.eventDate) },
-        { header: t('common.account'), value: (r) => r.account?.name ?? '' },
+        ...(showAccountColumn
+          ? [{ header: t('common.account'), value: (r: DeviceEventRow) => r.account?.name ?? '' }]
+          : []),
         { header: t('common.client'), value: (r) => r.client?.name ?? '' },
         { header: t('common.site'), value: (r) => r.site?.name ?? '' },
         {
@@ -195,6 +205,7 @@ export function DeviceEventReportBody({ variant }: Props) {
     filterValue.startDate,
     ns,
     rows,
+    showAccountColumn,
     summary,
     t,
     variant.fileName,

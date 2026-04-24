@@ -50,6 +50,7 @@ export interface AdherenceRow {
   triggeredAt?: string | null;
   respondedAt?: string | null;
   expireAt?: string | null;
+  account?: Pick<Company, '_id' | 'name'>;
   site?: Pick<Company, '_id' | 'name'>;
   client?: Pick<Company, '_id' | 'name'>;
   responseTimeSec?: number | null;
@@ -71,6 +72,8 @@ export interface AttendanceRow {
   method?: 'PHOTO' | 'PIN';
   createdAt: string;
   user?: Pick<User, '_id' | 'firstName' | 'lastName'>;
+  account?: Pick<Company, '_id' | 'name'>;
+  client?: Pick<Company, '_id' | 'name'>;
   site?: Pick<Company, '_id' | 'name'>;
 }
 
@@ -88,6 +91,7 @@ export interface SosRow {
   _id: string;
   type: 'SOS_ALERT';
   date: string;
+  account?: Pick<Company, '_id' | 'name'>;
   site?: Pick<Company, '_id' | 'name'>;
   client?: Pick<Company, '_id' | 'name'>;
   vigilant?: Pick<User, '_id' | 'firstName' | 'lastName'>;
@@ -127,6 +131,8 @@ export interface SlaRow {
   _id: string;
   type: 'SOS_ALERT';
   date: string;
+  account?: Pick<Company, '_id' | 'name'>;
+  client?: Pick<Company, '_id' | 'name'>;
   site?: Pick<Company, '_id' | 'name'>;
   operator?: Pick<User, '_id' | 'firstName' | 'lastName'>;
   attendance?: {

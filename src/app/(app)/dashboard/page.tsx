@@ -18,6 +18,11 @@ import { PageHeader } from '@/components/shared/page-header';
 import { KpiCard } from '@/features/dashboard/kpi-card';
 import { useDashboardData, type DashboardRange } from '@/features/dashboard/use-dashboard-data';
 import {
+  HierarchyFilters,
+  type HierarchyFiltersValue,
+} from '@/components/shared/hierarchy-filters';
+import { Search, X } from 'lucide-react';
+import {
   EventsTrendChart,
   StatusDonut,
   TopSitesBars,
@@ -54,9 +59,25 @@ export default function DashboardPage() {
   const t = useTranslations();
   const { user } = useAuth();
   const [rangeDays, setRangeDays] = useState<RangeId>(7);
+  const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
+  const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
   const range = useMemo(() => buildRange(rangeDays), [rangeDays]);
-  const { occurrences, equipmentCount, collaboratorCount } = useDashboardData(range);
+  const { occurrences, equipmentCount, collaboratorCount } = useDashboardData(
+    range,
+    activeHierarchy,
+  );
   const occurrencesLoading = occurrences.isLoading;
+
+  const applyFilters = () => setActiveHierarchy(hierarchy);
+  const clearFilters = () => {
+    setHierarchy({});
+    setActiveHierarchy({});
+    setRangeDays(7);
+  };
+  const hasFilterChanges =
+    hierarchy.account !== activeHierarchy.account ||
+    hierarchy.client !== activeHierarchy.client ||
+    hierarchy.site !== activeHierarchy.site;
 
   const occurrenceList = occurrences.data?.results || [];
   const pendingCount = occurrenceList.filter((o) => o.status === 'PENDING').length;
@@ -91,11 +112,20 @@ export default function DashboardPage() {
     totalCount > 0 ? Math.round((respondedCount / totalCount) * 100) : null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader
         title={`${t('auth.welcomeBack')}, ${user?.firstName || ''}`}
         description={t('dashboard.welcome')}
-        action={
+      />
+
+      <div className="flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-white/[0.01] p-3 sm:flex-row sm:items-end sm:flex-wrap">
+        <div className="flex-1 min-w-0">
+          <HierarchyFilters value={hierarchy} onChange={setHierarchy} compact />
+        </div>
+        <div>
+          <label className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block">
+            {t('dashboard.rangeLabel')}
+          </label>
           <div className="inline-flex rounded-lg border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-1">
             {RANGE_PRESETS.map((preset) => {
               const active = preset.id === rangeDays;
@@ -113,8 +143,23 @@ export default function DashboardPage() {
               );
             })}
           </div>
-        }
-      />
+        </div>
+        <div className="flex items-end gap-2">
+          <Button
+            type="button"
+            size="sm"
+            onClick={applyFilters}
+            disabled={!hasFilterChanges && !occurrencesLoading}
+          >
+            <Search className="h-4 w-4" />
+            {t('common.search')}
+          </Button>
+          <Button type="button" size="sm" variant="ghost" onClick={clearFilters}>
+            <X className="h-4 w-4" />
+            {t('common.clear')}
+          </Button>
+        </div>
+      </div>
 
       <div
         data-tour="dashboard-kpis"

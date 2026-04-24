@@ -20,6 +20,8 @@ import {
   formatSeconds,
 } from '@/features/reports/report-kpi';
 import { defaultReportRange, validateReportFilter } from '@/features/reports/report-filter-validator';
+import { useAuth } from '@/hooks/use-auth';
+import { isSuperAdminMaster } from '@/config/roles';
 import type { ReportFilterParams, SlaRow } from '@/types/reports';
 import type { ExportPayload } from '@/features/reports/report-export';
 
@@ -44,6 +46,8 @@ export default function SlaReportPage() {
 
 function SlaPageBody() {
   const t = useTranslations();
+  const { userSubtype } = useAuth();
+  const showAccountColumn = isSuperAdminMaster(userSubtype);
 
   const [filterValue, setFilterValue] = useState<ReportFilterValue>(() => {
     const { startDate, endDate } = defaultReportRange();
@@ -82,12 +86,29 @@ function SlaPageBody() {
   const rows = useMemo<SlaRow[]>(() => data?.results ?? [], [data]);
   const operators = useMemo(() => data?.operators ?? [], [data]);
 
+  // Column order (user-facing requirement):
+  //   1. Date, 2. Conta (SAM-only), 3. Cliente, 4. Posto, 5. Operador,
+  //   6. T. Resposta, 7. T. Resolução, 8. Status.
   const columns = useMemo<Column<SlaRow>[]>(
     () => [
       {
         key: 'date',
         headerKey: 'reports.sla.date',
         render: (r) => new Date(r.date).toLocaleString(),
+      },
+      ...(showAccountColumn
+        ? ([
+            {
+              key: 'account',
+              headerKey: 'common.account',
+              render: (r: SlaRow) => r.account?.name ?? '-',
+            },
+          ] as Column<SlaRow>[])
+        : []),
+      {
+        key: 'client',
+        headerKey: 'common.client',
+        render: (r) => r.client?.name ?? '-',
       },
       {
         key: 'site',
@@ -118,7 +139,7 @@ function SlaPageBody() {
         render: (r) => r.attendance?.status ?? '-',
       },
     ],
-    [],
+    [showAccountColumn],
   );
 
   const getExportPayload = useCallback((): ExportPayload<SlaRow> | null => {
@@ -139,6 +160,10 @@ function SlaPageBody() {
       ],
       columns: [
         { header: t('reports.sla.date'), value: (r) => new Date(r.date) },
+        ...(showAccountColumn
+          ? [{ header: t('common.account'), value: (r: SlaRow) => r.account?.name ?? '' }]
+          : []),
+        { header: t('common.client'), value: (r) => r.client?.name ?? '' },
         { header: t('common.site'), value: (r) => r.site?.name ?? '' },
         {
           header: t('reports.sla.operator'),
@@ -157,7 +182,7 @@ function SlaPageBody() {
       ],
       rows,
     };
-  }, [data?.generatedAt, filterValue.endDate, filterValue.startDate, rows, summary, t]);
+  }, [data?.generatedAt, filterValue.endDate, filterValue.startDate, rows, showAccountColumn, summary, t]);
 
   return (
     <ReportPageLayout

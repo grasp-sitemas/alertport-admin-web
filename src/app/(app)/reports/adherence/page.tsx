@@ -20,6 +20,8 @@ import {
   formatSeconds,
 } from '@/features/reports/report-kpi';
 import { defaultReportRange, validateReportFilter } from '@/features/reports/report-filter-validator';
+import { useAuth } from '@/hooks/use-auth';
+import { isSuperAdminMaster } from '@/config/roles';
 import type { AdherenceRow, ReportFilterParams } from '@/types/reports';
 import type { ExportPayload } from '@/features/reports/report-export';
 
@@ -40,6 +42,8 @@ export default function AdherenceReportPage() {
 
 function AdherencePageBody() {
   const t = useTranslations();
+  const { userSubtype } = useAuth();
+  const showAccountColumn = isSuperAdminMaster(userSubtype);
 
   const [filterValue, setFilterValue] = useState<ReportFilterValue>(() => {
     const { startDate, endDate } = defaultReportRange();
@@ -73,6 +77,9 @@ function AdherencePageBody() {
   const summary = data?.summary;
   const rows = useMemo<AdherenceRow[]>(() => data?.results ?? [], [data]);
 
+  // Column order (user-facing requirement):
+  //   1. scheduledAt, 2. status, 3. respondedAt,
+  //   4. Cliente, 5. Conta (SAM-only), 6. Posto, 7. responseTime.
   const columns = useMemo<Column<AdherenceRow>[]>(
     () => [
       {
@@ -91,22 +98,31 @@ function AdherencePageBody() {
         render: (r) => (r.respondedAt ? new Date(r.respondedAt).toLocaleString() : '-'),
       },
       {
-        key: 'responseTimeSec',
-        headerKey: 'reports.adherence.responseTime',
-        render: (r) => formatSeconds(r.responseTimeSec),
+        key: 'client',
+        headerKey: 'common.client',
+        render: (r) => r.client?.name ?? '-',
       },
+      ...(showAccountColumn
+        ? ([
+            {
+              key: 'account',
+              headerKey: 'common.account',
+              render: (r: AdherenceRow) => r.account?.name ?? '-',
+            },
+          ] as Column<AdherenceRow>[])
+        : []),
       {
         key: 'site',
         headerKey: 'common.site',
         render: (r) => r.site?.name ?? '-',
       },
       {
-        key: 'client',
-        headerKey: 'common.client',
-        render: (r) => r.client?.name ?? '-',
+        key: 'responseTimeSec',
+        headerKey: 'reports.adherence.responseTime',
+        render: (r) => formatSeconds(r.responseTimeSec),
       },
     ],
-    [],
+    [showAccountColumn],
   );
 
   const getExportPayload = useCallback((): ExportPayload<AdherenceRow> | null => {
@@ -127,13 +143,16 @@ function AdherencePageBody() {
         { header: t('reports.adherence.scheduledAt'), value: (r) => new Date(r.scheduledAt) },
         { header: t('reports.adherence.status'), value: (r) => r.status },
         { header: t('reports.adherence.respondedAt'), value: (r) => (r.respondedAt ? new Date(r.respondedAt) : '') },
-        { header: t('reports.adherence.responseTime'), value: (r) => (r.responseTimeSec != null ? Math.round(r.responseTimeSec) : '') },
-        { header: t('common.site'), value: (r) => r.site?.name ?? '' },
         { header: t('common.client'), value: (r) => r.client?.name ?? '' },
+        ...(showAccountColumn
+          ? [{ header: t('common.account'), value: (r: AdherenceRow) => r.account?.name ?? '' }]
+          : []),
+        { header: t('common.site'), value: (r) => r.site?.name ?? '' },
+        { header: t('reports.adherence.responseTime'), value: (r) => (r.responseTimeSec != null ? Math.round(r.responseTimeSec) : '') },
       ],
       rows,
     };
-  }, [data?.generatedAt, filterValue.endDate, filterValue.startDate, rows, summary, t]);
+  }, [data?.generatedAt, filterValue.endDate, filterValue.startDate, rows, showAccountColumn, summary, t]);
 
   return (
     <ReportPageLayout

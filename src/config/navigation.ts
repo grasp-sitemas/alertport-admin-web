@@ -205,18 +205,14 @@ export const navigation: NavSection[] = [
     icon: Users2,
     items: [
       {
-        titleKey: 'sidebar.users',
-        href: '/users',
-        icon: Users,
-        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN'],
-        moduleKey: 'USERS',
-      },
-      {
-        titleKey: 'sidebar.collaborators',
-        href: '/collaborators',
-        icon: UserCheck,
-        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER'],
-        moduleKey: 'COLLABORATORS',
+        titleKey: 'sidebar.companies',
+        href: '/companies',
+        icon: Building2,
+        // SUPER_ADMIN_MASTER-only platform surface. Sits at the top of
+        // Gestão because company (ACCOUNT) is the root of the hierarchy
+        // every other item inherits from. ADMIN and below only see
+        // their own account via /company, not the full list.
+        roles: ['SUPER_ADMIN_MASTER'],
       },
       {
         titleKey: 'sidebar.clients',
@@ -233,6 +229,20 @@ export const navigation: NavSection[] = [
         moduleKey: 'SITES',
       },
       {
+        titleKey: 'sidebar.users',
+        href: '/users',
+        icon: Users,
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN'],
+        moduleKey: 'USERS',
+      },
+      {
+        titleKey: 'sidebar.collaborators',
+        href: '/collaborators',
+        icon: UserCheck,
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER'],
+        moduleKey: 'COLLABORATORS',
+      },
+      {
         titleKey: 'sidebar.equipment',
         href: '/equipment',
         icon: Cpu,
@@ -245,15 +255,6 @@ export const navigation: NavSection[] = [
     titleKey: 'sidebar.company',
     icon: Cog,
     items: [
-      {
-        titleKey: 'sidebar.companies',
-        href: '/companies',
-        icon: Building2,
-        // SUPER_ADMIN_MASTER-only platform surface: lists, edits and
-        // toggles status for every ACCOUNT across the install. Not a
-        // per-account module, so no moduleKey.
-        roles: ['SUPER_ADMIN_MASTER'],
-      },
       {
         titleKey: 'sidebar.companySettings',
         href: '/company',

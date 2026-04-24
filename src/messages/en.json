@@ -399,7 +399,8 @@
     "responseRate": "response rate",
     "range7": "7 days",
     "range30": "30 days",
-    "range90": "90 days"
+    "range90": "90 days",
+    "rangeLabel": "Period"
   },
   "alerts": {
     "title": "Alert Occurrences",

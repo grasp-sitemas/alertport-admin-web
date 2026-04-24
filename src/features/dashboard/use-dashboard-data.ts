@@ -14,6 +14,17 @@ export interface DashboardRange {
 }
 
 /**
+ * Optional hierarchy overrides applied on top of the session scope.
+ * Only SUPER_ADMIN_MASTER can cross accounts in practice; other roles
+ * have the override silently narrowed by the server's tenancy guards.
+ */
+export interface DashboardHierarchyOverride {
+  account?: string;
+  client?: string;
+  site?: string;
+}
+
+/**
  * Dashboard KPIs + occurrences list. All filter endpoints are scoped to
  * the logged-in user's account / client / site hierarchy so the
  * frontend does not have to second-guess tenancy boundaries.
@@ -21,8 +32,21 @@ export interface DashboardRange {
  * Caller owns the date range, so operators can switch 7/30/90 day views
  * without the hook recomputing it on every render.
  */
-export function useDashboardData(range: DashboardRange) {
+export function useDashboardData(
+  range: DashboardRange,
+  override: DashboardHierarchyOverride = {},
+) {
   const scope = useUserScope();
+
+  // Compose an effective scope so the dashboard honours an explicit
+  // account/client/site pick from the filter panel. Session-level scope
+  // still wins for non-SAM roles because the server enforces tenancy
+  // regardless of what we send; we just let the user narrow further.
+  const effectiveScope = {
+    accountId: override.account || scope.accountId,
+    clientId: override.client || scope.clientId,
+    siteId: override.site || scope.siteId,
+  };
 
   const occurrences = useQuery({
     queryKey: [
@@ -30,9 +54,9 @@ export function useDashboardData(range: DashboardRange) {
       'occurrences',
       range.startISO,
       range.endISO,
-      scope.accountId ?? '',
-      scope.clientId ?? '',
-      scope.siteId ?? '',
+      effectiveScope.accountId ?? '',
+      effectiveScope.clientId ?? '',
+      effectiveScope.siteId ?? '',
     ],
     queryFn: () =>
       alertsService.filterOccurrences(
@@ -43,7 +67,7 @@ export function useDashboardData(range: DashboardRange) {
             startDate: range.startISO,
             endDate: range.endISO,
           },
-          scope,
+          effectiveScope,
         ),
       ),
   });
@@ -52,13 +76,13 @@ export function useDashboardData(range: DashboardRange) {
     queryKey: [
       'dashboard',
       'equipment-count',
-      scope.accountId ?? '',
-      scope.clientId ?? '',
-      scope.siteId ?? '',
+      effectiveScope.accountId ?? '',
+      effectiveScope.clientId ?? '',
+      effectiveScope.siteId ?? '',
     ],
     queryFn: () =>
       equipmentService.filter(
-        applyUserScope({ skip: 1, limit: 1, status: 'ACTIVE' }, scope),
+        applyUserScope({ skip: 1, limit: 1, status: 'ACTIVE' }, effectiveScope),
       ),
   });
 
@@ -66,13 +90,13 @@ export function useDashboardData(range: DashboardRange) {
     queryKey: [
       'dashboard',
       'collaborator-count',
-      scope.accountId ?? '',
-      scope.clientId ?? '',
-      scope.siteId ?? '',
+      effectiveScope.accountId ?? '',
+      effectiveScope.clientId ?? '',
+      effectiveScope.siteId ?? '',
     ],
     queryFn: () =>
       usersService.filterCollaborators(
-        applyUserScope({ skip: 1, limit: 1, status: 'ACTIVE' }, scope),
+        applyUserScope({ skip: 1, limit: 1, status: 'ACTIVE' }, effectiveScope),
       ),
   });
 
