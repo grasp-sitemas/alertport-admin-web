@@ -36,6 +36,10 @@ import { auditLogService } from '@/services/audit-log.service';
 import { maskPhoneBR } from '@/lib/br-masks';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 import type { Company } from '@/types/api';
+import {
+  TimezoneSelect,
+  detectBrowserTimezone,
+} from '@/components/shared/timezone-select';
 
 interface Props {
   open: boolean;
@@ -67,10 +71,14 @@ export function CompanyListFormDialog({ open, onOpenChange, company }: Props) {
         document: company.document ?? '',
         email: company.email ?? '',
         primaryPhone: (company.primaryPhone ?? '').replace(/\D/g, ''),
+        // Pre-fill new rows with the operator's browser timezone — most
+        // accounts onboard from the same market as the SUPER_ADMIN
+        // editing them, so it's a better default than leaving blank.
+        timezone: company.timezone ?? '',
         type: 'ACCOUNT',
         status: company.status ?? 'ACTIVE',
       }
-    : DEFAULT_COMPANY_LIST_VALUES;
+    : { ...DEFAULT_COMPANY_LIST_VALUES, timezone: detectBrowserTimezone() };
 
   const {
     register,
@@ -109,6 +117,9 @@ export function CompanyListFormDialog({ open, onOpenChange, company }: Props) {
       if (data.email && data.email.trim()) sanitized.email = data.email.trim();
       if (data.primaryPhone && data.primaryPhone.trim()) {
         sanitized.primaryPhone = data.primaryPhone.replace(/\D/g, '');
+      }
+      if (data.timezone && data.timezone.trim()) {
+        sanitized.timezone = data.timezone.trim();
       }
 
       if (isEdit && company) {
@@ -216,6 +227,25 @@ export function CompanyListFormDialog({ open, onOpenChange, company }: Props) {
                     shouldValidate: false,
                   })
                 }
+              />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="company-list-timezone">{t('company.timezone')}</Label>
+              <Controller
+                control={control}
+                name="timezone"
+                render={({ field }) => (
+                  <TimezoneSelect
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    datalistId={
+                      isEdit
+                        ? `company-list-tz-edit-${company?._id ?? 'x'}`
+                        : 'company-list-tz-create'
+                    }
+                    name={field.name}
+                  />
+                )}
               />
             </div>
             <div className="space-y-2 sm:col-span-2">

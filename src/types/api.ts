@@ -161,6 +161,13 @@ export interface Company {
   document?: string;
   email?: string;
   primaryPhone?: string;
+  /**
+   * IANA timezone (e.g. "America/Sao_Paulo"). Stored by ms-user on the
+   * Mongo `companies` document and echoed on the /me + filter responses.
+   * The field is optional for legacy records that predate the signup
+   * timezone step.
+   */
+  timezone?: string;
   status: EntityStatus;
   type?: CompanyType;
   account?: string | Company;

@@ -58,6 +58,7 @@ export const companyListFormSchema = z.object({
     .string()
     .trim()
     .transform((v) => v.replace(/\D/g, '')),
+  timezone: z.string().trim().optional(),
   type: z.literal('ACCOUNT'),
   status: z.enum(['ACTIVE', 'ARCHIVED']),
 });
@@ -71,6 +72,7 @@ export const DEFAULT_COMPANY_LIST_VALUES: CompanyListFormValues = {
   document: '',
   email: '',
   primaryPhone: '',
+  timezone: '',
   type: 'ACCOUNT',
   status: 'ACTIVE',
 };

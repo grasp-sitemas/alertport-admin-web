@@ -31,6 +31,7 @@ import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 import { sanitizeFormPayload } from '@/lib/sanitize-payload';
 import { maskPhoneBR } from '@/lib/br-masks';
 import { PhotoUpload } from '@/components/shared/photo-upload';
+import { TimezoneSelect } from '@/components/shared/timezone-select';
 
 /**
  * Picks the right entity off the `/me` response based on the user's role,
@@ -111,7 +112,9 @@ export default function CompanyPage() {
   // Hydrate the form once the /me response lands
   useEffect(() => {
     if (!company) return;
-    const extras = company as unknown as { secondaryPhone?: string; timezone?: string };
+    // `secondaryPhone` lives on CompanyFormData but not on the read-model
+    // `Company` — keep the narrow cast just for that extra field.
+    const extras = company as unknown as { secondaryPhone?: string };
     reset({
       _id: company._id,
       name: company.name ?? '',
@@ -121,7 +124,7 @@ export default function CompanyPage() {
       email: company.email ?? '',
       primaryPhone: company.primaryPhone ?? '',
       secondaryPhone: extras.secondaryPhone ?? '',
-      timezone: extras.timezone ?? '',
+      timezone: company.timezone ?? '',
       logoURL: company.logoURL ?? '',
       status: company.status ?? 'ACTIVE',
       type: company.type ?? 'ACCOUNT',
@@ -295,6 +298,21 @@ export default function CompanyPage() {
                         <SelectItem value="ARCHIVED">{t('common.archived')}</SelectItem>
                       </SelectContent>
                     </Select>
+                  )}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>{t('company.timezone')}</Label>
+                <Controller
+                  control={control}
+                  name="timezone"
+                  render={({ field }) => (
+                    <TimezoneSelect
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
+                      datalistId="company-own-tz"
+                      name={field.name}
+                    />
                   )}
                 />
               </div>
