@@ -41,7 +41,7 @@ function MonitorTimeEntryRowImpl({ entry, flash }: Props) {
     <div
       className={cn(
         'flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-3 transition-all',
-        flash && 'ring-2 ring-brand-500/60 ring-offset-2 ring-offset-background animate-pulse',
+        flash && 'border-brand-500/50 bg-brand-500/[0.06] animate-pulse',
       )}
     >
       <div

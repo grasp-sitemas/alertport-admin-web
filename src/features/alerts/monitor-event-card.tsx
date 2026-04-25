@@ -94,7 +94,7 @@ function MonitorEventCardImpl({
         // animation on every card.
         state === 'AVAILABLE' && 'ring-1 ring-emerald-500/30',
         state === 'IN_PROGRESS_BY_OTHER' && 'opacity-90',
-        flash && 'ring-2 ring-brand-500/60 ring-offset-2 ring-offset-background animate-pulse',
+        flash && 'border-brand-500/50 animate-pulse',
       )}
     >
       <div className="flex items-start justify-between gap-4 flex-wrap">
