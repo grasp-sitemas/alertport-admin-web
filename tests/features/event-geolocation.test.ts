@@ -8,6 +8,7 @@
 
 import { describe, expect, it } from 'vitest';
 import {
+  buildMapsEmbedUrl,
   buildMapsUrl,
   formatCoordinates,
   resolveEventGeolocation,
@@ -136,5 +137,16 @@ describe('buildMapsUrl', () => {
     expect(url).toBe(
       'https://www.google.com/maps/search/?api=1&query=-23.55,-46.63',
     );
+  });
+});
+
+describe('buildMapsEmbedUrl', () => {
+  it('generates a Google Maps embed link for iframe usage', () => {
+    const url = buildMapsEmbedUrl({
+      latitude: -23.55,
+      longitude: -46.63,
+      source: 'event',
+    });
+    expect(url).toBe('https://www.google.com/maps?q=-23.55,-46.63&z=16&output=embed');
   });
 });

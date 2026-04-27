@@ -24,8 +24,10 @@ interface Props {
 /**
  * QR code modal for a site. Mirrors `QrCodeModal.vue` from shieldgo-admin-web.
  *
- * The QR payload is the site's legacy ID (falls back to `_id`), which is
- * what the mobile apps expect when scanning.
+ * The equipment login endpoint (`/api/company/equipments/login/v1/`) expects
+ * the site's Mongo `_id` in `req.body.site`. If we emit legacyId first, the
+ * mobile app forwards a value that cannot be resolved by `getByPK({ _id })`
+ * and device registration/persistence fails with `site.not.found`.
  */
 export function SiteQrDialog({ open, onOpenChange, site }: Props) {
   const t = useTranslations();
@@ -34,7 +36,7 @@ export function SiteQrDialog({ open, onOpenChange, site }: Props) {
   const payload = useMemo(() => {
     if (!site) return '';
     const legacyId = (site as unknown as { legacyId?: string }).legacyId;
-    return legacyId || site._id || '';
+    return site._id || legacyId || '';
   }, [site]);
 
   function handleDownload() {

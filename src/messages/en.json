@@ -483,7 +483,12 @@
     "maxDateRange": "Maximum date range is 30 days",
     "deleteSuccess": "Schedule deleted successfully",
     "geolocation": {
-      "openInMaps": "Open location {coords} on Google Maps"
+      "openInMaps": "Open location {coords} on Google Maps",
+      "openMapModal": "Open alert map",
+      "mapChip": "Map",
+      "modalTitle": "Alert location",
+      "modalDescription": "View on the map the position sent by the device.",
+      "mapFrameTitle": "Location map {coords}"
     },
     "attendance": {
       "openAttendance": "Open attendance",
@@ -1239,20 +1244,53 @@
       "admin": "Administration"
     },
     "items": {
-      "MONITOR": { "label": "Alert Monitor", "desc": "Real-time screen with SOS, occurrences and guard time entries." },
-      "SCHEDULING": { "label": "Alert Scheduling", "desc": "Calendar for recurring patrols and alerts." },
-      "OCCURRENCES": { "label": "Occurrences History", "desc": "Full list of events (SOS, incidents, patrols)." },
-      "TIME_ENTRIES": { "label": "Attendance Log", "desc": "Time entries recorded by guards through the app." },
-      "CALL_NORMAL": { "label": "Normal Call", "desc": "Two-way conversation with the guard during attendance." },
-      "CALL_SILENT": { "label": "Silent Listen", "desc": "Listen to the environment without the guard knowing (emergency)." },
-      "RECORDINGS": { "label": "Call Recordings", "desc": "Audio history for auditing and training." },
-      "REPORTS": { "label": "Reports", "desc": "Adherence, SLA, SOS, Attendance. Exportable as XLSX, CSV or PDF." },
+      "MONITOR": {
+        "label": "Alert Monitor",
+        "desc": "Real-time screen with SOS, occurrences and guard time entries."
+      },
+      "SCHEDULING": {
+        "label": "Alert Scheduling",
+        "desc": "Calendar for recurring patrols and alerts."
+      },
+      "OCCURRENCES": {
+        "label": "Occurrences History",
+        "desc": "Full list of events (SOS, incidents, patrols)."
+      },
+      "TIME_ENTRIES": {
+        "label": "Attendance Log",
+        "desc": "Time entries recorded by guards through the app."
+      },
+      "CALL_NORMAL": {
+        "label": "Normal Call",
+        "desc": "Two-way conversation with the guard during attendance."
+      },
+      "CALL_SILENT": {
+        "label": "Silent Listen",
+        "desc": "Listen to the environment without the guard knowing (emergency)."
+      },
+      "RECORDINGS": {
+        "label": "Call Recordings",
+        "desc": "Audio history for auditing and training."
+      },
+      "REPORTS": {
+        "label": "Reports",
+        "desc": "Adherence, SLA, SOS, Attendance. Exportable as XLSX, CSV or PDF."
+      },
       "CLIENTS": { "label": "Clients", "desc": "Registry of the companies or condos you serve." },
       "SITES": { "label": "Sites", "desc": "Physical locations where guards operate." },
       "EQUIPMENT": { "label": "Equipment", "desc": "Devices linked to sites via QR Code." },
-      "COLLABORATORS": { "label": "Collaborators", "desc": "Guards and supervisors with access to the app." },
-      "USERS": { "label": "Operators and Admins", "desc": "Central users (operators and administrators)." },
-      "COMPANY_SETTINGS": { "label": "Company Settings", "desc": "Registration data, timezone and internal policies." }
+      "COLLABORATORS": {
+        "label": "Collaborators",
+        "desc": "Guards and supervisors with access to the app."
+      },
+      "USERS": {
+        "label": "Operators and Admins",
+        "desc": "Central users (operators and administrators)."
+      },
+      "COMPANY_SETTINGS": {
+        "label": "Company Settings",
+        "desc": "Registration data, timezone and internal policies."
+      }
     }
   }
 }

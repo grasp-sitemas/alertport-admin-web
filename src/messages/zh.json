@@ -483,7 +483,12 @@
     "maxDateRange": "最大日期范围为30天",
     "deleteSuccess": "已成功删除日程",
     "geolocation": {
-      "openInMaps": "在 Google 地图中打开位置 {coords}"
+      "openInMaps": "在 Google 地图中打开位置 {coords}",
+      "openMapModal": "打开警报地图",
+      "mapChip": "地图",
+      "modalTitle": "警报位置",
+      "modalDescription": "在地图中查看设备上报的位置。",
+      "mapFrameTitle": "位置地图 {coords}"
     },
     "attendance": {
       "openAttendance": "开始处理",
@@ -1244,7 +1249,10 @@
       "OCCURRENCES": { "label": "事件历史", "desc": "完整的事件列表(SOS、事故、巡更)。" },
       "TIME_ENTRIES": { "label": "考勤记录", "desc": "保安通过应用进行的考勤打卡记录。" },
       "CALL_NORMAL": { "label": "普通通话", "desc": "处置过程中与保安进行双向通话。" },
-      "CALL_SILENT": { "label": "静默监听", "desc": "在保安不知情的情况下监听环境声音(紧急场景)。" },
+      "CALL_SILENT": {
+        "label": "静默监听",
+        "desc": "在保安不知情的情况下监听环境声音(紧急场景)。"
+      },
       "RECORDINGS": { "label": "通话录音", "desc": "用于审计和培训的音频历史。" },
       "REPORTS": { "label": "报表", "desc": "合规、SLA、SOS、考勤。支持 XLSX、CSV、PDF 导出。" },
       "CLIENTS": { "label": "客户", "desc": "服务的企业或物业的登记信息。" },

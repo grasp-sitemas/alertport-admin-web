@@ -483,7 +483,12 @@
     "maxDateRange": "El rango máximo de fechas es de 30 días",
     "deleteSuccess": "Agenda eliminada correctamente",
     "geolocation": {
-      "openInMaps": "Abrir ubicación {coords} en Google Maps"
+      "openInMaps": "Abrir ubicación {coords} en Google Maps",
+      "openMapModal": "Abrir mapa de la alerta",
+      "mapChip": "Mapa",
+      "modalTitle": "Ubicación de la alerta",
+      "modalDescription": "Visualiza en el mapa la posición enviada por el dispositivo.",
+      "mapFrameTitle": "Mapa de ubicación {coords}"
     },
     "attendance": {
       "openAttendance": "Abrir atención",
@@ -1239,20 +1244,59 @@
       "admin": "Administración"
     },
     "items": {
-      "MONITOR": { "label": "Monitor de Alertas", "desc": "Pantalla en tiempo real con SOS, ocurrencias y registros de los vigilantes." },
-      "SCHEDULING": { "label": "Programación de Alertas", "desc": "Calendario para rondas y alertas recurrentes." },
-      "OCCURRENCES": { "label": "Historial de Ocurrencias", "desc": "Lista completa de eventos (SOS, incidentes, rondas)." },
-      "TIME_ENTRIES": { "label": "Registros de Horario", "desc": "Marcajes de horario de los vigilantes por la app." },
-      "CALL_NORMAL": { "label": "Llamada Normal", "desc": "Conversación bidireccional con el vigilante durante la atención." },
-      "CALL_SILENT": { "label": "Escucha Activa", "desc": "Escuchar el entorno sin que el vigilante lo sepa (emergencia)." },
-      "RECORDINGS": { "label": "Grabaciones de Llamadas", "desc": "Historial de audios para auditoría y capacitación." },
-      "REPORTS": { "label": "Informes", "desc": "Adherencia, SLA, SOS, Presencia. Exportables en XLSX, CSV o PDF." },
-      "CLIENTS": { "label": "Clientes", "desc": "Registro de las empresas o condominios atendidos." },
+      "MONITOR": {
+        "label": "Monitor de Alertas",
+        "desc": "Pantalla en tiempo real con SOS, ocurrencias y registros de los vigilantes."
+      },
+      "SCHEDULING": {
+        "label": "Programación de Alertas",
+        "desc": "Calendario para rondas y alertas recurrentes."
+      },
+      "OCCURRENCES": {
+        "label": "Historial de Ocurrencias",
+        "desc": "Lista completa de eventos (SOS, incidentes, rondas)."
+      },
+      "TIME_ENTRIES": {
+        "label": "Registros de Horario",
+        "desc": "Marcajes de horario de los vigilantes por la app."
+      },
+      "CALL_NORMAL": {
+        "label": "Llamada Normal",
+        "desc": "Conversación bidireccional con el vigilante durante la atención."
+      },
+      "CALL_SILENT": {
+        "label": "Escucha Activa",
+        "desc": "Escuchar el entorno sin que el vigilante lo sepa (emergencia)."
+      },
+      "RECORDINGS": {
+        "label": "Grabaciones de Llamadas",
+        "desc": "Historial de audios para auditoría y capacitación."
+      },
+      "REPORTS": {
+        "label": "Informes",
+        "desc": "Adherencia, SLA, SOS, Presencia. Exportables en XLSX, CSV o PDF."
+      },
+      "CLIENTS": {
+        "label": "Clientes",
+        "desc": "Registro de las empresas o condominios atendidos."
+      },
       "SITES": { "label": "Puestos", "desc": "Ubicaciones físicas donde actúan los vigilantes." },
-      "EQUIPMENT": { "label": "Equipos", "desc": "Dispositivos vinculados a los puestos vía QR Code." },
-      "COLLABORATORS": { "label": "Colaboradores", "desc": "Vigilantes y supervisores con acceso a la app." },
-      "USERS": { "label": "Operadores y Admins", "desc": "Usuarios de la central (operadores y administradores)." },
-      "COMPANY_SETTINGS": { "label": "Configuración de la Empresa", "desc": "Datos de registro, zona horaria y políticas internas." }
+      "EQUIPMENT": {
+        "label": "Equipos",
+        "desc": "Dispositivos vinculados a los puestos vía QR Code."
+      },
+      "COLLABORATORS": {
+        "label": "Colaboradores",
+        "desc": "Vigilantes y supervisores con acceso a la app."
+      },
+      "USERS": {
+        "label": "Operadores y Admins",
+        "desc": "Usuarios de la central (operadores y administradores)."
+      },
+      "COMPANY_SETTINGS": {
+        "label": "Configuración de la Empresa",
+        "desc": "Datos de registro, zona horaria y políticas internas."
+      }
     }
   }
 }

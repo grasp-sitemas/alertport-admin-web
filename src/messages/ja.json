@@ -483,7 +483,12 @@
     "maxDateRange": "最大日付範囲は30日間です",
     "deleteSuccess": "スケジュールを削除しました",
     "geolocation": {
-      "openInMaps": "位置情報 {coords} を Google マップで開く"
+      "openInMaps": "位置情報 {coords} を Google マップで開く",
+      "openMapModal": "アラートの地図を開く",
+      "mapChip": "地図",
+      "modalTitle": "アラートの位置",
+      "modalDescription": "端末から送信された位置情報を地図で確認します。",
+      "mapFrameTitle": "位置情報マップ {coords}"
     },
     "attendance": {
       "openAttendance": "対応を開始",
@@ -1239,19 +1244,34 @@
       "admin": "システム管理"
     },
     "items": {
-      "MONITOR": { "label": "アラートモニター", "desc": "SOS、発生事象、警備員の勤怠をリアルタイムで表示する画面。" },
+      "MONITOR": {
+        "label": "アラートモニター",
+        "desc": "SOS、発生事象、警備員の勤怠をリアルタイムで表示する画面。"
+      },
       "SCHEDULING": { "label": "アラートスケジュール", "desc": "定期巡回とアラートのカレンダー。" },
-      "OCCURRENCES": { "label": "発生事象の履歴", "desc": "イベント全件の一覧(SOS、インシデント、巡回)。" },
+      "OCCURRENCES": {
+        "label": "発生事象の履歴",
+        "desc": "イベント全件の一覧(SOS、インシデント、巡回)。"
+      },
       "TIME_ENTRIES": { "label": "勤怠記録", "desc": "警備員がアプリから打刻した勤怠の記録。" },
       "CALL_NORMAL": { "label": "通常通話", "desc": "対応中に警備員と双方向で会話します。" },
-      "CALL_SILENT": { "label": "サイレントリッスン", "desc": "警備員に気づかれずに周囲の音を聞きます(緊急時)。" },
+      "CALL_SILENT": {
+        "label": "サイレントリッスン",
+        "desc": "警備員に気づかれずに周囲の音を聞きます(緊急時)。"
+      },
       "RECORDINGS": { "label": "通話録音", "desc": "監査や研修のための音声履歴。" },
-      "REPORTS": { "label": "レポート", "desc": "遵守率、SLA、SOS、勤怠。XLSX、CSV、PDFで出力可能。" },
+      "REPORTS": {
+        "label": "レポート",
+        "desc": "遵守率、SLA、SOS、勤怠。XLSX、CSV、PDFで出力可能。"
+      },
       "CLIENTS": { "label": "クライアント", "desc": "対応する企業やマンションの登録情報。" },
       "SITES": { "label": "拠点", "desc": "警備員が勤務する物理的な場所。" },
       "EQUIPMENT": { "label": "機器", "desc": "QR Codeで拠点に紐付けられた端末。" },
       "COLLABORATORS": { "label": "協力者", "desc": "アプリを利用する警備員や監督者。" },
-      "USERS": { "label": "オペレーターと管理者", "desc": "センターのユーザー(オペレーターと管理者)。" },
+      "USERS": {
+        "label": "オペレーターと管理者",
+        "desc": "センターのユーザー(オペレーターと管理者)。"
+      },
       "COMPANY_SETTINGS": { "label": "企業設定", "desc": "登録情報、タイムゾーン、社内ポリシー。" }
     }
   }

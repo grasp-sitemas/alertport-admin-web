@@ -32,6 +32,9 @@ const CSP = [
   // the pragmatic choice for the admin panel. Revisit with strict
   // nonce-based CSP if we ever host it under a domain touching PII.
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com",
+  // Geolocation modal on /alerts/monitor renders a Google Maps iframe.
+  // Keep the allow-list narrow to Maps hosts only.
+  "frame-src 'self' https://www.google.com https://maps.google.com",
   // Sentry's Session Replay (and potentially other SDKs) spins up a
   // Web Worker from a blob URL. Without an explicit worker-src the
   // browser falls back to script-src, which blocks blob: - setting

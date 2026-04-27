@@ -1,10 +1,30 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { AlertTriangle, Circle, ExternalLink, FileText, Lock, MapPin, Phone, Radio, Router, ShieldCheck, UserRound } from 'lucide-react';
+import {
+  AlertTriangle,
+  Circle,
+  ExternalLink,
+  FileText,
+  Lock,
+  MapPin,
+  Phone,
+  Radio,
+  Router,
+  ShieldCheck,
+  Smartphone,
+  UserRound,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import type { EventType, PatrolAction } from '@/types/api';
 import { formatDeviceLabel, resolveCallTargetId } from './device-label';
@@ -13,7 +33,12 @@ import {
   extractAttendanceOwner,
   type AttendanceState,
 } from './attendance-state';
-import { buildMapsUrl, formatCoordinates, resolveEventGeolocation } from './event-geolocation';
+import {
+  buildMapsEmbedUrl,
+  buildMapsUrl,
+  formatCoordinates,
+  resolveEventGeolocation,
+} from './event-geolocation';
 
 const EVENT_META: Record<
   EventType,
@@ -82,6 +107,7 @@ function MonitorEventCardImpl({
   const notesSnippet = event.notes ? event.notes.trim().slice(0, 140) : '';
   const ownerLineName = state === 'IN_PROGRESS_BY_ME' ? owner.name : null;
   const coords = resolveEventGeolocation(event);
+  const [mapDialogOpen, setMapDialogOpen] = useState(false);
 
   return (
     <div
@@ -115,7 +141,25 @@ function MonitorEventCardImpl({
               <Badge variant={meta.accent}>{t(meta.labelKey)}</Badge>
               <AttendanceStateBadge state={state} ownerName={ownerName} />
             </div>
-            <p className="text-sm font-medium text-white mt-1 truncate">{deviceLabel}</p>
+            <div className="mt-1 flex items-center gap-2 min-w-0">
+              <p className="text-sm font-medium text-white truncate">{deviceLabel}</p>
+              {coords && (
+                <button
+                  type="button"
+                  onClick={() => setMapDialogOpen(true)}
+                  className={cn(
+                    'inline-flex h-6 shrink-0 items-center gap-1 rounded-lg border border-white/10 px-2 text-xs text-text-secondary',
+                    'bg-white/5 transition-colors hover:bg-white/10 hover:text-white',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                  )}
+                  aria-label={t('alerts.geolocation.openMapModal')}
+                  title={t('alerts.geolocation.openMapModal')}
+                >
+                  <Smartphone className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>{t('alerts.geolocation.mapChip')}</span>
+                </button>
+              )}
+            </div>
             <p className="text-xs text-text-muted mt-0.5">
               {(event.date || event.createdDate) &&
                 new Date(event.date || event.createdDate!).toLocaleString()}
@@ -129,31 +173,8 @@ function MonitorEventCardImpl({
                 </>
               )}
             </p>
-            {coords && (
-              <a
-                href={buildMapsUrl(coords)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  'mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1',
-                  'text-xs font-medium text-emerald-300 transition-colors',
-                  'hover:bg-emerald-500/20 hover:text-emerald-200 hover:border-emerald-500/40',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                )}
-                aria-label={t('alerts.geolocation.openInMaps', {
-                  coords: formatCoordinates(coords),
-                })}
-                title={t('alerts.geolocation.openInMaps', {
-                  coords: formatCoordinates(coords),
-                })}
-              >
-                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                <span className="tabular-nums">{formatCoordinates(coords)}</span>
-                <ExternalLink className="h-3 w-3 opacity-60" aria-hidden="true" />
-              </a>
-            )}
             {(equipmentName || ownerLineName) && (
-              <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-muted">
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-muted">
                 {equipmentName && (
                   <span className="inline-flex items-center gap-1">
                     <Router className="h-3 w-3" />
@@ -166,7 +187,53 @@ function MonitorEventCardImpl({
                     {ownerLineName}
                   </span>
                 )}
-              </p>
+              </div>
+            )}
+            {coords && (
+              <Dialog open={mapDialogOpen} onOpenChange={setMapDialogOpen}>
+                <DialogContent className="max-w-3xl overflow-hidden border border-white/10 bg-bg-secondary p-0">
+                  <DialogHeader className="border-b border-white/10 bg-gradient-to-r from-cyan-500/10 via-emerald-500/10 to-bg-secondary px-6 py-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/10 text-cyan-200">
+                        <MapPin className="h-5 w-5" aria-hidden="true" />
+                      </div>
+                      <div>
+                        <DialogTitle>{t('alerts.geolocation.modalTitle')}</DialogTitle>
+                        <DialogDescription>
+                          {t('alerts.geolocation.modalDescription')}
+                        </DialogDescription>
+                      </div>
+                    </div>
+                  </DialogHeader>
+
+                  <div className="space-y-4 px-6 pb-6 pt-4">
+                    <div className="overflow-hidden rounded-xl border border-white/10 bg-black/20">
+                      <iframe
+                        src={buildMapsEmbedUrl(coords)}
+                        title={t('alerts.geolocation.mapFrameTitle', {
+                          coords: formatCoordinates(coords),
+                        })}
+                        className="h-[340px] w-full sm:h-[420px]"
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <a
+                        href={buildMapsUrl(coords)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-sm font-medium text-cyan-200 transition-colors hover:border-cyan-300/60 hover:bg-cyan-400/20 hover:text-cyan-100"
+                      >
+                        <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                        {t('alerts.geolocation.openInMaps', {
+                          coords: formatCoordinates(coords),
+                        })}
+                      </a>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             )}
             {notesSnippet && (
               <p className="mt-1 flex items-start gap-1 text-xs text-text-secondary/90">

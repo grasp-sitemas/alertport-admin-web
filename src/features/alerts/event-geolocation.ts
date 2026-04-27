@@ -111,3 +111,10 @@ export function formatCoordinates(coords: EventGeolocation): string {
 export function buildMapsUrl(coords: EventGeolocation): string {
   return `https://www.google.com/maps/search/?api=1&query=${coords.latitude},${coords.longitude}`;
 }
+
+/**
+ * Embed map URL for iframe rendering inside monitor modal.
+ */
+export function buildMapsEmbedUrl(coords: EventGeolocation): string {
+  return `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}&z=16&output=embed`;
+}
