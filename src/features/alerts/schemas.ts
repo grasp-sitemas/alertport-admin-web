@@ -88,6 +88,13 @@ export const alertScheduleSchema = z
       return true;
     },
     { message: 'validation.required', path: ['frequency'] },
+  )
+  .refine(
+    (data) => data.endDate >= data.beginDate,
+    {
+      message: 'A data final deve ser igual ou posterior à data inicial',
+      path: ['endDate'],
+    },
   );
 
 export type AlertScheduleFormValues = z.infer<typeof alertScheduleSchema>;

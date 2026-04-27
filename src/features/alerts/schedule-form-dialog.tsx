@@ -282,6 +282,7 @@ export function ScheduleFormDialog({
   const accountWatched = useWatch({ control, name: 'account' });
   const clientWatched = useWatch({ control, name: 'client' });
   const siteWatched = useWatch({ control, name: 'site' });
+  const beginDateWatched = useWatch({ control, name: 'beginDate' });
   const frequency = useWatch({ control, name: 'frequency' });
   const alertType = useWatch({ control, name: 'alertConfig.alertType' });
 
@@ -293,6 +294,15 @@ export function ScheduleFormDialog({
     client: clientWatched || undefined,
     site: siteWatched || undefined,
   });
+  const getValidationText = (message?: string) => {
+    if (!message) return '';
+    try {
+      const translated = t(message);
+      return translated && translated !== message ? translated : message;
+    } catch {
+      return message;
+    }
+  };
 
   const mutation = useMutation({
     mutationFn: async (data: AlertScheduleFormValues) => {
@@ -600,10 +610,25 @@ export function ScheduleFormDialog({
             <div className="space-y-2">
               <Label>{t('alerts.beginDate')}</Label>
               <Input type="date" {...register('beginDate')} disabled={isOccurrenceEdit} />
+              {errors.beginDate && (
+                <p className="text-xs text-red-400">
+                  {getValidationText(errors.beginDate.message as string)}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>{t('alerts.endDate')}</Label>
-              <Input type="date" {...register('endDate')} disabled={isOccurrenceEdit} />
+              <Input
+                type="date"
+                min={beginDateWatched || undefined}
+                {...register('endDate')}
+                disabled={isOccurrenceEdit}
+              />
+              {errors.endDate && (
+                <p className="text-xs text-red-400">
+                  {getValidationText(errors.endDate.message as string)}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>{t('alerts.beginHour')}</Label>

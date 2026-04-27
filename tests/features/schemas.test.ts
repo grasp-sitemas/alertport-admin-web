@@ -165,4 +165,27 @@ describe('alertScheduleSchema', () => {
     });
     expect(parsed.success).toBe(false);
   });
+
+  it('rejects schedules where endDate is before beginDate', () => {
+    const parsed = alertScheduleSchema.safeParse({
+      name: 'Morning check',
+      client: 'cli1',
+      site: 'site1',
+      equipment: 'eq1',
+      frequency: 'DAILY',
+      category: 'ALERT_CHECK',
+      beginDate: '2026-04-27',
+      endDate: '2026-04-26',
+      beginHour: '08:00',
+      endHour: '12:00',
+      status: 'ACTIVE',
+      alertConfig: { alertType: 'FIXED', fixedInterval: 30, volumeLevel: 80 },
+    });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(parsed.error.flatten().fieldErrors.endDate).toContain(
+        'A data final deve ser igual ou posterior à data inicial',
+      );
+    }
+  });
 });
