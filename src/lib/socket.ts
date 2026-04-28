@@ -80,6 +80,7 @@ export interface IncomingCallPayload {
   fromDisplayName?: string;
   fromClientType?: string;
   fromRole?: string;
+  callRecordingEnabled?: boolean;
   callMode: 'NORMAL' | 'SILENT_LISTEN';
 }
 

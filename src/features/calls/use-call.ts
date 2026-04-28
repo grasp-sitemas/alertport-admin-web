@@ -801,12 +801,12 @@ export function useCall(): CallState & CallActions {
       activeRoomIdRef.current = payload.roomId;
       peerUserIdRef.current = payload.from;
       callModeRef.current = payload.callMode;
-      // Incoming path lacks the server's explicit `callRecordingEnabled`
-      // ack - trust the call-mode contract: SILENT_LISTEN is always
-      // recorded; NORMAL recording is a local operator decision and the
-      // server gate is re-checked on upload by ms-chat anyway.
-      callRecordingEnabledRef.current = true;
-      setCanRecord(payload.callMode === 'NORMAL');
+      // Incoming calls DO carry server-side recording policy. Respect it
+      // so the REC button is only shown when upload will be accepted.
+      const canRecordThisCall =
+        payload.callMode === 'SILENT_LISTEN' || payload.callRecordingEnabled !== false;
+      callRecordingEnabledRef.current = canRecordThisCall;
+      setCanRecord(payload.callMode === 'NORMAL' && canRecordThisCall);
 
       setRoomId(payload.roomId);
       setPeerUserId(payload.from);

@@ -204,7 +204,7 @@ export function ScheduleFormDialog({
   // full schedule wins for series-wide fields; the calendar row wins
   // for the appointment-specific date/time displayed in the header.
   const mergedSource: AlertSchedule | undefined = schedule
-    ? ({ ...(fullSchedule ?? {}), ...schedule } as AlertSchedule)
+    ? ({ ...schedule, ...(fullSchedule ?? {}) } as AlertSchedule)
     : undefined;
   // `name`, `frequency`, `weeklyDays`, `frequencyMonth/Year`,
   // `alertConfig`, `endDate` come from the full schedule when
