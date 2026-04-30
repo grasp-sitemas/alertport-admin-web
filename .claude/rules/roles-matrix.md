@@ -27,6 +27,15 @@
 | Equipment | ✓ | ✓ | ✓ | ✓ | — | — |
 | Company | ✓ | ✓ | ✓ | — | — | — |
 | Companies (platform) | ✓ | — | — | — | — | — |
+| Reports / Adherence | ✓ | ✓ | ✓ | ✓ | ✓ | — |
+| Reports / Attendance | ✓ | ✓ | ✓ | ✓ | ✓ | — |
+| Reports / SOS | ✓ | ✓ | ✓ | ✓ | ✓ | — |
+| Reports / SLA | ✓ | ✓ | ✓ | ✓ | — | — |
+| Reports / Power Events | ✓ | ✓ | ✓ | ✓ | ✓ | — |
+| Reports / Battery Low | ✓ | ✓ | ✓ | ✓ | ✓ | — |
+| Reports / Equipment Status | ✓ | ✓ | ✓ | ✓ | ✓ | — |
+| Reports / Violation | ✓ | ✓ | ✓ | ✓ | ✓ | — |
+| Reports / Remote Restart | ✓ | ✓ | ✓ | ✓ | ✓ | — |
 
 ## Implementação
 

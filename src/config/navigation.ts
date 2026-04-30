@@ -135,7 +135,7 @@ export const navigation: NavSection[] = [
         titleKey: 'sidebar.reportAdherence',
         href: '/reports/adherence',
         icon: Target,
-        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER'],
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR'],
         moduleKey: 'REPORTS',
       },
       {
