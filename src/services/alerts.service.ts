@@ -71,33 +71,31 @@ export const alertsService = {
   },
 
   /**
-   * Update the entire series from a start date forward. Wipes appointments
-   * and alert-occurrences >= beginDate for the schedule and regenerates
-   * them with the new config. Mirrors the "Edit Series" modal in
-   * shieldgo-admin-web's AlertOccurrence calendar.
+   * Update the entire AlertPort schedule series. Regenerates appointments
+   * and alert-occurrences (PENDING only — RESPONDED/MISSED preserved as
+   * audit history) and syncs Firestore events. Backed by ms-schedule
+   * ctr-schedule.alertCheckUpdateSchedule.
    *
    * Required payload fields: `schedule` (the schedule _id - NOT `_id`),
    * beginDate (first day of the new series), and every other field the
-   * backend needs to rebuild the schedule. The controller
-   * ctr.updateSchedule() in ms-schedule reads `schedule` as the target id.
+   * backend needs to rebuild the schedule.
    */
   async updateScheduleSeries(
     payload: AlertScheduleFormData & { schedule: string; alertOccurrence?: boolean },
   ): Promise<ApiSingleResponse<AlertSchedule>> {
     const { data } = await apiClient.post<ApiSingleResponse<AlertSchedule>>(
-      endpoints.scheduleSeriesUpdate,
+      endpoints.alertportScheduleUpdate,
       { alertOccurrence: true, ...payload },
     );
     return data;
   },
 
   /**
-   * Update a single appointment (single-day occurrence) of a recurring
-   * schedule. Rebuilds just that one appointment + its alert-occurrences
-   * without touching the rest of the series. Used for "this day only"
-   * edits on the calendar.
-   *
-   * Payload carries both the schedule id and the target appointment id.
+   * Update a single AlertPort appointment (single-day occurrence) of a
+   * recurring schedule. Rebuilds just that one appointment + its PENDING
+   * alert-occurrences (preserving RESPONDED/MISSED) and syncs Firestore.
+   * Used for "this day only" edits on the calendar. Backed by ms-schedule
+   * ctr-appointment.updateAlertOccurrenceAppointment.
    */
   async updateAppointmentOccurrence(payload: {
     schedule: string;
@@ -116,7 +114,7 @@ export const alertsService = {
     alertOccurrence?: boolean;
   }): Promise<ApiSingleResponse<unknown>> {
     const { data } = await apiClient.post<ApiSingleResponse<unknown>>(
-      endpoints.appointmentUpdateOccurrence,
+      endpoints.appointmentAlertportUpdateOccurrence,
       { alertOccurrence: true, ...payload },
     );
     return data;

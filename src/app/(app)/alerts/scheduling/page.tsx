@@ -1,9 +1,13 @@
 'use client';
 
+// Authenticated routes read sessionStorage at runtime and must never be
+// pre-rendered. Required by CLAUDE.md and .claude/rules/nextjs-16.md.
+export const dynamic = 'force-dynamic';
+
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Plus, Filter, X } from 'lucide-react';
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/page-header';
@@ -33,7 +37,7 @@ import type { AlertSchedule } from '@/types/api';
  * render client-only. `ssr: false` dynamic import keeps the page
  * static-prerender friendly and avoids hydration mismatches.
  */
-const SchedulingCalendar = dynamic(
+const SchedulingCalendar = nextDynamic(
   () =>
     import('@/features/alerts/scheduling-calendar').then((m) => ({
       default: m.SchedulingCalendar,
@@ -41,16 +45,14 @@ const SchedulingCalendar = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex items-center justify-center h-96 rounded-xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)]">
+      <div className="flex h-96 items-center justify-center rounded-xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)]">
         <Spinner size="lg" />
       </div>
     ),
   },
 );
 
-type FormState =
-  | { kind: 'closed' }
-  | { kind: 'open'; mode: ScheduleFormMode; row?: AlertSchedule };
+type FormState = { kind: 'closed' } | { kind: 'open'; mode: ScheduleFormMode; row?: AlertSchedule };
 
 interface PendingScope {
   action: ScheduleScopeAction;
@@ -115,12 +117,9 @@ export default function AlertSchedulingPage() {
 
   const { events, isLoading, isFetching } = useScheduleEvents(eventsFilter, Boolean(range));
 
-  const handleRangeChange = useCallback(
-    (r: { start: Date; end: Date }) => {
-      setRange({ start: r.start.toISOString(), end: r.end.toISOString() });
-    },
-    [],
-  );
+  const handleRangeChange = useCallback((r: { start: Date; end: Date }) => {
+    setRange({ start: r.start.toISOString(), end: r.end.toISOString() });
+  }, []);
 
   const handleEventClick = useCallback((event: ScheduleCalendarEvent) => {
     // Click on a generated occurrence → ask whether to edit just today
@@ -234,119 +233,119 @@ export default function AlertSchedulingPage() {
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER']}>
       <ModuleGuard moduleKey="SCHEDULING">
-      <div className="space-y-4">
-        <PageHeader
-          title={t('alerts.scheduling')}
-          action={
-            <div className="flex gap-2">
-              <Button
-                variant={filtersOpen ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setFiltersOpen((v) => !v)}
-                aria-expanded={filtersOpen}
-                aria-controls="alerts-scheduling-filters"
-              >
-                <Filter className="h-4 w-4" />
-                {t('common.filters')}
-                {activeFilterCount > 0 && (
-                  <span className="ml-1 inline-flex items-center justify-center rounded-full bg-brand-600/30 text-brand-300 text-[10px] font-bold h-4 min-w-[1rem] px-1">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </Button>
-              <Button
-                onClick={() => setFormState({ kind: 'open', mode: 'create', row: undefined })}
-              >
-                <Plus className="h-4 w-4" />
-                {t('alerts.createSchedule')}
-              </Button>
-            </div>
-          }
-        />
+        <div className="space-y-4">
+          <PageHeader
+            title={t('alerts.scheduling')}
+            action={
+              <div className="flex gap-2">
+                <Button
+                  variant={filtersOpen ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setFiltersOpen((v) => !v)}
+                  aria-expanded={filtersOpen}
+                  aria-controls="alerts-scheduling-filters"
+                >
+                  <Filter className="h-4 w-4" />
+                  {t('common.filters')}
+                  {activeFilterCount > 0 && (
+                    <span className="bg-brand-600/30 text-brand-300 ml-1 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full px-1 text-[10px] font-bold">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => setFormState({ kind: 'open', mode: 'create', row: undefined })}
+                >
+                  <Plus className="h-4 w-4" />
+                  {t('alerts.createSchedule')}
+                </Button>
+              </div>
+            }
+          />
 
-        {/* Compact collapsible filter drawer - keeps the calendar as the
+          {/* Compact collapsible filter drawer - keeps the calendar as the
            visual hero of the page. Opens on demand; shows a counter badge
            when non-default filters are applied so the operator knows
            something is filtering the view. */}
-        {filtersOpen && (
-          <div
-            id="alerts-scheduling-filters"
-            className="rounded-xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-3 space-y-3"
-          >
-            {/* Row 1 — hierarchy + schedule name. Four equal columns on
+          {filtersOpen && (
+            <div
+              id="alerts-scheduling-filters"
+              className="space-y-3 rounded-xl border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-3"
+            >
+              {/* Row 1 — hierarchy + schedule name. Four equal columns on
                lg+ so the four fields always line up. */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <HierarchyFilters value={hierarchy} onChange={setHierarchy} />
-              <div className="space-y-1">
-                <Label className="text-xs text-text-secondary">{t('alerts.scheduleName')}</Label>
-                <Input
-                  value={nameFilter}
-                  onChange={(e) => setNameFilter(e.target.value)}
-                  placeholder={t('alerts.scheduleName')}
-                />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <HierarchyFilters value={hierarchy} onChange={setHierarchy} />
+                <div className="space-y-1">
+                  <Label className="text-text-secondary text-xs">{t('alerts.scheduleName')}</Label>
+                  <Input
+                    value={nameFilter}
+                    onChange={(e) => setNameFilter(e.target.value)}
+                    placeholder={t('alerts.scheduleName')}
+                  />
+                </div>
               </div>
-            </div>
-            {/* Row 2 — status + Limpar filtros on the same baseline. The
+              {/* Row 2 — status + Limpar filtros on the same baseline. The
                status field keeps the same width as row-1 fields (1fr out
                of the visual 4-col grid) and the button sits to its
                right, right-aligned at md+. */}
-            <div className="flex flex-col gap-3 md:flex-row md:items-end">
-              <div className="space-y-1 w-full md:w-1/4">
-                <Label className="text-xs text-text-secondary">{t('common.status')}</Label>
-                <select
-                  value={statusFilter || '__all__'}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setStatusFilter(v === '__all__' ? '' : (v as 'ACTIVE' | 'ARCHIVED'));
-                  }}
-                  className="w-full h-9 rounded-md border border-white/10 bg-[rgba(255,255,255,0.04)] px-3 text-sm"
-                >
-                  <option value="__all__">{t('common.all')}</option>
-                  <option value="ACTIVE">{t('common.active')}</option>
-                  <option value="ARCHIVED">{t('common.archived')}</option>
-                </select>
-              </div>
-              <div className="md:ml-auto">
-                <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-                  <X className="h-4 w-4" />
-                  {t('common.clearFilters')}
-                </Button>
+              <div className="flex flex-col gap-3 md:flex-row md:items-end">
+                <div className="w-full space-y-1 md:w-1/4">
+                  <Label className="text-text-secondary text-xs">{t('common.status')}</Label>
+                  <select
+                    value={statusFilter || '__all__'}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setStatusFilter(v === '__all__' ? '' : (v as 'ACTIVE' | 'ARCHIVED'));
+                    }}
+                    className="h-9 w-full rounded-md border border-white/10 bg-[rgba(255,255,255,0.04)] px-3 text-sm"
+                  >
+                    <option value="__all__">{t('common.all')}</option>
+                    <option value="ACTIVE">{t('common.active')}</option>
+                    <option value="ARCHIVED">{t('common.archived')}</option>
+                  </select>
+                </div>
+                <div className="md:ml-auto">
+                  <Button variant="ghost" size="sm" onClick={clearAllFilters}>
+                    <X className="h-4 w-4" />
+                    {t('common.clearFilters')}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <SchedulingCalendar
-          events={events}
-          loading={isLoading || isFetching}
-          onRangeChange={handleRangeChange}
-          onEventClick={handleEventClick}
-          onDateSelect={handleDateSelect}
-        />
-
-        {formState.kind === 'open' && (
-          <ScheduleFormDialog
-            open={true}
-            onOpenChange={(next) => {
-              if (!next) setFormState({ kind: 'closed' });
-            }}
-            schedule={formState.row}
-            mode={formState.mode}
-            onDeleteRequest={formState.mode !== 'create' ? handleFormDeleteRequest : undefined}
+          <SchedulingCalendar
+            events={events}
+            loading={isLoading || isFetching}
+            onRangeChange={handleRangeChange}
+            onEventClick={handleEventClick}
+            onDateSelect={handleDateSelect}
           />
-        )}
 
-        {pendingScope && (
-          <ScheduleScopeDialog
-            open
-            action={pendingScope.action}
-            eventLabel={pendingScope.row.name || undefined}
-            onChoose={handleScopePick}
-            onCancel={() => setPendingScope(null)}
-            isWorking={deleteMutation.isPending}
-          />
-        )}
-      </div>
+          {formState.kind === 'open' && (
+            <ScheduleFormDialog
+              open={true}
+              onOpenChange={(next) => {
+                if (!next) setFormState({ kind: 'closed' });
+              }}
+              schedule={formState.row}
+              mode={formState.mode}
+              onDeleteRequest={formState.mode !== 'create' ? handleFormDeleteRequest : undefined}
+            />
+          )}
+
+          {pendingScope && (
+            <ScheduleScopeDialog
+              open
+              action={pendingScope.action}
+              eventLabel={pendingScope.row.name || undefined}
+              onChoose={handleScopePick}
+              onCancel={() => setPendingScope(null)}
+              isWorking={deleteMutation.isPending}
+            />
+          )}
+        </div>
       </ModuleGuard>
     </RoleGuard>
   );

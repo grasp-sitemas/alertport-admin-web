@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Controller, useWatch } from 'react-hook-form';
 import { useAppForm } from '@/hooks/use-app-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -132,8 +132,12 @@ function extractHourPart(raw: string | undefined, fallback: string): string {
   if (raw.length <= 5) return raw;
   const d = new Date(raw);
   if (Number.isNaN(d.getTime())) return fallback;
-  const h = String(d.getHours()).padStart(2, '0');
-  const m = String(d.getMinutes()).padStart(2, '0');
+  // Backend stores schedule hours converted to UTC. Display them as-is in
+  // UTC to round-trip cleanly through the form. Using getHours() (local
+  // time) would shift the displayed hour by the user's timezone offset
+  // and corrupt the value on save.
+  const h = String(d.getUTCHours()).padStart(2, '0');
+  const m = String(d.getUTCMinutes()).padStart(2, '0');
   return `${h}:${m}`;
 }
 
@@ -351,21 +355,55 @@ export function ScheduleFormDialog({
         schedule: scheduleId,
       });
     },
-    onSuccess: () => {
+    onSuccess: (response: unknown) => {
+      // Invalidate the calendar list, the events index, AND the
+      // schedule-full cache for this id — without the third the next
+      // edit-open within ~30s shows stale field values.
       queryClient.invalidateQueries({ queryKey: ['alert-schedules'] });
       queryClient.invalidateQueries({ queryKey: ['alert-schedule-events'] });
-      toast.success(t('notifications.savedSuccessfully'));
+      if (scheduleIdToFetch) {
+        queryClient.invalidateQueries({ queryKey: ['schedule-full', scheduleIdToFetch] });
+      }
+      // Backend returns 200 with { firestoreWarning } when Mongo writes
+      // succeeded but Firestore push failed. The schedule IS saved but
+      // the device may not see the new occurrences until the next sync.
+      const firestoreWarning =
+        response && typeof response === 'object' && 'firestoreWarning' in response
+          ? String((response as { firestoreWarning?: unknown }).firestoreWarning ?? '')
+          : '';
+      if (firestoreWarning) {
+        toast.success(t('notifications.savedSuccessfully'));
+        toast.warning(t('alerts.errors.firestorePushFailed'));
+      } else {
+        toast.success(t('notifications.savedSuccessfully'));
+      }
       onOpenChange(false);
       reset(DEFAULT_ALERT_SCHEDULE);
       onSaved?.();
     },
-    onError: (err) => {
+    onError: (err: unknown) => {
       const code = (err as Error)?.message || 'UNKNOWN';
       if (code === 'MISSING_SCHEDULE_ID' || code === 'MISSING_APPOINTMENT_ID') {
         toast.error(t('alerts.errors.missingReference'));
         return;
       }
-      toast.error(t('notifications.errorOccurred'));
+      // Surface the actual backend error (interceptor re-throws axios
+      // errors with a useful response body) so an operator can act on
+      // 400/404/500 instead of a generic toast.
+      const axiosErr = err as {
+        response?: { data?: { message?: string; messageId?: string; errors?: Array<{ id?: string; text?: string }> } };
+        message?: string;
+      };
+      const backendMessage =
+        axiosErr?.response?.data?.message ||
+        axiosErr?.response?.data?.messageId ||
+        axiosErr?.response?.data?.errors?.[0]?.text ||
+        axiosErr?.message;
+      if (backendMessage) {
+        toast.error(backendMessage);
+      } else {
+        toast.error(t('notifications.errorOccurred'));
+      }
     },
   });
 
@@ -378,12 +416,13 @@ export function ScheduleFormDialog({
   const descriptionKey =
     mode === 'edit-occurrence' ? 'alerts.editOccurrenceDescription' : 'alerts.scheduling';
 
-  // Track previous cascade values locally - they get reinitialized on
-  // every render, which is fine since the cascade resets only run inside
-  // the onValueChange callbacks.
-  let prevAccount = defaults.account ?? '';
-  let prevClient = defaults.client ?? '';
-  let prevSite = defaults.site ?? '';
+  // Track previous cascade values across renders. Using `let` here
+  // would reinitialize from `defaults` on every render and break the
+  // "value changed → reset children" comparison once the user edited
+  // anything (defaults doesn't update mid-session).
+  const prevAccountRef = useRef<string>(defaults.account ?? '');
+  const prevClientRef = useRef<string>(defaults.client ?? '');
+  const prevSiteRef = useRef<string>(defaults.site ?? '');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -410,11 +449,11 @@ export function ScheduleFormDialog({
                       value={field.value ?? ''}
                       onValueChange={(val) => {
                         field.onChange(val);
-                        if (val !== prevAccount) {
+                        if (val !== prevAccountRef.current) {
                           setValue('client', '');
                           setValue('site', '');
                           setValue('equipment', '');
-                          prevAccount = val;
+                          prevAccountRef.current = val;
                         }
                       }}
                       disabled={isOccurrenceEdit}
@@ -445,10 +484,10 @@ export function ScheduleFormDialog({
                     value={field.value ?? ''}
                     onValueChange={(val) => {
                       field.onChange(val);
-                      if (val !== prevClient) {
+                      if (val !== prevClientRef.current) {
                         setValue('site', '');
                         setValue('equipment', '');
-                        prevClient = val;
+                        prevClientRef.current = val;
                       }
                     }}
                     disabled={isOccurrenceEdit}
@@ -481,9 +520,9 @@ export function ScheduleFormDialog({
                     value={field.value ?? ''}
                     onValueChange={(val) => {
                       field.onChange(val);
-                      if (val !== prevSite) {
+                      if (val !== prevSiteRef.current) {
                         setValue('equipment', '');
-                        prevSite = val;
+                        prevSiteRef.current = val;
                       }
                     }}
                     disabled={isOccurrenceEdit}
