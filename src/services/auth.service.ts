@@ -12,6 +12,33 @@ export const authService = {
     return data;
   },
 
+  /**
+   * Request a login-unlock email. Backend always answers 200 with a
+   * generic message regardless of whether the email is registered —
+   * intentionally, to prevent user-enumeration. Caller MUST treat
+   * success/failure identically in the UI.
+   */
+  async requestUnlock(email: string): Promise<{ status: number; messageId?: string }> {
+    const { data } = await apiClient.post<{ status: number; messageId?: string }>(
+      endpoints.loginUnlockRequest,
+      { email },
+    );
+    return data;
+  },
+
+  /**
+   * Consume a single-use unlock token (from the email link). Backend
+   * deletes the token's jti from Redis on first call so replays are
+   * rejected. Returns 200 on success, 400 on invalid/expired/replayed.
+   */
+  async confirmUnlock(token: string): Promise<{ status: number; messageId?: string }> {
+    const { data } = await apiClient.post<{ status: number; messageId?: string }>(
+      endpoints.loginUnlockConfirm,
+      { token },
+    );
+    return data;
+  },
+
   async getMe() {
     const { data } = await apiClient.get(endpoints.me);
     return data;
@@ -56,11 +83,7 @@ export const authService = {
    * Step 2 of recovery flow - validates the code and sets the new password.
    * Legacy payload is `{ code, systemUser, password }` (NOT the email).
    */
-  async resetPassword(params: {
-    code: string;
-    systemUser: string;
-    password: string;
-  }) {
+  async resetPassword(params: { code: string; systemUser: string; password: string }) {
     const { data } = await apiClient.post(endpoints.resetPassword, params);
     return data;
   },

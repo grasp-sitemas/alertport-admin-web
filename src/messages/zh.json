@@ -160,6 +160,25 @@
       "emailNotFound": "邮箱不存在",
       "genericError": "操作失败，请重试。"
     },
+    "unlock": {
+      "throttledToast": "登录尝试次数过多。请等待几分钟或申请解锁邮件。",
+      "throttledToastWithSeconds": "尝试次数过多。请在 {seconds} 秒后重试，或申请解锁邮件。",
+      "requestCtaInline": "错误太多 — 解锁我的访问",
+      "requestTitle": "通过邮件解锁访问",
+      "requestSubtitle": "我们会向已注册的邮箱发送一个链接，您可以使用它来解锁账户访问。",
+      "requestCta": "发送链接",
+      "requestSentTitle": "完成",
+      "requestSentDescription": "如果该邮箱已注册账户，您将很快收到解锁链接。请检查收件箱和垃圾邮件文件夹。",
+      "confirmTitle": "解锁您的访问",
+      "confirmDescription": "点击下方按钮以确认并解锁您的账户访问。",
+      "confirmCta": "确认并解锁",
+      "verifying": "正在解锁您的访问...",
+      "successTitle": "已解锁访问！",
+      "successDescription": "您现在可以正常登录。今后的尝试将不再被阻止。",
+      "errorTitle": "无法解锁",
+      "errorDescription": "此链接无效、已过期或已被使用。请在登录页面重新申请。",
+      "backToLogin": "返回登录"
+    },
     "or": "或",
     "noAccountYet": "还没有账户？",
     "signupCta": "免费创建账户",
@@ -541,7 +560,8 @@
       "seriesHint": "从此日期开始应用于每次发生。"
     },
     "errors": {
-      "missingReference": "无法识别日程或发生。请刷新重试。"
+      "missingReference": "无法识别日程或发生。请刷新重试。",
+      "firestorePushFailed": "已保存，但与设备同步失败。新的发生可能需要更长时间才能显示在应用中。"
     },
     "editOccurrenceTitle": "编辑发生",
     "editOccurrenceDescription": "仅调整所选日期,不更改系列。",

@@ -160,6 +160,25 @@
       "emailNotFound": "メールが見つかりません",
       "genericError": "操作を完了できませんでした。もう一度お試しください。"
     },
+    "unlock": {
+      "throttledToast": "ログイン試行回数が多すぎます。数分待つか、ロック解除メールをリクエストしてください。",
+      "throttledToastWithSeconds": "試行回数が多すぎます。{seconds}秒後に再試行するか、ロック解除メールをリクエストしてください。",
+      "requestCtaInline": "エラーが多発 — アクセスを解除する",
+      "requestTitle": "メールでアクセスを解除",
+      "requestSubtitle": "登録済みのメールアドレスにリンクを送信します。リンクからアカウントのアクセスを解除してください。",
+      "requestCta": "リンクを送信",
+      "requestSentTitle": "完了",
+      "requestSentDescription": "このメールアドレスにアカウントが存在する場合、まもなく解除リンクが届きます。受信トレイと迷惑メールをご確認ください。",
+      "confirmTitle": "アクセスを解除",
+      "confirmDescription": "下のボタンをクリックして、アカウントのアクセス解除を確定してください。",
+      "confirmCta": "確認して解除",
+      "verifying": "アクセスを解除しています...",
+      "successTitle": "アクセスを解除しました",
+      "successDescription": "通常通りサインインできます。今後の試行はブロックされません。",
+      "errorTitle": "解除できませんでした",
+      "errorDescription": "このリンクは無効、有効期限切れ、またはすでに使用されています。サインイン画面で新しいリンクをリクエストしてください。",
+      "backToLogin": "サインインへ戻る"
+    },
     "or": "または",
     "noAccountYet": "アカウントをお持ちでないですか？",
     "signupCta": "無料アカウント作成",
@@ -541,7 +560,8 @@
       "seriesHint": "この日以降のすべての発生に適用されます。"
     },
     "errors": {
-      "missingReference": "スケジュールまたは発生を識別できませんでした。再読み込みしてもう一度お試しください。"
+      "missingReference": "スケジュールまたは発生を識別できませんでした。再読み込みしてもう一度お試しください。",
+      "firestorePushFailed": "保存されましたが、デバイスとの同期に失敗しました。新しい発生がアプリに表示されるまで時間がかかる場合があります。"
     },
     "editOccurrenceTitle": "発生を編集",
     "editOccurrenceDescription": "シリーズを変更せずに選択した日のみを調整します。",

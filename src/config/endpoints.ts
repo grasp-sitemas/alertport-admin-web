@@ -13,6 +13,11 @@ export const endpoints = {
   signup: url('/api/users/system/signup/v1'),
   activationConfirm: url('/api/users/system/activation/confirm/v1'),
   activationResend: url('/api/users/system/activation/resend/v1'),
+  // Login throttle unlock (per-account brute-force defense).
+  // Request: always returns 200 generic (anti user-enumeration).
+  // Confirm: validates the single-use unlock token from the email.
+  loginUnlockRequest: url('/api/users/system/login/unlock/v1'),
+  loginUnlockConfirm: url('/api/users/system/login/unlock/confirm/v1'),
   me: url('/api/users/me/v1/'),
   companyUserMe: url('/api/users/system/companyuser/me/v1'),
   changeLanguage: url('/api/users/system/change/language/v1/'),
@@ -35,7 +40,8 @@ export const endpoints = {
   customerUserSearch: url('/api/users/system/search/customeruser/v1/'),
   // Admin company-user search (the one ListUser.vue uses)
   companyUserSearch: url('/api/users/system/search/companyuser/v1/'),
-  checkEmailExists: (email: string) => url(`/api/users/check/email/v1/${encodeURIComponent(email)}`),
+  checkEmailExists: (email: string) =>
+    url(`/api/users/check/email/v1/${encodeURIComponent(email)}`),
   checkUsernameExists: (username: string) =>
     url(`/api/users/check/username/v1/${encodeURIComponent(username)}`),
 
@@ -94,10 +100,15 @@ export const endpoints = {
   appointments: url('/api/schedules/appointments/v1/'),
   appointmentUpdate: (id: string) => url(`/api/schedules/appointments/update/v1/${id}`),
   deleteAppointment: url('/api/schedules/appointments/delete/v1/'),
-  // Single-occurrence update: patches just one day of a recurring schedule
-  // without touching the series. Backend rewires the appointment + its
-  // alert-occurrences on this date only.
+  // Single-occurrence update (legacy ShieldGo SECURITY_PATROL appointment).
+  // Kept for backwards compat; AlertPort uses appointmentAlertportUpdateOccurrence.
   appointmentUpdateOccurrence: url('/api/schedules/appointments/update/occurrence/v1/'),
+  // AlertPort single-occurrence update: regenerates the alert-occurrences
+  // for one workday + syncs Firestore. See ms-schedule
+  // ctr-appointment.updateAlertOccurrenceAppointment.
+  appointmentAlertportUpdateOccurrence: url(
+    '/api/schedules/appointments/alertport/update/occurrence/v1/',
+  ),
   // Cancel the series from a startDate forward (archives the schedule and
   // deletes all appointments/alert-occurrences from that date on).
   appointmentCancelSeries: url('/api/schedules/appointments/cancel/series/v1/'),
