@@ -9,8 +9,19 @@
  */
 
 import { env } from '@/config/env';
+import { getSocket } from '@/lib/socket';
 
 const DEFAULT_STUN: RTCIceServer = { urls: 'stun:stun.l.google.com:19302' };
+
+type IceConfigAck = {
+  ok?: boolean;
+  iceServers?: RTCIceServer[];
+};
+
+type SocketLike = {
+  connected?: boolean;
+  emit: (event: string, payload: unknown, ack?: (response: IceConfigAck) => void) => void;
+};
 
 export function getWebRtcIceServers(): RTCIceServer[] {
   const servers: RTCIceServer[] = [DEFAULT_STUN];
@@ -44,4 +55,45 @@ export function getWebRtcIceServers(): RTCIceServer[] {
   }
 
   return servers;
+}
+
+function requestIceServersFromChat(socket: SocketLike | null | undefined): Promise<RTCIceServer[] | null> {
+  if (!socket?.connected) return Promise.resolve(null);
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      resolve(null);
+    }, 1500);
+
+    const finish = (servers: RTCIceServer[] | null) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(servers);
+    };
+
+    try {
+      socket.emit('webrtc:ice-config', {}, (ack) => {
+        if (ack?.ok && Array.isArray(ack.iceServers) && ack.iceServers.length > 0) {
+          finish(ack.iceServers);
+          return;
+        }
+        finish(null);
+      });
+    } catch {
+      finish(null);
+    }
+  });
+}
+
+export async function resolveWebRtcIceServers(socket: SocketLike | null | undefined = getSocket()): Promise<RTCIceServer[]> {
+  const fromChat = await requestIceServersFromChat(socket);
+  if (fromChat && fromChat.length > 0) {
+    return fromChat;
+  }
+
+  return getWebRtcIceServers();
 }

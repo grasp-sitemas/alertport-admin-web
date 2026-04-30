@@ -24,7 +24,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { getSocket, type IncomingCallPayload, type StartCallAck, type WebRtcSignalPayload } from '@/lib/socket';
-import { getWebRtcIceServers } from '@/lib/webrtc-ice';
+import { resolveWebRtcIceServers } from '@/lib/webrtc-ice';
 import { useAuth } from '@/hooks/use-auth';
 
 /**
@@ -618,10 +618,11 @@ export function useCall(): CallState & CallActions {
   const ensurePeerConnection = useCallback(async (): Promise<RTCPeerConnection> => {
     if (pcRef.current) return pcRef.current;
 
-    const pc = new RTCPeerConnection({ iceServers: getWebRtcIceServers() });
-    pcRef.current = pc;
-
     const socket = getSocket();
+    const pc = new RTCPeerConnection({
+      iceServers: await resolveWebRtcIceServers(socket),
+    });
+    pcRef.current = pc;
 
     pc.onicecandidate = (ev) => {
       if (!ev.candidate) return;
@@ -636,7 +637,12 @@ export function useCall(): CallState & CallActions {
     };
 
     pc.ontrack = (ev) => {
-      const [remoteStream] = ev.streams;
+      const remoteStreamFromEvent = Array.isArray(ev.streams) ? ev.streams[0] : null;
+      const remoteStream =
+        remoteStreamFromEvent ||
+        (ev.track && typeof window !== 'undefined' && typeof window.MediaStream === 'function'
+          ? new window.MediaStream([ev.track])
+          : null);
       if (!remoteStream) return;
       remoteStreamRef.current = remoteStream;
       if (remoteAudioRef.current) {
