@@ -32,7 +32,7 @@ import type { ExportPayload } from '@/features/reports/report-export';
  */
 export default function AdherenceReportPage() {
   return (
-    <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER']}>
+    <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}>
       <ModuleGuard moduleKey="REPORTS">
         <AdherencePageBody />
       </ModuleGuard>
