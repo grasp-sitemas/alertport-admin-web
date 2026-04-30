@@ -52,7 +52,7 @@ export default function AlertOccurrencesPage() {
     ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
   };
 
-  const { data, isLoading } = useOccurrences(queryParams);
+  const { data, isLoading, refetch } = useOccurrences(queryParams);
 
   const results = data?.results || [];
   const totalCount = data?.totalCount || 0;
@@ -115,6 +115,11 @@ export default function AlertOccurrencesPage() {
     pagination.setPage(1);
     setActiveFilters(filters);
     setActiveHierarchy(hierarchy);
+    // Force a network call even when the filter values are unchanged so
+    // the operator can re-poll for fresh attendance state. Without this
+    // the queryKey is identical and TanStack Query serves the cached
+    // result, which made the Buscar button look broken on reclick.
+    refetch();
   };
 
   const handleClear = () => {

@@ -41,7 +41,7 @@ export default function CompaniesPage() {
     ...activeFilters,
   };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['companies', 'accounts', queryParams],
     queryFn: () => companyService.filterAccounts(queryParams),
   });
@@ -193,6 +193,7 @@ export default function CompaniesPage() {
           onSearch={() => {
             pagination.setPage(1);
             setActiveFilters(filters);
+            refetch();
           }}
           onClear={() => {
             clearFilters();

@@ -112,6 +112,11 @@ export default function AttendancePage() {
     pagination.setPage(1);
     setActiveFilters(filters);
     setActiveHierarchy(hierarchy);
+    // Always re-issue the request: when the operator hits Buscar with the
+    // same filters as before, the queryKey is unchanged and TanStack
+    // Query would otherwise return cached data — defeating the user's
+    // intent to refresh the table.
+    refetch();
   };
 
   const handleClear = () => {

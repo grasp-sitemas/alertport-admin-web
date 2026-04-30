@@ -54,6 +54,8 @@ function AdherencePageBody() {
     return { startDate, endDate };
   });
 
+  const query = useAdherenceReport(appliedFilter);
+
   const apply = useCallback(() => {
     const v = validateReportFilter(filterValue);
     if (!v.ok) return;
@@ -64,15 +66,17 @@ function AdherencePageBody() {
       ...(filterValue.hierarchy.client ? { client: filterValue.hierarchy.client } : {}),
       ...(filterValue.hierarchy.site ? { site: filterValue.hierarchy.site } : {}),
     });
-  }, [filterValue]);
+    // Same reasoning as on the CRUD pages: re-clicking Aplicar with the
+    // same range was a no-op because TanStack Query saw an unchanged
+    // queryKey. Force a refetch so the operator can poll for fresh data.
+    void query.refetch();
+  }, [filterValue, query]);
 
   const clear = useCallback(() => {
     const { startDate, endDate } = defaultReportRange();
     setFilterValue({ hierarchy: {}, startDate, endDate });
     setAppliedFilter({ startDate, endDate });
   }, []);
-
-  const query = useAdherenceReport(appliedFilter);
   const data = query.data;
   const summary = data?.summary;
   const rows = useMemo<AdherenceRow[]>(() => data?.results ?? [], [data]);

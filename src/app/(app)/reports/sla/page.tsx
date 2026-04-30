@@ -62,6 +62,8 @@ function SlaPageBody() {
     return { startDate, endDate, slaThresholdSec: DEFAULT_SLA_THRESHOLD_SEC };
   });
 
+  const query = useSlaReport(appliedFilter);
+
   const apply = useCallback(() => {
     if (!validateReportFilter(filterValue).ok) return;
     setAppliedFilter({
@@ -72,7 +74,8 @@ function SlaPageBody() {
       ...(filterValue.hierarchy.site ? { site: filterValue.hierarchy.site } : {}),
       slaThresholdSec: Math.max(1, Math.floor(Number(slaThresholdSec) || DEFAULT_SLA_THRESHOLD_SEC)),
     });
-  }, [filterValue, slaThresholdSec]);
+    void query.refetch();
+  }, [filterValue, slaThresholdSec, query]);
 
   const clear = useCallback(() => {
     const { startDate, endDate } = defaultReportRange();
@@ -80,8 +83,6 @@ function SlaPageBody() {
     setSlaThresholdSec(DEFAULT_SLA_THRESHOLD_SEC);
     setAppliedFilter({ startDate, endDate, slaThresholdSec: DEFAULT_SLA_THRESHOLD_SEC });
   }, []);
-
-  const query = useSlaReport(appliedFilter);
   const data = query.data;
   const summary = data?.summary;
   const rows = useMemo<SlaRow[]>(() => data?.results ?? [], [data]);

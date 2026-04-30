@@ -43,7 +43,7 @@ export default function ClientsPage() {
     ...(activeHierarchy.account ? { account: activeHierarchy.account } : {}),
   };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['clients', queryParams],
     queryFn: () => companyService.filterClients(queryParams),
   });
@@ -165,6 +165,7 @@ export default function ClientsPage() {
             pagination.setPage(1);
             setActiveFilters(filters);
             setActiveHierarchy(hierarchy);
+            refetch();
           }}
           onClear={() => {
             clearFilters();

@@ -54,6 +54,8 @@ function SosPageBody() {
     return { startDate, endDate };
   });
 
+  const query = useSosReport(appliedFilter);
+
   const apply = useCallback(() => {
     if (!validateReportFilter(filterValue).ok) return;
     setAppliedFilter({
@@ -63,15 +65,14 @@ function SosPageBody() {
       ...(filterValue.hierarchy.client ? { client: filterValue.hierarchy.client } : {}),
       ...(filterValue.hierarchy.site ? { site: filterValue.hierarchy.site } : {}),
     });
-  }, [filterValue]);
+    void query.refetch();
+  }, [filterValue, query]);
 
   const clear = useCallback(() => {
     const { startDate, endDate } = defaultReportRange();
     setFilterValue({ hierarchy: {}, startDate, endDate });
     setAppliedFilter({ startDate, endDate });
   }, []);
-
-  const query = useSosReport(appliedFilter);
   const data = query.data;
   const summary = data?.summary;
   const rows = useMemo<SosRow[]>(() => data?.results ?? [], [data]);

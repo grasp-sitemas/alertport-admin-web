@@ -125,7 +125,7 @@ function AuditLogsBody() {
     [activeFilters, activeHierarchy, buildFilterParams, pagination.paginationParams],
   );
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['audit-logs', queryParams],
     queryFn: () => auditLogService.filter(queryParams as never),
     staleTime: 60 * 1000,
@@ -247,6 +247,7 @@ function AuditLogsBody() {
           pagination.setPage(1);
           setActiveFilters(filters);
           setActiveHierarchy(hierarchy);
+          refetch();
         }}
         onClear={() => {
           clearFilters();

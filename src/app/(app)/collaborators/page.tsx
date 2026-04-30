@@ -73,7 +73,7 @@ export default function CollaboratorsPage() {
     ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
   };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['collaborators', queryParams],
     queryFn: () => usersService.filterCollaborators(queryParams),
   });
@@ -229,6 +229,7 @@ export default function CollaboratorsPage() {
             pagination.setPage(1);
             setActiveFilters(filters);
             setActiveHierarchy(hierarchy);
+            refetch();
           }}
           onClear={() => {
             clearFilters();

@@ -46,7 +46,7 @@ export default function SitesPage() {
     ...(activeHierarchy.client ? { client: activeHierarchy.client } : {}),
   };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['sites', queryParams],
     queryFn: () => companyService.filterSites(queryParams),
   });
@@ -191,6 +191,7 @@ export default function SitesPage() {
             pagination.setPage(1);
             setActiveFilters(filters);
             setActiveHierarchy(hierarchy);
+            refetch();
           }}
           onClear={() => {
             clearFilters();
