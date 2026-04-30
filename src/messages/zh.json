@@ -299,6 +299,11 @@
       "attendanceStatus": "状态",
       "thresholdLabel": "SLA 阈值(秒)",
       "thresholdHint": "判定为达标的最长响应时间",
+      "statusValue": {
+        "IN_PROGRESS": "处置中",
+        "CLOSED": "已结束",
+        "UNATTENDED": "未处置"
+      },
       "kpi": {
         "compliance": "SLA 达标率",
         "complianceHint": "{threshold} 内响应",
