@@ -299,6 +299,11 @@
       "attendanceStatus": "Status",
       "thresholdLabel": "Limite de SLA (segundos)",
       "thresholdHint": "Tempo máximo de resposta para considerar dentro do SLA",
+      "statusValue": {
+        "IN_PROGRESS": "Em andamento",
+        "CLOSED": "Encerrado",
+        "UNATTENDED": "Não atendido"
+      },
       "kpi": {
         "compliance": "SLA Compliance",
         "complianceHint": "Respostas em até {threshold}",

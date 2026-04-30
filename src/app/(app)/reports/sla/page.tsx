@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { CheckCircle2, Clock, Gauge, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { RoleGuard } from '@/components/shared/role-guard';
 import { ModuleGuard } from '@/components/shared/module-guard';
@@ -136,7 +137,7 @@ function SlaPageBody() {
       {
         key: 'status',
         headerKey: 'reports.sla.attendanceStatus',
-        render: (r) => r.attendance?.status ?? '-',
+        render: (r) => <AttendanceStatusBadge row={r} />,
       },
     ],
     [showAccountColumn],
@@ -178,7 +179,7 @@ function SlaPageBody() {
           header: t('reports.sla.resolutionTime'),
           value: (r) => (r.resolutionTimeSec != null ? Math.round(r.resolutionTimeSec) : ''),
         },
-        { header: t('reports.sla.attendanceStatus'), value: (r) => r.attendance?.status ?? '' },
+        { header: t('reports.sla.attendanceStatus'), value: (r) => translateAttendanceStatus(t, r) },
       ],
       rows,
     };
@@ -345,4 +346,33 @@ function SlaPageBody() {
       </Card>
     </ReportPageLayout>
   );
+}
+
+// Maps the raw attendance.status from the backend into a translated badge.
+// CLOSED → success, IN_PROGRESS → warning, anything else (no attendance
+// record yet) → danger / "Unattended". Mirrors AttendanceStatusBadge in
+// the SOS report so the two reports look consistent to the operator.
+function AttendanceStatusBadge({ row }: { row: SlaRow }) {
+  const t = useTranslations();
+  const status = row.attendance?.status;
+  if (status === 'CLOSED') {
+    return <Badge variant="success">{t('reports.sla.statusValue.CLOSED')}</Badge>;
+  }
+  if (status === 'IN_PROGRESS') {
+    return <Badge variant="warning">{t('reports.sla.statusValue.IN_PROGRESS')}</Badge>;
+  }
+  return <Badge variant="danger">{t('reports.sla.statusValue.UNATTENDED')}</Badge>;
+}
+
+// Plain-text translation used by the export payload (XLSX/CSV/PDF) — the
+// exporter can't render JSX, so we mirror the badge's branching as a
+// simple string lookup against the same i18n keys.
+function translateAttendanceStatus(
+  t: ReturnType<typeof useTranslations>,
+  row: SlaRow,
+): string {
+  const status = row.attendance?.status;
+  if (status === 'CLOSED') return t('reports.sla.statusValue.CLOSED');
+  if (status === 'IN_PROGRESS') return t('reports.sla.statusValue.IN_PROGRESS');
+  return t('reports.sla.statusValue.UNATTENDED');
 }
