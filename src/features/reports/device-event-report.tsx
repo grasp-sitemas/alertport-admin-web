@@ -83,6 +83,8 @@ export function DeviceEventReportBody({ variant }: Props) {
     return { startDate, endDate };
   });
 
+  const query = variant.useReportHook(appliedFilter);
+
   const apply = useCallback(() => {
     if (!validateReportFilter(filterValue).ok) return;
     setAppliedFilter({
@@ -92,15 +94,14 @@ export function DeviceEventReportBody({ variant }: Props) {
       ...(filterValue.hierarchy.client ? { client: filterValue.hierarchy.client } : {}),
       ...(filterValue.hierarchy.site ? { site: filterValue.hierarchy.site } : {}),
     });
-  }, [filterValue]);
+    void query.refetch();
+  }, [filterValue, query]);
 
   const clear = useCallback(() => {
     const { startDate, endDate } = defaultReportRange();
     setFilterValue({ hierarchy: {}, startDate, endDate });
     setAppliedFilter({ startDate, endDate });
   }, []);
-
-  const query = variant.useReportHook(appliedFilter);
   const data = query.data;
   const summary = data?.summary;
   const rows = useMemo<DeviceEventRow[]>(() => data?.results ?? [], [data]);

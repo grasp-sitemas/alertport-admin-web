@@ -66,7 +66,7 @@ export default function UsersPage() {
     ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
   };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['users', queryParams],
     queryFn: () => usersService.filter(queryParams),
   });
@@ -145,6 +145,7 @@ export default function UsersPage() {
     pagination.setPage(1);
     setActiveFilters(filters);
     setActiveHierarchy(hierarchy);
+    refetch();
   };
 
   const handleClear = () => {

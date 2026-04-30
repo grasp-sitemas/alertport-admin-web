@@ -67,7 +67,7 @@ export default function EquipmentPage() {
     ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
   };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['equipment', queryParams],
     queryFn: () => equipmentService.filter(queryParams),
   });
@@ -245,6 +245,7 @@ export default function EquipmentPage() {
             pagination.setPage(1);
             setActiveFilters(filters);
             setActiveHierarchy(hierarchy);
+            refetch();
           }}
           onClear={() => {
             clearFilters();

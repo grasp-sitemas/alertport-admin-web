@@ -48,6 +48,8 @@ function AttendancePageBody() {
     return { startDate, endDate };
   });
 
+  const query = useAttendanceReport(appliedFilter);
+
   const apply = useCallback(() => {
     if (!validateReportFilter(filterValue).ok) return;
     setAppliedFilter({
@@ -57,15 +59,14 @@ function AttendancePageBody() {
       ...(filterValue.hierarchy.client ? { client: filterValue.hierarchy.client } : {}),
       ...(filterValue.hierarchy.site ? { site: filterValue.hierarchy.site } : {}),
     });
-  }, [filterValue]);
+    void query.refetch();
+  }, [filterValue, query]);
 
   const clear = useCallback(() => {
     const { startDate, endDate } = defaultReportRange();
     setFilterValue({ hierarchy: {}, startDate, endDate });
     setAppliedFilter({ startDate, endDate });
   }, []);
-
-  const query = useAttendanceReport(appliedFilter);
   const data = query.data;
   const summary = data?.summary;
   const rows = useMemo<AttendanceRow[]>(() => data?.results ?? [], [data]);
