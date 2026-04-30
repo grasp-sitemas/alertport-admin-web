@@ -1138,6 +1138,10 @@
     "domain": "領域",
     "resource": "対象",
     "sidebar": "監査ログ",
+    "today": "今日",
+    "errors": {
+      "rangeExceeded": "最大期間は{max}日です。指定: {actual}日。"
+    },
     "domains": {
       "USER": "ユーザー",
       "COLLABORATOR": "協力者",

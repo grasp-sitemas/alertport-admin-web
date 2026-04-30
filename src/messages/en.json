@@ -1138,6 +1138,10 @@
     "domain": "Area",
     "resource": "Resource",
     "sidebar": "Audit log",
+    "today": "today",
+    "errors": {
+      "rangeExceeded": "Max range is {max} days. Requested: {actual}."
+    },
     "domains": {
       "USER": "Users",
       "COLLABORATOR": "Collaborators",
