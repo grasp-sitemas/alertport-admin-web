@@ -160,6 +160,25 @@
       "emailNotFound": "E-mail não encontrado",
       "genericError": "Não foi possível concluir a operação. Tente novamente."
     },
+    "unlock": {
+      "throttledToast": "Muitas tentativas de login. Aguarde alguns minutos ou solicite o desbloqueio.",
+      "throttledToastWithSeconds": "Muitas tentativas. Tente novamente em {seconds} segundos ou solicite o desbloqueio.",
+      "requestCtaInline": "Recebi muitos erros — liberar meu acesso",
+      "requestTitle": "Liberar acesso por e-mail",
+      "requestSubtitle": "Vamos enviar um link para o e-mail cadastrado. Use-o para liberar o acesso à sua conta.",
+      "requestCta": "Enviar link",
+      "requestSentTitle": "Pronto",
+      "requestSentDescription": "Se este e-mail tiver uma conta, você vai receber um link de desbloqueio em alguns instantes. Verifique a caixa de entrada e o spam.",
+      "confirmTitle": "Liberar seu acesso",
+      "confirmDescription": "Clique no botão abaixo para confirmar e liberar o acesso à sua conta.",
+      "confirmCta": "Confirmar e liberar",
+      "verifying": "Liberando seu acesso...",
+      "successTitle": "Acesso liberado!",
+      "successDescription": "Você já pode entrar normalmente. As próximas tentativas não estarão mais bloqueadas.",
+      "errorTitle": "Não foi possível liberar",
+      "errorDescription": "Este link é inválido, expirou ou já foi usado. Solicite um novo na tela de login.",
+      "backToLogin": "Voltar ao login"
+    },
     "or": "Ou",
     "noAccountYet": "Ainda não tem conta?",
     "signupCta": "Criar conta grátis",
@@ -541,7 +560,8 @@
       "seriesHint": "Aplica a todas as ocorrências a partir desta data."
     },
     "errors": {
-      "missingReference": "Não foi possível identificar a agenda ou ocorrência. Recarregue e tente novamente."
+      "missingReference": "Não foi possível identificar a agenda ou ocorrência. Recarregue e tente novamente.",
+      "firestorePushFailed": "Salvo, mas a sincronização com o dispositivo falhou. As novas ocorrências podem demorar a aparecer no app."
     },
     "editOccurrenceTitle": "Editar ocorrência",
     "editOccurrenceDescription": "Ajuste apenas o dia selecionado sem alterar a série.",

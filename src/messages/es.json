@@ -160,6 +160,25 @@
       "emailNotFound": "Correo no encontrado",
       "genericError": "No se pudo completar la operación. Intenta de nuevo."
     },
+    "unlock": {
+      "throttledToast": "Demasiados intentos de inicio de sesión. Espera unos minutos o solicita el desbloqueo por correo.",
+      "throttledToastWithSeconds": "Demasiados intentos. Inténtalo en {seconds} segundos o solicita el desbloqueo por correo.",
+      "requestCtaInline": "Recibí muchos errores — desbloquear mi acceso",
+      "requestTitle": "Desbloquear acceso por correo",
+      "requestSubtitle": "Enviaremos un enlace al correo registrado. Úsalo para desbloquear el acceso a tu cuenta.",
+      "requestCta": "Enviar enlace",
+      "requestSentTitle": "Listo",
+      "requestSentDescription": "Si este correo tiene una cuenta, recibirás un enlace de desbloqueo en unos instantes. Revisa la bandeja de entrada y spam.",
+      "confirmTitle": "Desbloquear tu acceso",
+      "confirmDescription": "Haz clic en el botón para confirmar y desbloquear el acceso a tu cuenta.",
+      "confirmCta": "Confirmar y desbloquear",
+      "verifying": "Desbloqueando tu acceso...",
+      "successTitle": "¡Acceso desbloqueado!",
+      "successDescription": "Ya puedes iniciar sesión normalmente. Los próximos intentos no estarán bloqueados.",
+      "errorTitle": "No fue posible desbloquear",
+      "errorDescription": "Este enlace es inválido, expiró o ya fue utilizado. Solicita uno nuevo en la pantalla de inicio de sesión.",
+      "backToLogin": "Volver al inicio de sesión"
+    },
     "or": "O",
     "noAccountYet": "¿Aún no tienes cuenta?",
     "signupCta": "Crear cuenta gratis",
@@ -541,7 +560,8 @@
       "seriesHint": "Se aplica a todas las ocurrencias desde esta fecha en adelante."
     },
     "errors": {
-      "missingReference": "No se pudo identificar la agenda u ocurrencia. Recargue e inténtelo de nuevo."
+      "missingReference": "No se pudo identificar la agenda u ocurrencia. Recargue e inténtelo de nuevo.",
+      "firestorePushFailed": "Guardado, pero la sincronización con el dispositivo falló. Las nuevas ocurrencias pueden tardar en aparecer en la app."
     },
     "editOccurrenceTitle": "Editar ocurrencia",
     "editOccurrenceDescription": "Ajuste solo el día seleccionado sin cambiar la serie.",

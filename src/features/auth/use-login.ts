@@ -38,7 +38,15 @@ export function useLogin() {
       toast.success(t('auth.welcomeBack'));
       router.replace('/dashboard');
     },
-    onError: (error: AxiosError<{ messageId?: string; message?: string; code?: string; email?: string }>) => {
+    onError: (
+      error: AxiosError<{
+        messageId?: string;
+        message?: string;
+        code?: string;
+        email?: string;
+        retryAfterSec?: number;
+      }>,
+    ) => {
       const body = error.response?.data;
       const messageId = body?.messageId;
 
@@ -50,6 +58,23 @@ export function useLogin() {
         const params = new URLSearchParams();
         if (email) params.set('email', email);
         router.push(`/activate${params.toString() ? '?' + params.toString() : ''}`);
+        return;
+      }
+
+      // Per-account throttle hit (or per-IP cap from api-gateway).
+      // The login page reads `login.error` to show the unlock-email
+      // CTA next to the form.
+      if (
+        error.response?.status === 429 ||
+        messageId === 'response.user.too.many.attempts' ||
+        messageId === 'response.msg.error.rate-limited'
+      ) {
+        const seconds = Number(body?.retryAfterSec) || 0;
+        if (seconds > 0) {
+          toast.warning(t('auth.unlock.throttledToastWithSeconds', { seconds }));
+        } else {
+          toast.warning(t('auth.unlock.throttledToast'));
+        }
         return;
       }
 

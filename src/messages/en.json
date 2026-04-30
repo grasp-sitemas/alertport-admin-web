@@ -160,6 +160,25 @@
       "emailNotFound": "Email not found",
       "genericError": "Could not complete the operation. Please try again."
     },
+    "unlock": {
+      "throttledToast": "Too many sign-in attempts. Wait a few minutes or request an unlock email.",
+      "throttledToastWithSeconds": "Too many attempts. Try again in {seconds} seconds, or request an unlock email.",
+      "requestCtaInline": "Too many errors — unlock my access",
+      "requestTitle": "Unlock access via email",
+      "requestSubtitle": "We'll send a link to the registered email. Use it to unlock your account access.",
+      "requestCta": "Send link",
+      "requestSentTitle": "Done",
+      "requestSentDescription": "If this email has an account, you'll receive an unlock link shortly. Check your inbox and spam folder.",
+      "confirmTitle": "Unlock your access",
+      "confirmDescription": "Click the button below to confirm and unlock your account access.",
+      "confirmCta": "Confirm and unlock",
+      "verifying": "Unlocking your access...",
+      "successTitle": "Access unlocked!",
+      "successDescription": "You can sign in normally now. Future attempts won't be blocked anymore.",
+      "errorTitle": "Could not unlock",
+      "errorDescription": "This link is invalid, expired, or has already been used. Request a new one from the sign-in screen.",
+      "backToLogin": "Back to sign in"
+    },
     "or": "Or",
     "noAccountYet": "Don't have an account yet?",
     "signupCta": "Create a free account",
@@ -541,7 +560,8 @@
       "seriesHint": "Applies to every occurrence from this date onward."
     },
     "errors": {
-      "missingReference": "Could not identify the schedule or occurrence. Refresh and try again."
+      "missingReference": "Could not identify the schedule or occurrence. Refresh and try again.",
+      "firestorePushFailed": "Saved, but device sync failed. New occurrences may take longer to appear on the app."
     },
     "editOccurrenceTitle": "Edit occurrence",
     "editOccurrenceDescription": "Adjust just the selected day without changing the series.",
