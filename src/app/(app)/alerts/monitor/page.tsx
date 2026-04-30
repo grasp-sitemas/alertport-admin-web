@@ -28,6 +28,7 @@ import {
 import { usePagination } from '@/hooks/use-pagination';
 import { useUserScope, applyUserScope } from '@/hooks/use-user-scope';
 import { useAuth } from '@/hooks/use-auth';
+import { useSessionAccountModules } from '@/features/modules/use-session-account-modules';
 import type { EventType, PatrolAction, TimeEntry } from '@/types/api';
 import { useCallContext } from '@/features/calls/call-context';
 import { ChatConnectionBadge } from '@/features/calls/call-dialog';
@@ -105,6 +106,13 @@ export default function AlertMonitorPage() {
 function AlertMonitor() {
   const t = useTranslations();
   const scope = useUserScope();
+  const { isEnabled: isModuleEnabled } = useSessionAccountModules();
+  // Time-entries are gated by the per-account `TIME_ENTRIES` module. When
+  // the SAM disables the module for a tenant, we hide the right-hand card
+  // AND the KPI tile — and skip the network call entirely so an operator
+  // of the disabled tenant never spends a request fetching data they
+  // can't see. SAM bypasses the gate (sees everything to administer it).
+  const timeEntriesModuleEnabled = isModuleEnabled('TIME_ENTRIES');
   const call = useCallContext();
   const { user } = useAuth();
   const currentUserId = user?._id;
@@ -156,19 +164,22 @@ function AlertMonitor() {
     ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
   });
 
-  const timeQuery = useTimeEntries({
-    ...applyUserScope(
-      {
-        skip: timePagination.paginationParams.skip,
-        limit: timePagination.paginationParams.limit,
-        ...timeWindow,
-      },
-      scope,
-    ),
-    ...(activeHierarchy.account ? { account: activeHierarchy.account } : {}),
-    ...(activeHierarchy.client ? { client: activeHierarchy.client } : {}),
-    ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
-  });
+  const timeQuery = useTimeEntries(
+    {
+      ...applyUserScope(
+        {
+          skip: timePagination.paginationParams.skip,
+          limit: timePagination.paginationParams.limit,
+          ...timeWindow,
+        },
+        scope,
+      ),
+      ...(activeHierarchy.account ? { account: activeHierarchy.account } : {}),
+      ...(activeHierarchy.client ? { client: activeHierarchy.client } : {}),
+      ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
+    },
+    timeEntriesModuleEnabled,
+  );
 
   // Prefetch attendance types catalog - speeds up the first AttendanceDialog open.
   useAttendanceTypes();
@@ -411,10 +422,20 @@ function AlertMonitor() {
         timeEntriesCount={timeEntries.length}
         isLoadingEvents={patrolQuery.isLoading}
         isLoadingTime={timeQuery.isLoading}
+        showTimeEntries={timeEntriesModuleEnabled}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2" data-tour="monitor-events">
+      <div
+        className={
+          timeEntriesModuleEnabled
+            ? 'grid grid-cols-1 lg:grid-cols-3 gap-6'
+            : 'grid grid-cols-1 gap-6'
+        }
+      >
+        <Card
+          className={timeEntriesModuleEnabled ? 'lg:col-span-2' : ''}
+          data-tour="monitor-events"
+        >
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2">
@@ -489,42 +510,44 @@ function AlertMonitor() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-blue-400" />
-              {t('attendance.timeEntries')}
-              {flashTimeEntryCount > 0 && (
-                <Badge variant="brand" className="animate-pulse">
-                  {t('alerts.realtime.newEntries', { count: flashTimeEntryCount })}
-                </Badge>
+        {timeEntriesModuleEnabled && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-blue-400" />
+                {t('attendance.timeEntries')}
+                {flashTimeEntryCount > 0 && (
+                  <Badge variant="brand" className="animate-pulse">
+                    {t('alerts.realtime.newEntries', { count: flashTimeEntryCount })}
+                  </Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {timeQuery.isLoading ? (
+                <div className="py-12 flex justify-center">
+                  <Spinner />
+                </div>
+              ) : timeEntries.length === 0 ? (
+                <EmptyState
+                  icon={Clock}
+                  title={t('attendance.noTimeEntries')}
+                  description={t('common.noData')}
+                />
+              ) : (
+                <div className="space-y-2 max-h-[720px] overflow-y-auto pr-1">
+                  {timeEntries.map((entry) => (
+                    <MonitorTimeEntryRow
+                      key={entry._id}
+                      entry={entry}
+                      flash={isFlashingTimeEntry(entry._id)}
+                    />
+                  ))}
+                </div>
               )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {timeQuery.isLoading ? (
-              <div className="py-12 flex justify-center">
-                <Spinner />
-              </div>
-            ) : timeEntries.length === 0 ? (
-              <EmptyState
-                icon={Clock}
-                title={t('attendance.noTimeEntries')}
-                description={t('common.noData')}
-              />
-            ) : (
-              <div className="space-y-2 max-h-[720px] overflow-y-auto pr-1">
-                {timeEntries.map((entry) => (
-                  <MonitorTimeEntryRow
-                    key={entry._id}
-                    entry={entry}
-                    flash={isFlashingTimeEntry(entry._id)}
-                  />
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <AttendanceDialog
@@ -545,6 +568,7 @@ interface KpiGridProps {
   timeEntriesCount: number;
   isLoadingEvents: boolean;
   isLoadingTime: boolean;
+  showTimeEntries: boolean;
 }
 
 /**
@@ -568,13 +592,16 @@ const MonitorKpiGrid = memo(function MonitorKpiGridImpl({
   timeEntriesCount,
   isLoadingEvents,
   isLoadingTime,
+  showTimeEntries,
 }: KpiGridProps) {
   const t = useTranslations();
+  // Drop the column when the TIME_ENTRIES module is off so the remaining
+  // four KPIs spread across the row instead of leaving a blank slot.
+  const gridClass = showTimeEntries
+    ? 'grid grid-cols-2 lg:grid-cols-5 gap-4'
+    : 'grid grid-cols-2 lg:grid-cols-4 gap-4';
   return (
-    <div
-      data-tour="monitor-kpis"
-      className="grid grid-cols-2 lg:grid-cols-5 gap-4"
-    >
+    <div data-tour="monitor-kpis" className={gridClass}>
       <KpiCard
         title={t('dashboard.todayOccurrences')}
         value={eventsCount}
@@ -603,13 +630,15 @@ const MonitorKpiGrid = memo(function MonitorKpiGridImpl({
         accent="warning"
         isLoading={isLoadingEvents}
       />
-      <KpiCard
-        title={t('attendance.timeEntries')}
-        value={timeEntriesCount}
-        icon={Clock}
-        accent="info"
-        isLoading={isLoadingTime}
-      />
+      {showTimeEntries && (
+        <KpiCard
+          title={t('attendance.timeEntries')}
+          value={timeEntriesCount}
+          icon={Clock}
+          accent="info"
+          isLoading={isLoadingTime}
+        />
+      )}
     </div>
   );
 });
