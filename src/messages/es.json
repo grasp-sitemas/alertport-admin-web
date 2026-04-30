@@ -1143,6 +1143,10 @@
     "domain": "Área",
     "resource": "Recurso",
     "sidebar": "Auditoría",
+    "today": "hoy",
+    "errors": {
+      "rangeExceeded": "Intervalo máximo de {max} días. Solicitado: {actual}."
+    },
     "domains": {
       "USER": "Usuarios",
       "COLLABORATOR": "Colaboradores",

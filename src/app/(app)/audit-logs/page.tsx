@@ -1,15 +1,18 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { History } from 'lucide-react';
+import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/page-header';
 import { FilterPanel } from '@/components/shared/filter-panel';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { Badge } from '@/components/ui/badge';
 import { RoleGuard } from '@/components/shared/role-guard';
 import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
+import { ReportExportButton } from '@/features/reports/report-export-button';
+import type { ExportPayload } from '@/features/reports/report-export';
 import {
   useAccountsLookup,
   useClientsLookup,
@@ -64,6 +67,20 @@ const ACTION_OPTIONS: { value: AuditAction; labelKey: string }[] = [
   { value: 'RECORDING_PLAYED', labelKey: 'auditLog.actions.RECORDING_PLAYED' },
   { value: 'COMPANY_UPDATED', labelKey: 'auditLog.actions.COMPANY_UPDATED' },
 ];
+
+// Audit-log queries are capped at 30 days. The endpoint scans a large
+// time-series collection and we don't want operators triggering long-
+// running queries by accident. Mirrors the reports module limit.
+const MAX_RANGE_DAYS = 30;
+
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+function daysBetween(startISO: string, endISO: string): number | null {
+  const start = startISO ? Date.parse(startISO) : NaN;
+  const end = endISO ? Date.parse(endISO) : Date.now();
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return null;
+  return Math.ceil((end - start) / MS_PER_DAY);
+}
 
 export default function AuditLogsPage() {
   return (
@@ -133,6 +150,62 @@ function AuditLogsBody() {
 
   const results = data?.results ?? [];
   const totalCount = data?.totalCount ?? 0;
+
+  const getExportPayload = useCallback((): ExportPayload<AuditLogEntry> | null => {
+    if (results.length === 0) return null;
+    const start = activeFilters.startDate;
+    const end = activeFilters.endDate;
+    return {
+      fileName: 'audit_log',
+      title: t('auditLog.title'),
+      subtitle: start || end ? `${start || '…'} — ${end || t('auditLog.today')}` : undefined,
+      generatedAt: new Date().toISOString(),
+      columns: [
+        { header: t('auditLog.at'), value: (r) => new Date(r.at) },
+        { header: t('auditLog.actor'), value: (r) => r.actor?.name ?? '' },
+        { header: t('common.email'), value: (r) => r.actor?.email ?? '' },
+        {
+          header: t('auditLog.action'),
+          value: (r) => safeT(t, `auditLog.actions.${r.action}`, r.action),
+        },
+        {
+          header: t('auditLog.domain'),
+          value: (r) => safeT(t, `auditLog.domains.${r.domain}`, r.domain),
+        },
+        ...(showAccountColumn
+          ? [
+              {
+                header: t('common.account'),
+                value: (r: AuditLogEntry) =>
+                  r.accountId ? (accountNameById.get(r.accountId) ?? r.accountId) : '',
+              },
+            ]
+          : []),
+        {
+          header: t('common.client'),
+          value: (r) => (r.clientId ? (clientNameById.get(r.clientId) ?? r.clientId) : ''),
+        },
+        {
+          header: t('common.site'),
+          value: (r) => (r.siteId ? (siteNameById.get(r.siteId) ?? r.siteId) : ''),
+        },
+        {
+          header: t('auditLog.resource'),
+          value: (r) => r.resourceLabel || r.resourceId || '',
+        },
+      ],
+      rows: results,
+    };
+  }, [
+    results,
+    t,
+    showAccountColumn,
+    accountNameById,
+    clientNameById,
+    siteNameById,
+    activeFilters.startDate,
+    activeFilters.endDate,
+  ]);
 
   if (totalCount !== pagination.totalCount) {
     pagination.setTotalCount(totalCount);
@@ -210,10 +283,16 @@ function AuditLogsBody() {
         title={t('auditLog.title')}
         description={t('auditLog.description')}
         action={
-          <span className="inline-flex items-center gap-2 text-xs text-text-muted">
-            <History className="h-4 w-4" />
-            {totalCount} {t('auditLog.entries')}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center gap-2 text-xs text-text-muted">
+              <History className="h-4 w-4" />
+              {totalCount} {t('auditLog.entries')}
+            </span>
+            <ReportExportButton
+              getPayload={getExportPayload}
+              disabled={isLoading || results.length === 0}
+            />
+          </div>
         }
       />
 
@@ -244,6 +323,20 @@ function AuditLogsBody() {
         values={filters}
         onChange={setFilter}
         onSearch={() => {
+          // Cap audit-log queries at MAX_RANGE_DAYS (30 days) so the
+          // operator can't trigger a long-running scan by accident. End-
+          // date is treated as "today" when blank, mirroring how the
+          // backend evaluates the filter.
+          const days = daysBetween(
+            typeof filters.startDate === 'string' ? filters.startDate : '',
+            typeof filters.endDate === 'string' ? filters.endDate : '',
+          );
+          if (days != null && days > MAX_RANGE_DAYS) {
+            toast.error(
+              t('auditLog.errors.rangeExceeded', { max: MAX_RANGE_DAYS, actual: days }),
+            );
+            return;
+          }
           pagination.setPage(1);
           setActiveFilters(filters);
           setActiveHierarchy(hierarchy);

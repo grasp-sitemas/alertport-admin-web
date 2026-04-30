@@ -1143,6 +1143,10 @@
     "domain": "领域",
     "resource": "资源",
     "sidebar": "审计日志",
+    "today": "今天",
+    "errors": {
+      "rangeExceeded": "最大区间为 {max} 天，请求 {actual} 天。"
+    },
     "domains": {
       "USER": "用户",
       "COLLABORATOR": "协作者",
