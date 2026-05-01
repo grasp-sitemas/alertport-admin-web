@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import QRCode from 'react-qr-code';
 import { useTranslations } from 'next-intl';
-import { Download, Printer } from 'lucide-react';
+import { Check, Copy, Download, Printer } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { copySiteCodeToClipboard, formatSiteCodeForDisplay } from '@/lib/site-code';
 import type { Company } from '@/types/api';
 
 interface Props {
@@ -32,12 +33,23 @@ interface Props {
 export function SiteQrDialog({ open, onOpenChange, site }: Props) {
   const t = useTranslations();
   const qrRef = useRef<HTMLDivElement | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const payload = useMemo(() => {
     if (!site) return '';
     const legacyId = (site as unknown as { legacyId?: string }).legacyId;
     return site._id || legacyId || '';
   }, [site]);
+
+  const codeDisplay = formatSiteCodeForDisplay(site?.siteCode);
+
+  async function handleCopyCode() {
+    const ok = await copySiteCodeToClipboard(site?.siteCode);
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
+  }
 
   function handleDownload() {
     const svg = qrRef.current?.querySelector('svg');
@@ -105,6 +117,23 @@ export function SiteQrDialog({ open, onOpenChange, site }: Props) {
           <p className="text-[10px] text-text-muted font-mono break-all text-center">
             {payload}
           </p>
+          {codeDisplay ? (
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-text-muted">{t('sites.manualCodeLabel')}</span>
+              <code className="px-3 py-1 rounded-lg bg-bg-tertiary text-text-primary font-mono text-sm tracking-widest">
+                {codeDisplay}
+              </code>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleCopyCode}
+                aria-label={t('sites.copyCode')}
+              >
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         <DialogFooter>

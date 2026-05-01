@@ -23,6 +23,7 @@ import { useFilters } from '@/hooks/use-filters';
 import type { Company } from '@/types/api';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 import { maskPhoneBR } from '@/lib/br-masks';
+import { formatSiteCodeForDisplay } from '@/lib/site-code';
 
 export default function SitesPage() {
   const t = useTranslations();
@@ -70,6 +71,18 @@ export default function SitesPage() {
       key: 'name',
       headerKey: 'common.name',
       render: (item) => <p className="font-medium text-white">{item.name}</p>,
+    },
+    {
+      key: 'siteCode',
+      headerKey: 'sites.codeColumn',
+      render: (item) => {
+        const display = formatSiteCodeForDisplay(item.siteCode);
+        return display ? (
+          <code className="font-mono text-xs tracking-wider text-text-secondary">{display}</code>
+        ) : (
+          <span className="text-text-muted text-xs">—</span>
+        );
+      },
     },
     {
       key: 'client',

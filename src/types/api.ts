@@ -178,6 +178,13 @@ export interface Company {
   logoURL?: string;
   createdDate?: string;
   updatedDate?: string;
+  /**
+   * Server-generated 6-char Crockford-base32 identifier (e.g. "A1B2C3").
+   * Only present on Sites. Used as manual-entry fallback in alertport-app
+   * when the QR camera is unavailable. Display format: "AP-{siteCode}".
+   * Read-only — never sent in create/update payloads.
+   */
+  siteCode?: string;
 }
 
 export interface CompanyFormData {

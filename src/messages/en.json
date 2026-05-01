@@ -789,7 +789,10 @@
     "updateSuccess": "Site updated successfully",
     "qrTitle": "Site QR Code",
     "qrDownload": "Download",
-    "qrPrint": "Print"
+    "qrPrint": "Print",
+    "manualCodeLabel": "Manual code:",
+    "copyCode": "Copy code",
+    "codeColumn": "Code"
   },
   "trial": {
     "badgeAria": "Trial - {days} days remaining",

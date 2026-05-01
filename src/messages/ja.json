@@ -789,7 +789,10 @@
     "updateSuccess": "拠点を更新しました",
     "qrTitle": "拠点のQRコード",
     "qrDownload": "ダウンロード",
-    "qrPrint": "印刷"
+    "qrPrint": "印刷",
+    "manualCodeLabel": "手動コード：",
+    "copyCode": "コードをコピー",
+    "codeColumn": "コード"
   },
   "trial": {
     "badgeAria": "トライアル - 残り{days}日",

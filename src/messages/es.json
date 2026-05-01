@@ -789,7 +789,10 @@
     "updateSuccess": "Puesto actualizado",
     "qrTitle": "QR Code del puesto",
     "qrDownload": "Descargar",
-    "qrPrint": "Imprimir"
+    "qrPrint": "Imprimir",
+    "manualCodeLabel": "Código manual:",
+    "copyCode": "Copiar código",
+    "codeColumn": "Código"
   },
   "trial": {
     "badgeAria": "Prueba - {days} días restantes",
