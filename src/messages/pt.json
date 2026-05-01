@@ -792,7 +792,8 @@
     "qrPrint": "Imprimir",
     "manualCodeLabel": "Código manual:",
     "copyCode": "Copiar código",
-    "codeColumn": "Código"
+    "codeColumn": "Código",
+    "codeFieldLabel": "Código do posto (gerado automaticamente)"
   },
   "trial": {
     "badgeAria": "Teste gratuito - {days} dias restantes",

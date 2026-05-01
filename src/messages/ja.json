@@ -792,7 +792,8 @@
     "qrPrint": "印刷",
     "manualCodeLabel": "手動コード：",
     "copyCode": "コードをコピー",
-    "codeColumn": "コード"
+    "codeColumn": "コード",
+    "codeFieldLabel": "拠点コード（自動生成）"
   },
   "trial": {
     "badgeAria": "トライアル - 残り{days}日",

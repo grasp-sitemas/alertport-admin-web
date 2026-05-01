@@ -792,7 +792,8 @@
     "qrPrint": "打印",
     "manualCodeLabel": "手动代码：",
     "copyCode": "复制代码",
-    "codeColumn": "代码"
+    "codeColumn": "代码",
+    "codeFieldLabel": "站点代码（自动生成）"
   },
   "trial": {
     "badgeAria": "试用期 - 剩余 {days} 天",

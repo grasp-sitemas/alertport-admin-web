@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useWatch } from 'react-hook-form';
 import { useAppForm } from '@/hooks/use-app-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Search } from 'lucide-react';
+import { Check, Copy, Lock, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -38,6 +38,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 import { sanitizeFormPayload } from '@/lib/sanitize-payload';
 import { maskPhoneBR } from '@/lib/br-masks';
+import { copySiteCodeToClipboard, formatSiteCodeForDisplay } from '@/lib/site-code';
 import type { Company } from '@/types/api';
 
 interface Props {
@@ -116,6 +117,16 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
 
   const cep = useCepLookup(setValue, 'address');
 
+  const [codeCopied, setCodeCopied] = useState(false);
+  const codeDisplay = formatSiteCodeForDisplay(site?.siteCode);
+  async function handleCopyCode() {
+    const ok = await copySiteCodeToClipboard(site?.siteCode);
+    if (ok) {
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 1500);
+    }
+  }
+
   const saveMutation = useMutation({
     mutationFn: async (data: SiteFormValues) => {
       const payload = { ...data, type: 'SITE' as const };
@@ -182,6 +193,25 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
           onSubmit={handleSubmit((data) => saveMutation.mutate(data))}
           className="space-y-4"
         >
+          {isEdit && codeDisplay && (
+            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-bg-tertiary/60 px-4 py-3">
+              <Lock className="h-4 w-4 text-text-muted shrink-0" aria-hidden="true" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-text-muted">{t('sites.codeFieldLabel')}</p>
+                <p className="font-mono text-sm tracking-widest text-white">{codeDisplay}</p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleCopyCode}
+                aria-label={t('sites.copyCode')}
+              >
+                {codeCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {canSelectAccount && (
               <div className="space-y-2 sm:col-span-2">

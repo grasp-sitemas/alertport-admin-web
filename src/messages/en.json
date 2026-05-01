@@ -792,7 +792,8 @@
     "qrPrint": "Print",
     "manualCodeLabel": "Manual code:",
     "copyCode": "Copy code",
-    "codeColumn": "Code"
+    "codeColumn": "Code",
+    "codeFieldLabel": "Site code (auto-generated)"
   },
   "trial": {
     "badgeAria": "Trial - {days} days remaining",
