@@ -14,13 +14,10 @@ import {
   defaultReportRange,
   validateReportFilter,
 } from '@/features/reports/report-filter-validator';
-import type {
-  DeviceEventReport,
-  DeviceEventRow,
-  ReportFilterParams,
-} from '@/types/reports';
+import type { DeviceEventReport, DeviceEventRow, ReportFilterParams } from '@/types/reports';
 import type { ExportPayload } from '@/features/reports/report-export';
 import { useAuth } from '@/hooks/use-auth';
+import { useClientPagination } from '@/hooks/use-client-pagination';
 import { isSuperAdminMaster } from '@/config/roles';
 
 /**
@@ -105,6 +102,7 @@ export function DeviceEventReportBody({ variant }: Props) {
   const data = query.data;
   const summary = data?.summary;
   const rows = useMemo<DeviceEventRow[]>(() => data?.results ?? [], [data]);
+  const pagination = useClientPagination(rows, { initialPageSize: 20 });
 
   const eventCategoryLabel = useCallback(
     (row: DeviceEventRow) => {
@@ -243,7 +241,7 @@ export function DeviceEventReportBody({ variant }: Props) {
       isEmpty={!query.isLoading && !query.isError && (data?.totalCount ?? 0) === 0}
       footer={
         data ? (
-          <p className="text-xs text-text-muted text-right">
+          <p className="text-text-muted text-right text-xs">
             {t('reports.meta.generatedAt', {
               when: new Date(data.generatedAt).toLocaleString(),
               ms: data.durationMs,
@@ -279,14 +277,14 @@ export function DeviceEventReportBody({ variant }: Props) {
         <CardContent>
           <DataTable
             columns={columns}
-            data={rows}
+            data={pagination.paged}
             isLoading={query.isLoading}
-            page={1}
-            pageSize={rows.length || 50}
-            totalCount={data?.totalCount ?? 0}
-            totalPages={1}
-            onPageChange={() => {}}
-            onPageSizeChange={() => {}}
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            totalCount={pagination.totalCount}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
             getRowKey={(r) => r._id}
           />
         </CardContent>

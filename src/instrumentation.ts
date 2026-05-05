@@ -22,14 +22,20 @@ const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN ?? '';
 // `NEXT_PUBLIC_APP_MODE`, which drives unrelated feature flags.
 // Falls back to APP_MODE so local dev keeps working.
 const environment =
-  process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ||
-  process.env.NEXT_PUBLIC_APP_MODE ||
-  'development';
+  process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT || process.env.NEXT_PUBLIC_APP_MODE || 'development';
 const isProduction = process.env.NEXT_PUBLIC_IS_PRODUCTION === 'true';
 
 export async function register() {
   if (!dsn) return;
 
+  const scrubAuthHeaders = (headers: Record<string, unknown> | undefined) => {
+    if (!headers || typeof headers !== 'object') return;
+    for (const k of Object.keys(headers)) {
+      if (k.toLowerCase() === 'authorization' || k.toLowerCase() === 'x-correlation-id') {
+        headers[k] = '[Filtered]';
+      }
+    }
+  };
   const commonOptions = {
     dsn,
     environment,
@@ -39,6 +45,24 @@ export async function register() {
     // The admin panel can surface operator data; never let Sentry
     // capture the entire request body by default.
     sendDefaultPii: false,
+    // AlertPort sends `Authorization: <token>` (no `Bearer`); Sentry's
+    // built-in scrubbing only targets the `Bearer` prefix, so we strip
+    // the header explicitly to keep tokens out of breadcrumbs / events.
+    beforeBreadcrumb(breadcrumb: Sentry.Breadcrumb) {
+      const data = breadcrumb.data as
+        | { request_headers?: Record<string, unknown>; response_headers?: Record<string, unknown> }
+        | undefined;
+      if (data) {
+        scrubAuthHeaders(data.request_headers);
+        scrubAuthHeaders(data.response_headers);
+      }
+      return breadcrumb;
+    },
+    beforeSend(event: Sentry.ErrorEvent) {
+      const req = event.request as { headers?: Record<string, unknown> } | undefined;
+      if (req?.headers) scrubAuthHeaders(req.headers);
+      return event;
+    },
   };
 
   if (process.env.NEXT_RUNTIME === 'nodejs') {

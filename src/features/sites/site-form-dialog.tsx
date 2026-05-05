@@ -63,11 +63,11 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
         account:
           typeof site.account === 'object'
             ? (site.account?._id ?? '')
-            : (site.account as string | undefined) ?? '',
+            : ((site.account as string | undefined) ?? ''),
         client:
           typeof site.client === 'object'
             ? (site.client?._id ?? '')
-            : (site.client as string | undefined) ?? '',
+            : ((site.client as string | undefined) ?? ''),
         primaryPhone: (site.primaryPhone ?? '').replace(/\D/g, ''),
         owner: (site as unknown as { owner?: string }).owner ?? '',
         address: {
@@ -181,7 +181,7 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-3xl max-h-[90vh] overflow-y-auto"
+        className="max-h-[90vh] max-w-3xl overflow-y-auto"
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
@@ -189,15 +189,12 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
           <DialogDescription>{t('sites.siteDetails')}</DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit((data) => saveMutation.mutate(data))}
-          className="space-y-4"
-        >
+        <form onSubmit={handleSubmit((data) => saveMutation.mutate(data))} className="space-y-4">
           {isEdit && codeDisplay && (
-            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-bg-tertiary/60 px-4 py-3">
-              <Lock className="h-4 w-4 text-text-muted shrink-0" aria-hidden="true" />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-text-muted">{t('sites.codeFieldLabel')}</p>
+            <div className="bg-bg-tertiary/60 flex items-center gap-3 rounded-xl border border-white/10 px-4 py-3">
+              <Lock className="text-text-muted h-4 w-4 shrink-0" aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <p className="text-text-muted text-xs">{t('sites.codeFieldLabel')}</p>
                 <p className="font-mono text-sm tracking-widest text-white">{codeDisplay}</p>
               </div>
               <Button
@@ -212,7 +209,7 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {canSelectAccount && (
               <div className="space-y-2 sm:col-span-2">
                 <Label>{t('common.account')}</Label>
@@ -311,14 +308,13 @@ export function SiteFormDialog({ open, onOpenChange, site }: Props) {
                 )}
               />
             </div>
-
           </div>
 
-          <div className="h-px bg-white/10 my-2" />
+          <div className="my-2 h-px bg-white/10" />
 
           <h4 className="text-sm font-semibold text-white">{t('common.address')}</h4>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-2">
               <Label>{t('sites.cep')}</Label>
               <div className="flex gap-2">

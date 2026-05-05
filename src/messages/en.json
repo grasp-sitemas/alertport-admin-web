@@ -133,6 +133,10 @@
     "loginArchivedCompany": "Company archived. Contact support.",
     "loginUnauthorized": "User without permission to access the admin panel.",
     "sessionExpired": "Your session has expired. Please log in again.",
+    "sessionExpiredTitle": "Session expired",
+    "sessionExpiredInactivity": "You were inactive for too long and your session ended for security. Reconnect to continue.",
+    "sessionExpiredUnauthorized": "Your session expired or you no longer have permission. Reconnect to continue.",
+    "sessionExpiredReconnect": "Reconnect",
     "welcomeBack": "Welcome back",
     "recovery": {
       "title": "Recover password",
@@ -561,7 +565,8 @@
     },
     "errors": {
       "missingReference": "Could not identify the schedule or occurrence. Refresh and try again.",
-      "firestorePushFailed": "Saved, but device sync failed. New occurrences may take longer to appear on the app."
+      "firestorePushFailed": "Saved, but device sync failed. New occurrences may take longer to appear on the app.",
+      "scheduleAlreadyOccurred": "This schedule has already occurred. Please select another."
     },
     "editOccurrenceTitle": "Edit occurrence",
     "editOccurrenceDescription": "Adjust just the selected day without changing the series.",
@@ -697,7 +702,8 @@
     "loading": "Loading data...",
     "rowsPerPage": "Rows per page",
     "page": "Page",
-    "of": "of"
+    "of": "of",
+    "sortBy": "Sort by {column}"
   },
   "notifications": {
     "savedSuccessfully": "Saved successfully",
@@ -836,8 +842,10 @@
       "devices": "Devices",
       "sites": "Sites",
       "clients": "Clients",
-      "incidents": "Incidents",
-      "integrations": "Integrations",
+      "sosAlerts": "SOS alerts",
+      "attendances": "Attendance check-ins",
+      "alertSchedules": "Alert occurrence schedules",
+      "recordings": "Active-listening recordings",
       "reportsPerMonth": "Reports / month"
     },
     "featuresList": {
@@ -845,11 +853,12 @@
       "devices": "Devices",
       "sites": "Sites",
       "clients": "Clients",
-      "incidents": "Incidents",
-      "integrations": "Integrations",
+      "sos": "SOS alerts",
+      "attendance": "Attendance control",
+      "alertSchedules": "Alert occurrence schedules",
+      "recordings": "Active-listening recordings",
       "reports_export": "Reports export",
       "monitor_realtime": "Real-time monitor",
-      "chat": "Chat",
       "analytics_advanced": "Advanced analytics"
     }
   },
@@ -1269,6 +1278,9 @@
       "description": "This module is disabled for your company. Contact your administrator to enable access.",
       "backToDashboard": "Back to dashboard"
     },
+    "errorTitle": "Couldn't verify your access",
+    "errorDescription": "Failed to load the module configuration. Access is blocked until the check completes; security comes first.",
+    "errorRetry": "Try again",
     "categories": {
       "operations": "Operations",
       "calls": "Calls",

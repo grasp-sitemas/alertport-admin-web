@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import { RotateCcw } from 'lucide-react';
 import { RoleGuard } from '@/components/shared/role-guard';

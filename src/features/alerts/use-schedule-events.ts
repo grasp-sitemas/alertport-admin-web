@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { alertsService } from '@/services/alerts.service';
 import type { AlertSchedule } from '@/types/api';
@@ -75,10 +75,7 @@ function pickName(row: AlertSchedule): string {
   // (schedule shape / nested appointment) still use `name`. Check
   // every spot it can appear so we never fall through to the generic
   // "Alerta" label when a real name exists.
-  const candidates: unknown[] = [
-    row.name,
-    (row as { title?: unknown }).title,
-  ];
+  const candidates: unknown[] = [row.name, (row as { title?: unknown }).title];
   const nested = (row as { schedule?: unknown }).schedule;
   if (nested && typeof nested === 'object') {
     if ('name' in nested) candidates.push((nested as { name?: unknown }).name);
@@ -86,10 +83,8 @@ function pickName(row: AlertSchedule): string {
   }
   const appointment = (row as { appointment?: unknown }).appointment;
   if (appointment && typeof appointment === 'object') {
-    if ('name' in appointment)
-      candidates.push((appointment as { name?: unknown }).name);
-    if ('title' in appointment)
-      candidates.push((appointment as { title?: unknown }).title);
+    if ('name' in appointment) candidates.push((appointment as { name?: unknown }).name);
+    if ('title' in appointment) candidates.push((appointment as { title?: unknown }).title);
   }
   for (const c of candidates) {
     if (typeof c === 'string' && c.trim()) return c.trim();
@@ -133,11 +128,7 @@ function pickAppointmentId(row: AlertSchedule): string | undefined {
   // The backend appointment-shape row uses the appointment's own _id as
   // the primary key. Schedule-shape rows don't have an appointment - fall
   // back to id / _id to keep React keys stable.
-  return (
-    (row as { appointment?: { _id?: string } }).appointment?._id ??
-    row.id ??
-    row._id
-  );
+  return (row as { appointment?: { _id?: string } }).appointment?._id ?? row.id ?? row._id;
 }
 
 function pickScheduleId(row: AlertSchedule): string | undefined {
@@ -209,12 +200,42 @@ export function useScheduleEvents(filter: ScheduleEventsFilter, enabled = true) 
     staleTime: 30 * 1000,
   });
 
+  // Tick every 30s so an event that crosses the start instant while
+  // the operator stares at the calendar disappears without waiting
+  // for the 30s React Query stale window. Also re-tick whenever the
+  // tab becomes visible (browsers throttle setInterval in background).
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const tick = () => setNowMs(Date.now());
+    const id = window.setInterval(tick, 30_000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') tick();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', tick);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', tick);
+    };
+  }, []);
+
   const events = useMemo<ScheduleCalendarEvent[]>(() => {
     const rows = query.data ?? [];
+    // Hide occurrences whose start instant is already in the past so the
+    // calendar only surfaces actionable (current/future) events.
+    // Comparison uses absolute milliseconds so the result is
+    // timezone-safe: both sides resolve to the same instant regardless of
+    // how the backend serialized the date (UTC `...Z` or local-time
+    // ISO without offset). `nowMs` updates every 30s via the tick above.
     return rows
       .map((row): ScheduleCalendarEvent | null => {
         const start = pickEventStart(row);
         if (!start) return null;
+        const startMs = new Date(start).getTime();
+        if (Number.isNaN(startMs)) return null;
+        if (startMs < nowMs) return null;
         const appointmentId = pickAppointmentId(row);
         const scheduleId = pickScheduleId(row);
         return {
@@ -233,7 +254,7 @@ export function useScheduleEvents(filter: ScheduleEventsFilter, enabled = true) 
         };
       })
       .filter((e): e is ScheduleCalendarEvent => e !== null);
-  }, [query.data]);
+  }, [query.data, nowMs]);
 
   return {
     ...query,

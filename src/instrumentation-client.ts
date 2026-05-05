@@ -14,6 +14,22 @@ import * as Sentry from '@sentry/nextjs';
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN ?? '';
 
+/**
+ * Strip `Authorization` and `x-correlation-id` from any object that may
+ * carry HTTP headers. AlertPort uses `Authorization: <token>` (no
+ * `Bearer` prefix) - Sentry's stock scrubbing pattern targets `Bearer
+ * <token>`, so without this hook the literal token would land in
+ * breadcrumbs and request snapshots verbatim.
+ */
+function scrubAuthHeaders(headers: Record<string, unknown> | undefined) {
+  if (!headers || typeof headers !== 'object') return;
+  for (const k of Object.keys(headers)) {
+    if (k.toLowerCase() === 'authorization' || k.toLowerCase() === 'x-correlation-id') {
+      headers[k] = '[Filtered]';
+    }
+  }
+}
+
 if (dsn) {
   Sentry.init({
     dsn,
@@ -31,7 +47,9 @@ if (dsn) {
     // but ON when an error fires so we can reconstruct the last ~30s
     // and see what the operator clicked before the crash.
     replaysSessionSampleRate: 0.0,
-    replaysOnErrorSampleRate: 1.0,
+    // Capped at 0.5 (was 1.0) so a recurring crash loop can't burn the
+    // Sentry replay quota in one day. Adjust per quota budget.
+    replaysOnErrorSampleRate: 0.5,
     integrations: [
       Sentry.replayIntegration({
         // Mask everything: operator names, client/site names, free-
@@ -43,6 +61,25 @@ if (dsn) {
       }),
     ],
     sendDefaultPii: false,
+    beforeBreadcrumb(breadcrumb) {
+      // HTTP/fetch breadcrumbs carry `request_headers` / `response_headers`
+      // when the SDK's HTTP integration is active. Strip our auth header
+      // there before the breadcrumb is queued.
+      const data = breadcrumb.data as
+        | { request_headers?: Record<string, unknown>; response_headers?: Record<string, unknown> }
+        | undefined;
+      if (data) {
+        scrubAuthHeaders(data.request_headers);
+        scrubAuthHeaders(data.response_headers);
+      }
+      return breadcrumb;
+    },
+    beforeSend(event) {
+      // Final pass: any captured request snapshot can also carry headers.
+      const req = event.request as { headers?: Record<string, unknown> } | undefined;
+      if (req?.headers) scrubAuthHeaders(req.headers);
+      return event;
+    },
   });
 }
 

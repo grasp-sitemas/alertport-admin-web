@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import { Plug, PowerOff, Power } from 'lucide-react';
 import { RoleGuard } from '@/components/shared/role-guard';

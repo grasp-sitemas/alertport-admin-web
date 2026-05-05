@@ -133,6 +133,10 @@
     "loginArchivedCompany": "アーカイブ済み企業。サポートに連絡してください。",
     "loginUnauthorized": "管理パネルへのアクセス権がありません。",
     "sessionExpired": "セッションが期限切れです。再度ログインしてください。",
+    "sessionExpiredTitle": "セッションの有効期限が切れました",
+    "sessionExpiredInactivity": "一定時間操作がなかったため、セキュリティのためセッションを終了しました。再接続してください。",
+    "sessionExpiredUnauthorized": "セッションの有効期限が切れたか、権限がなくなりました。再接続してください。",
+    "sessionExpiredReconnect": "再接続",
     "welcomeBack": "おかえりなさい",
     "recovery": {
       "title": "パスワードを回復",
@@ -561,7 +565,8 @@
     },
     "errors": {
       "missingReference": "スケジュールまたは発生を識別できませんでした。再読み込みしてもう一度お試しください。",
-      "firestorePushFailed": "保存されましたが、デバイスとの同期に失敗しました。新しい発生がアプリに表示されるまで時間がかかる場合があります。"
+      "firestorePushFailed": "保存されましたが、デバイスとの同期に失敗しました。新しい発生がアプリに表示されるまで時間がかかる場合があります。",
+      "scheduleAlreadyOccurred": "このスケジュールはすでに発生しました。別のものを選択してください。"
     },
     "editOccurrenceTitle": "発生を編集",
     "editOccurrenceDescription": "シリーズを変更せずに選択した日のみを調整します。",
@@ -697,7 +702,8 @@
     "loading": "データを読み込み中...",
     "rowsPerPage": "ページあたりの行数",
     "page": "ページ",
-    "of": "/"
+    "of": "/",
+    "sortBy": "{column}で並べ替え"
   },
   "notifications": {
     "savedSuccessfully": "正常に保存されました",
@@ -836,8 +842,10 @@
       "devices": "デバイス",
       "sites": "拠点",
       "clients": "クライアント",
-      "incidents": "インシデント",
-      "integrations": "統合",
+      "sosAlerts": "SOS送信",
+      "attendances": "出退勤管理",
+      "alertSchedules": "アラート発生スケジュール",
+      "recordings": "アクティブリスニング録音",
       "reportsPerMonth": "レポート / 月"
     },
     "featuresList": {
@@ -845,11 +853,12 @@
       "devices": "デバイス",
       "sites": "拠点",
       "clients": "クライアント",
-      "incidents": "インシデント",
-      "integrations": "統合",
+      "sos": "SOS送信",
+      "attendance": "出退勤管理",
+      "alertSchedules": "アラート発生スケジュール",
+      "recordings": "アクティブリスニング録音",
       "reports_export": "レポートのエクスポート",
       "monitor_realtime": "リアルタイム監視",
-      "chat": "チャット",
       "analytics_advanced": "高度な分析"
     }
   },
@@ -1269,6 +1278,9 @@
       "description": "このモジュールは貴社で無効化されています。管理者に有効化を依頼してください。",
       "backToDashboard": "ダッシュボードへ戻る"
     },
+    "errorTitle": "アクセスを確認できませんでした",
+    "errorDescription": "モジュール設定の取得に失敗しました。安全のため、確認が完了するまでアクセスはブロックされます。",
+    "errorRetry": "再試行",
     "categories": {
       "operations": "運用",
       "calls": "通話",

@@ -255,6 +255,24 @@ Tokens alinhados ao site institucional https://alertport.vercel.app:
 2. Adicionar método no service correspondente em `src/services/`
 3. Criar hook TanStack Query na feature (ex: `src/features/alerts/use-occurrences.ts`)
 
+## Segredos locais (.env.local)
+
+`.env.local` é gitignorado por padrão, **mas** permanece em texto
+claro no laptop do dev. Boas práticas:
+
+- **Nunca** subir backup de `.env.local` para iCloud, Dropbox, Google
+  Drive ou pasta com sync compartilhado.
+- Use `vercel env pull .env.local` para sincronizar com a Vercel sempre
+  que precisar das chaves; isso evita ter `SENTRY_AUTH_TOKEN` /
+  `VERCEL_OIDC_TOKEN` parados em disco por meses.
+- Se vazar (commit acidental, compartilhamento de pasta), **rotacione**:
+  - `SENTRY_AUTH_TOKEN` → `https://sentry.io/settings/account/api/auth-tokens/`
+  - `VERCEL_OIDC_TOKEN` → emitido automaticamente; rotacione recriando o
+    link do projeto Vercel (`vercel link --project ...`).
+- `.env.hml` e `.env.production` versionados (templates apenas) **não
+  devem ganhar segredos privados.** Veja `.gitignore` — o allowlist
+  foi comentado para forçar adoção do Vercel Env como fonte de verdade.
+
 ## Documentação adicional
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — decisões técnicas e diagramas

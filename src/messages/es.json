@@ -133,6 +133,10 @@
     "loginArchivedCompany": "Empresa archivada. Contacte soporte.",
     "loginUnauthorized": "Usuario sin permiso para acceder al panel administrativo.",
     "sessionExpired": "Tu sesión ha expirado. Inicia sesión nuevamente.",
+    "sessionExpiredTitle": "Sesión expirada",
+    "sessionExpiredInactivity": "Estuviste inactivo por demasiado tiempo y tu sesión se cerró por seguridad. Reconéctate para continuar.",
+    "sessionExpiredUnauthorized": "Tu sesión expiró o ya no tienes permiso. Reconéctate para continuar.",
+    "sessionExpiredReconnect": "Reconectar",
     "welcomeBack": "Bienvenido de nuevo",
     "recovery": {
       "title": "Recuperar contraseña",
@@ -561,7 +565,8 @@
     },
     "errors": {
       "missingReference": "No se pudo identificar la agenda u ocurrencia. Recargue e inténtelo de nuevo.",
-      "firestorePushFailed": "Guardado, pero la sincronización con el dispositivo falló. Las nuevas ocurrencias pueden tardar en aparecer en la app."
+      "firestorePushFailed": "Guardado, pero la sincronización con el dispositivo falló. Las nuevas ocurrencias pueden tardar en aparecer en la app.",
+      "scheduleAlreadyOccurred": "Esta agenda ya ocurrió. Por favor seleccione otra."
     },
     "editOccurrenceTitle": "Editar ocurrencia",
     "editOccurrenceDescription": "Ajuste solo el día seleccionado sin cambiar la serie.",
@@ -697,7 +702,8 @@
     "loading": "Cargando datos...",
     "rowsPerPage": "Filas por página",
     "page": "Página",
-    "of": "de"
+    "of": "de",
+    "sortBy": "Ordenar por {column}"
   },
   "notifications": {
     "savedSuccessfully": "Guardado con éxito",
@@ -836,8 +842,10 @@
       "devices": "Dispositivos",
       "sites": "Puestos",
       "clients": "Clientes",
-      "incidents": "Incidentes",
-      "integrations": "Integraciones",
+      "sosAlerts": "Envío de SOS",
+      "attendances": "Control de presencia",
+      "alertSchedules": "Programación de alertas de ocurrencia",
+      "recordings": "Grabaciones de escucha activa",
       "reportsPerMonth": "Informes / mes"
     },
     "featuresList": {
@@ -845,11 +853,12 @@
       "devices": "Dispositivos",
       "sites": "Puestos",
       "clients": "Clientes",
-      "incidents": "Incidentes",
-      "integrations": "Integraciones",
+      "sos": "Envío de SOS",
+      "attendance": "Control de presencia",
+      "alertSchedules": "Programación de alertas de ocurrencia",
+      "recordings": "Grabaciones de escucha activa",
       "reports_export": "Exportación de informes",
       "monitor_realtime": "Monitor en tiempo real",
-      "chat": "Chat",
       "analytics_advanced": "Análisis avanzados"
     }
   },
@@ -1269,6 +1278,9 @@
       "description": "Este módulo está desactivado para tu empresa. Contacta al administrador para habilitar el acceso.",
       "backToDashboard": "Volver al panel"
     },
+    "errorTitle": "No se pudo verificar tu acceso",
+    "errorDescription": "Falló la consulta de configuración de módulos. Por seguridad, el acceso queda bloqueado hasta completar la verificación.",
+    "errorRetry": "Intentar nuevamente",
     "categories": {
       "operations": "Operación",
       "calls": "Llamadas",

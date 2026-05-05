@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -9,6 +10,7 @@ import { DataTable, type Column } from '@/components/shared/data-table';
 import { RoleGuard } from '@/components/shared/role-guard';
 import { ModuleGuard } from '@/components/shared/module-guard';
 import { useSosReport } from '@/features/reports/use-reports';
+import { useClientPagination } from '@/hooks/use-client-pagination';
 import { ReportFilterPanel, type ReportFilterValue } from '@/features/reports/report-filter-panel';
 import { ReportExportButton } from '@/features/reports/report-export-button';
 import { ReportPageLayout } from '@/features/reports/report-page-layout';
@@ -19,7 +21,10 @@ import {
   formatPercent,
   formatSeconds,
 } from '@/features/reports/report-kpi';
-import { defaultReportRange, validateReportFilter } from '@/features/reports/report-filter-validator';
+import {
+  defaultReportRange,
+  validateReportFilter,
+} from '@/features/reports/report-filter-validator';
 import { useAuth } from '@/hooks/use-auth';
 import { isSuperAdminMaster } from '@/config/roles';
 import type { ReportFilterParams, SosRow } from '@/types/reports';
@@ -76,6 +81,7 @@ function SosPageBody() {
   const data = query.data;
   const summary = data?.summary;
   const rows = useMemo<SosRow[]>(() => data?.results ?? [], [data]);
+  const pagination = useClientPagination(rows, { initialPageSize: 20 });
 
   // Column order (user-facing requirement):
   //   1. Date, 2. Conta (SAM-only), 3. Cliente, 4. Posto,
@@ -153,7 +159,10 @@ function SosPageBody() {
         { label: t('reports.sos.kpi.attended'), value: formatNumber(summary.attended) },
         { label: t('reports.sos.kpi.unattended'), value: formatNumber(summary.unattended) },
         { label: t('reports.sos.kpi.attendedRate'), value: formatPercent(summary.attendedRate) },
-        { label: t('reports.sos.kpi.avgResponseTime'), value: formatSeconds(summary.avgResponseTimeSec) },
+        {
+          label: t('reports.sos.kpi.avgResponseTime'),
+          value: formatSeconds(summary.avgResponseTimeSec),
+        },
       ],
       columns: [
         { header: t('reports.sos.date'), value: (r) => new Date(r.date) },
@@ -175,8 +184,7 @@ function SosPageBody() {
         {
           header: t('reports.sos.attendanceStatus'),
           value: (r) =>
-            r.attendance?.status ??
-            (r.attendance?.isAttendance ? 'IN_PROGRESS' : 'UNATTENDED'),
+            r.attendance?.status ?? (r.attendance?.isAttendance ? 'IN_PROGRESS' : 'UNATTENDED'),
         },
         {
           header: t('reports.sos.responseTime'),
@@ -189,7 +197,15 @@ function SosPageBody() {
       ],
       rows,
     };
-  }, [data?.generatedAt, filterValue.endDate, filterValue.startDate, rows, showAccountColumn, summary, t]);
+  }, [
+    data?.generatedAt,
+    filterValue.endDate,
+    filterValue.startDate,
+    rows,
+    showAccountColumn,
+    summary,
+    t,
+  ]);
 
   return (
     <ReportPageLayout
@@ -217,7 +233,7 @@ function SosPageBody() {
       isEmpty={!query.isLoading && !query.isError && (data?.totalCount ?? 0) === 0}
       footer={
         data ? (
-          <p className="text-xs text-text-muted text-right">
+          <p className="text-text-muted text-right text-xs">
             {t('reports.meta.generatedAt', {
               when: new Date(data.generatedAt).toLocaleString(),
               ms: data.durationMs,
@@ -267,14 +283,14 @@ function SosPageBody() {
         <CardContent>
           <DataTable
             columns={columns}
-            data={rows}
+            data={pagination.paged}
             isLoading={query.isLoading}
-            page={1}
-            pageSize={rows.length || 50}
-            totalCount={data?.totalCount ?? 0}
-            totalPages={1}
-            onPageChange={() => {}}
-            onPageSizeChange={() => {}}
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            totalCount={pagination.totalCount}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
             getRowKey={(r) => r._id}
           />
         </CardContent>

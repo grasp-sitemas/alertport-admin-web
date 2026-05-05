@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -9,6 +10,7 @@ import { DataTable, type Column } from '@/components/shared/data-table';
 import { RoleGuard } from '@/components/shared/role-guard';
 import { ModuleGuard } from '@/components/shared/module-guard';
 import { useAdherenceReport } from '@/features/reports/use-reports';
+import { useClientPagination } from '@/hooks/use-client-pagination';
 import { ReportFilterPanel, type ReportFilterValue } from '@/features/reports/report-filter-panel';
 import { ReportExportButton } from '@/features/reports/report-export-button';
 import { ReportPageLayout } from '@/features/reports/report-page-layout';
@@ -19,7 +21,10 @@ import {
   formatPercent,
   formatSeconds,
 } from '@/features/reports/report-kpi';
-import { defaultReportRange, validateReportFilter } from '@/features/reports/report-filter-validator';
+import {
+  defaultReportRange,
+  validateReportFilter,
+} from '@/features/reports/report-filter-validator';
 import { useAuth } from '@/hooks/use-auth';
 import { isSuperAdminMaster } from '@/config/roles';
 import type { AdherenceRow, ReportFilterParams } from '@/types/reports';
@@ -80,6 +85,7 @@ function AdherencePageBody() {
   const data = query.data;
   const summary = data?.summary;
   const rows = useMemo<AdherenceRow[]>(() => data?.results ?? [], [data]);
+  const pagination = useClientPagination(rows, { initialPageSize: 20 });
 
   // Column order (user-facing requirement):
   //   1. scheduledAt, 2. status, 3. respondedAt,
@@ -137,26 +143,46 @@ function AdherencePageBody() {
       subtitle: `${filterValue.startDate} - ${filterValue.endDate}`,
       generatedAt: data?.generatedAt || new Date().toISOString(),
       kpis: [
-        { label: t('reports.adherence.kpi.adherenceRate'), value: formatPercent(summary.adherenceRate) },
+        {
+          label: t('reports.adherence.kpi.adherenceRate'),
+          value: formatPercent(summary.adherenceRate),
+        },
         { label: t('reports.adherence.kpi.attended'), value: formatNumber(summary.attended) },
         { label: t('reports.adherence.kpi.missed'), value: formatNumber(summary.missed) },
         { label: t('reports.adherence.kpi.total'), value: formatNumber(summary.total) },
-        { label: t('reports.adherence.kpi.avgResponseTime'), value: formatSeconds(summary.avgResponseTimeSec) },
+        {
+          label: t('reports.adherence.kpi.avgResponseTime'),
+          value: formatSeconds(summary.avgResponseTimeSec),
+        },
       ],
       columns: [
         { header: t('reports.adherence.scheduledAt'), value: (r) => new Date(r.scheduledAt) },
         { header: t('reports.adherence.status'), value: (r) => r.status },
-        { header: t('reports.adherence.respondedAt'), value: (r) => (r.respondedAt ? new Date(r.respondedAt) : '') },
+        {
+          header: t('reports.adherence.respondedAt'),
+          value: (r) => (r.respondedAt ? new Date(r.respondedAt) : ''),
+        },
         { header: t('common.client'), value: (r) => r.client?.name ?? '' },
         ...(showAccountColumn
           ? [{ header: t('common.account'), value: (r: AdherenceRow) => r.account?.name ?? '' }]
           : []),
         { header: t('common.site'), value: (r) => r.site?.name ?? '' },
-        { header: t('reports.adherence.responseTime'), value: (r) => (r.responseTimeSec != null ? Math.round(r.responseTimeSec) : '') },
+        {
+          header: t('reports.adherence.responseTime'),
+          value: (r) => (r.responseTimeSec != null ? Math.round(r.responseTimeSec) : ''),
+        },
       ],
       rows,
     };
-  }, [data?.generatedAt, filterValue.endDate, filterValue.startDate, rows, showAccountColumn, summary, t]);
+  }, [
+    data?.generatedAt,
+    filterValue.endDate,
+    filterValue.startDate,
+    rows,
+    showAccountColumn,
+    summary,
+    t,
+  ]);
 
   return (
     <ReportPageLayout
@@ -171,7 +197,12 @@ function AdherencePageBody() {
           isLoading={query.isLoading}
         />
       }
-      actions={<ReportExportButton getPayload={getExportPayload} disabled={query.isLoading || rows.length === 0} />}
+      actions={
+        <ReportExportButton
+          getPayload={getExportPayload}
+          disabled={query.isLoading || rows.length === 0}
+        />
+      }
       isLoading={query.isLoading}
       isError={query.isError}
       onRetry={() => query.refetch()}
@@ -179,7 +210,7 @@ function AdherencePageBody() {
       isEmpty={!query.isLoading && !query.isError && (data?.totalCount ?? 0) === 0}
       footer={
         data ? (
-          <p className="text-xs text-text-muted text-right">
+          <p className="text-text-muted text-right text-xs">
             {t('reports.meta.generatedAt', {
               when: new Date(data.generatedAt).toLocaleString(),
               ms: data.durationMs,
@@ -230,14 +261,14 @@ function AdherencePageBody() {
         <CardContent>
           <DataTable
             columns={columns}
-            data={rows}
+            data={pagination.paged}
             isLoading={query.isLoading}
-            page={1}
-            pageSize={rows.length || 50}
-            totalCount={data?.totalCount ?? 0}
-            totalPages={1}
-            onPageChange={() => {}}
-            onPageSizeChange={() => {}}
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            totalCount={pagination.totalCount}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
             getRowKey={(r) => r._id}
           />
         </CardContent>
@@ -249,6 +280,12 @@ function AdherencePageBody() {
 function AdherenceStatusBadge({ status }: { status: AdherenceRow['status'] }) {
   const t = useTranslations();
   const variant: 'success' | 'danger' | 'warning' | 'info' =
-    status === 'RESPONDED' ? 'success' : status === 'MISSED' ? 'danger' : status === 'EXPIRED' ? 'warning' : 'info';
+    status === 'RESPONDED'
+      ? 'success'
+      : status === 'MISSED'
+        ? 'danger'
+        : status === 'EXPIRED'
+          ? 'warning'
+          : 'info';
   return <Badge variant={variant}>{t(`reports.adherence.statusValue.${status}`)}</Badge>;
 }

@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -10,6 +11,7 @@ import { DataTable, type Column } from '@/components/shared/data-table';
 import { RoleGuard } from '@/components/shared/role-guard';
 import { ModuleGuard } from '@/components/shared/module-guard';
 import { useSlaReport } from '@/features/reports/use-reports';
+import { useClientPagination } from '@/hooks/use-client-pagination';
 import { ReportFilterPanel, type ReportFilterValue } from '@/features/reports/report-filter-panel';
 import { ReportExportButton } from '@/features/reports/report-export-button';
 import { ReportPageLayout } from '@/features/reports/report-page-layout';
@@ -20,7 +22,10 @@ import {
   formatPercent,
   formatSeconds,
 } from '@/features/reports/report-kpi';
-import { defaultReportRange, validateReportFilter } from '@/features/reports/report-filter-validator';
+import {
+  defaultReportRange,
+  validateReportFilter,
+} from '@/features/reports/report-filter-validator';
 import { useAuth } from '@/hooks/use-auth';
 import { isSuperAdminMaster } from '@/config/roles';
 import type { ReportFilterParams, SlaRow } from '@/types/reports';
@@ -72,7 +77,10 @@ function SlaPageBody() {
       ...(filterValue.hierarchy.account ? { account: filterValue.hierarchy.account } : {}),
       ...(filterValue.hierarchy.client ? { client: filterValue.hierarchy.client } : {}),
       ...(filterValue.hierarchy.site ? { site: filterValue.hierarchy.site } : {}),
-      slaThresholdSec: Math.max(1, Math.floor(Number(slaThresholdSec) || DEFAULT_SLA_THRESHOLD_SEC)),
+      slaThresholdSec: Math.max(
+        1,
+        Math.floor(Number(slaThresholdSec) || DEFAULT_SLA_THRESHOLD_SEC),
+      ),
     });
     void query.refetch();
   }, [filterValue, slaThresholdSec, query]);
@@ -86,6 +94,7 @@ function SlaPageBody() {
   const data = query.data;
   const summary = data?.summary;
   const rows = useMemo<SlaRow[]>(() => data?.results ?? [], [data]);
+  const pagination = useClientPagination(rows, { initialPageSize: 20 });
   const operators = useMemo(() => data?.operators ?? [], [data]);
 
   // Column order (user-facing requirement):
@@ -154,10 +163,22 @@ function SlaPageBody() {
       kpis: [
         { label: t('reports.sla.kpi.compliance'), value: formatPercent(summary.slaCompliance) },
         { label: t('reports.sla.kpi.threshold'), value: formatSeconds(summary.slaThresholdSec) },
-        { label: t('reports.sla.kpi.avgResponse'), value: formatSeconds(summary.avgResponseTimeSec) },
-        { label: t('reports.sla.kpi.p50Response'), value: formatSeconds(summary.p50ResponseTimeSec) },
-        { label: t('reports.sla.kpi.p95Response'), value: formatSeconds(summary.p95ResponseTimeSec) },
-        { label: t('reports.sla.kpi.avgResolution'), value: formatSeconds(summary.avgResolutionTimeSec) },
+        {
+          label: t('reports.sla.kpi.avgResponse'),
+          value: formatSeconds(summary.avgResponseTimeSec),
+        },
+        {
+          label: t('reports.sla.kpi.p50Response'),
+          value: formatSeconds(summary.p50ResponseTimeSec),
+        },
+        {
+          label: t('reports.sla.kpi.p95Response'),
+          value: formatSeconds(summary.p95ResponseTimeSec),
+        },
+        {
+          label: t('reports.sla.kpi.avgResolution'),
+          value: formatSeconds(summary.avgResolutionTimeSec),
+        },
         { label: t('reports.sla.kpi.total'), value: formatNumber(summary.total) },
       ],
       columns: [
@@ -180,11 +201,22 @@ function SlaPageBody() {
           header: t('reports.sla.resolutionTime'),
           value: (r) => (r.resolutionTimeSec != null ? Math.round(r.resolutionTimeSec) : ''),
         },
-        { header: t('reports.sla.attendanceStatus'), value: (r) => translateAttendanceStatus(t, r) },
+        {
+          header: t('reports.sla.attendanceStatus'),
+          value: (r) => translateAttendanceStatus(t, r),
+        },
       ],
       rows,
     };
-  }, [data?.generatedAt, filterValue.endDate, filterValue.startDate, rows, showAccountColumn, summary, t]);
+  }, [
+    data?.generatedAt,
+    filterValue.endDate,
+    filterValue.startDate,
+    rows,
+    showAccountColumn,
+    summary,
+    t,
+  ]);
 
   return (
     <ReportPageLayout
@@ -201,7 +233,7 @@ function SlaPageBody() {
             <div>
               <label
                 htmlFor="sla-threshold"
-                className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block"
+                className="text-text-secondary mb-1 block text-[10px] font-semibold tracking-wider uppercase"
                 title={t('reports.sla.thresholdHint')}
               >
                 {t('reports.sla.thresholdLabel')}
@@ -234,7 +266,7 @@ function SlaPageBody() {
       isEmpty={!query.isLoading && !query.isError && (data?.totalCount ?? 0) === 0}
       footer={
         data ? (
-          <p className="text-xs text-text-muted text-right">
+          <p className="text-text-muted text-right text-xs">
             {t('reports.meta.generatedAt', {
               when: new Date(data.generatedAt).toLocaleString(),
               ms: data.durationMs,
@@ -301,7 +333,7 @@ function SlaPageBody() {
             <CardTitle>{t('reports.sla.operatorBreakdown')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               {operators.map((op) => {
                 const name = op.operator
                   ? `${op.operator.firstName ?? ''} ${op.operator.lastName ?? ''}`.trim()
@@ -311,8 +343,8 @@ function SlaPageBody() {
                     key={op._id}
                     className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"
                   >
-                    <p className="text-sm font-medium text-white truncate">{name || '-'}</p>
-                    <p className="text-xs text-text-muted mt-0.5">
+                    <p className="truncate text-sm font-medium text-white">{name || '-'}</p>
+                    <p className="text-text-muted mt-0.5 text-xs">
                       {t('reports.sla.operatorAttendances', { count: op.count })} ·{' '}
                       {t('reports.sla.operatorAvg', {
                         avg: formatSeconds(op.avgResponseTimeSec),
@@ -333,14 +365,14 @@ function SlaPageBody() {
         <CardContent>
           <DataTable
             columns={columns}
-            data={rows}
+            data={pagination.paged}
             isLoading={query.isLoading}
-            page={1}
-            pageSize={rows.length || 50}
-            totalCount={data?.totalCount ?? 0}
-            totalPages={1}
-            onPageChange={() => {}}
-            onPageSizeChange={() => {}}
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            totalCount={pagination.totalCount}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
             getRowKey={(r) => r._id}
           />
         </CardContent>
@@ -368,10 +400,7 @@ function AttendanceStatusBadge({ row }: { row: SlaRow }) {
 // Plain-text translation used by the export payload (XLSX/CSV/PDF) — the
 // exporter can't render JSX, so we mirror the badge's branching as a
 // simple string lookup against the same i18n keys.
-function translateAttendanceStatus(
-  t: ReturnType<typeof useTranslations>,
-  row: SlaRow,
-): string {
+function translateAttendanceStatus(t: ReturnType<typeof useTranslations>, row: SlaRow): string {
   const status = row.attendance?.status;
   if (status === 'CLOSED') return t('reports.sla.statusValue.CLOSED');
   if (status === 'IN_PROGRESS') return t('reports.sla.statusValue.IN_PROGRESS');

@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -14,7 +15,10 @@ import { StatusBadge } from '@/components/shared/status-badge';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { RoleGuard } from '@/components/shared/role-guard';
 import { ModuleGuard } from '@/components/shared/module-guard';
-import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
+import {
+  HierarchyFilters,
+  type HierarchyFiltersValue,
+} from '@/components/shared/hierarchy-filters';
 import { SiteFormDialog } from '@/features/sites/site-form-dialog';
 import { SiteQrDialog } from '@/features/sites/site-qr-dialog';
 import { companyService } from '@/services/company.service';
@@ -78,7 +82,7 @@ export default function SitesPage() {
       render: (item) => {
         const display = formatSiteCodeForDisplay(item.siteCode);
         return display ? (
-          <code className="font-mono text-xs tracking-wider text-text-secondary">{display}</code>
+          <code className="text-text-secondary font-mono text-xs tracking-wider">{display}</code>
         ) : (
           <span className="text-text-muted text-xs">—</span>
         );
@@ -97,7 +101,7 @@ export default function SitesPage() {
         if (!a) return '-';
         const parts = [a.address, a.number, a.neighborhood, a.city, a.state].filter(Boolean);
         return parts.length > 0 ? (
-          <span className="inline-flex items-center gap-1 text-text-secondary">
+          <span className="text-text-secondary inline-flex items-center gap-1">
             <MapPin className="h-3 w-3" />
             {parts.join(', ')}
           </span>
@@ -164,85 +168,83 @@ export default function SitesPage() {
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER']}>
       <ModuleGuard moduleKey="SITES">
-      <div className="space-y-6">
-        <PageHeader
-          title={t('sites.title')}
-          action={
-            <GatedCreateButton
-              resource="sites"
-              data-tour="page-sites-create"
-              onClick={() => {
-                setEditing(undefined);
-                setFormOpen(true);
-              }}
-            >
-              <Plus className="h-4 w-4" />
-              {t('sites.createSite')}
-            </GatedCreateButton>
-          }
-        />
+        <div className="space-y-6">
+          <PageHeader
+            title={t('sites.title')}
+            action={
+              <GatedCreateButton
+                resource="sites"
+                data-tour="page-sites-create"
+                onClick={() => {
+                  setEditing(undefined);
+                  setFormOpen(true);
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                {t('sites.createSite')}
+              </GatedCreateButton>
+            }
+          />
 
-        <FilterPanel
-          extras={
-            <HierarchyFilters value={hierarchy} onChange={setHierarchy} showSite={false} />
-          }
-          fields={[
-            { key: 'name', labelKey: 'common.name', type: 'text' },
-            {
-              key: 'status',
-              labelKey: 'common.status',
-              type: 'select',
-              options: [
-                { value: 'ACTIVE', label: t('common.active') },
-                { value: 'ARCHIVED', label: t('common.archived') },
-              ],
-            },
-          ]}
-          values={filters}
-          onChange={setFilter}
-          onSearch={() => {
-            pagination.setPage(1);
-            setActiveFilters(filters);
-            setActiveHierarchy(hierarchy);
-            refetch();
-          }}
-          onClear={() => {
-            clearFilters();
-            setActiveFilters({ name: '', status: 'ACTIVE' });
-            setHierarchy({});
-            setActiveHierarchy({});
-            pagination.setPage(1);
-          }}
-        />
+          <FilterPanel
+            extras={<HierarchyFilters value={hierarchy} onChange={setHierarchy} showSite={false} />}
+            fields={[
+              { key: 'name', labelKey: 'common.name', type: 'text' },
+              {
+                key: 'status',
+                labelKey: 'common.status',
+                type: 'select',
+                options: [
+                  { value: 'ACTIVE', label: t('common.active') },
+                  { value: 'ARCHIVED', label: t('common.archived') },
+                ],
+              },
+            ]}
+            values={filters}
+            onChange={setFilter}
+            onSearch={() => {
+              pagination.setPage(1);
+              setActiveFilters(filters);
+              setActiveHierarchy(hierarchy);
+              refetch();
+            }}
+            onClear={() => {
+              clearFilters();
+              setActiveFilters({ name: '', status: 'ACTIVE' });
+              setHierarchy({});
+              setActiveHierarchy({});
+              pagination.setPage(1);
+            }}
+          />
 
-        <DataTable
-          columns={columns}
-          data={results}
-          isLoading={isLoading}
-          page={pagination.page}
-          pageSize={pagination.pageSize}
-          totalCount={pagination.totalCount}
-          totalPages={pagination.totalPages}
-          onPageChange={pagination.setPage}
-          onPageSizeChange={pagination.setPageSize}
-          getRowKey={(item) => item._id}
-        />
+          <DataTable
+            columns={columns}
+            data={results}
+            isLoading={isLoading}
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            totalCount={pagination.totalCount}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+            getRowKey={(item) => item._id}
+          />
 
-        <SiteFormDialog open={formOpen} onOpenChange={setFormOpen} site={editing} />
-        <SiteQrDialog
-          open={!!qrTarget}
-          onOpenChange={(open) => !open && setQrTarget(undefined)}
-          site={qrTarget}
-        />
-        <ConfirmDialog
-          open={!!deleteTarget}
-          onOpenChange={(open) => !open && setDeleteTarget(undefined)}
-          title={t('sites.deleteConfirm')}
-          description={deleteTarget?.name || ''}
-          onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget._id)}
-          isLoading={deleteMutation.isPending}
-        />
-      </div>
+          <SiteFormDialog open={formOpen} onOpenChange={setFormOpen} site={editing} />
+          <SiteQrDialog
+            open={!!qrTarget}
+            onOpenChange={(open) => !open && setQrTarget(undefined)}
+            site={qrTarget}
+          />
+          <ConfirmDialog
+            open={!!deleteTarget}
+            onOpenChange={(open) => !open && setDeleteTarget(undefined)}
+            title={t('sites.deleteConfirm')}
+            description={deleteTarget?.name || ''}
+            onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget._id)}
+            isLoading={deleteMutation.isPending}
+          />
+        </div>
       </ModuleGuard>
     </RoleGuard>
   );

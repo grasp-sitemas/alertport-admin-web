@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -14,6 +15,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import { RoleGuard } from '@/components/shared/role-guard';
 import { ModuleGuard } from '@/components/shared/module-guard';
+import { ErrorBoundary } from '@/components/shared/error-boundary';
 import { FilterPanel } from '@/components/shared/filter-panel';
 import {
   HierarchyFilters,
@@ -97,7 +99,9 @@ export default function AlertMonitorPage() {
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}>
       <ModuleGuard moduleKey="MONITOR">
-        <AlertMonitor />
+        <ErrorBoundary tag="alert-monitor">
+          <AlertMonitor />
+        </ErrorBoundary>
       </ModuleGuard>
     </RoleGuard>
   );
@@ -324,9 +328,7 @@ function AlertMonitor() {
     if (!target && deepLinkAutoClaim) {
       target =
         events.find(
-          (e) =>
-            e.type === 'SOS_ALERT' &&
-            classifyAttendance(e, currentUserId) === 'AVAILABLE',
+          (e) => e.type === 'SOS_ALERT' && classifyAttendance(e, currentUserId) === 'AVAILABLE',
         ) ?? null;
     }
 
@@ -353,10 +355,7 @@ function AlertMonitor() {
   const callInProgress = !!call && call.status !== 'idle' && call.status !== 'ended';
   const socketConnected = call?.socketConnected ?? false;
 
-  const sosCount = useMemo(
-    () => events.filter((e) => e.type === 'SOS_ALERT').length,
-    [events],
-  );
+  const sosCount = useMemo(() => events.filter((e) => e.type === 'SOS_ALERT').length, [events]);
   // Counts keyed to the classifier so the KPIs tell the same story the
   // cards tell. "Disponíveis" (AVAILABLE) is the operator's actionable
   // queue - worth pulsing in the UI when > 0.
@@ -364,17 +363,14 @@ function AlertMonitor() {
     () => events.filter((e) => classifyAttendance(e, currentUserId) === 'AVAILABLE').length,
     [events, currentUserId],
   );
-  const attendingCount = useMemo(
-    () => {
-      let n = 0;
-      for (const e of events) {
-        const s = classifyAttendance(e, currentUserId);
-        if (s === 'IN_PROGRESS_BY_ME' || s === 'IN_PROGRESS_BY_OTHER') n += 1;
-      }
-      return n;
-    },
-    [events, currentUserId],
-  );
+  const attendingCount = useMemo(() => {
+    let n = 0;
+    for (const e of events) {
+      const s = classifyAttendance(e, currentUserId);
+      if (s === 'IN_PROGRESS_BY_ME' || s === 'IN_PROGRESS_BY_OTHER') n += 1;
+    }
+    return n;
+  }, [events, currentUserId]);
 
   return (
     <div className="space-y-6">
@@ -428,7 +424,7 @@ function AlertMonitor() {
       <div
         className={
           timeEntriesModuleEnabled
-            ? 'grid grid-cols-1 lg:grid-cols-3 gap-6'
+            ? 'grid grid-cols-1 gap-6 lg:grid-cols-3'
             : 'grid grid-cols-1 gap-6'
         }
       >
@@ -439,7 +435,7 @@ function AlertMonitor() {
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2">
-                <Bell className="h-4 w-4 text-brand-500" />
+                <Bell className="text-brand-500 h-4 w-4" />
                 {t('alerts.timeline')}
                 {flashEventCount > 0 && (
                   <Badge variant="brand" className="animate-pulse">
@@ -448,20 +444,20 @@ function AlertMonitor() {
                 )}
               </CardTitle>
               {totalLoaded > 0 && (
-                <span className="text-xs text-text-muted">
+                <span className="text-text-muted text-xs">
                   {hasClientFilter
                     ? `${t('common.showing')} ${totalShown} ${t('common.of')} ${totalLoaded}`
                     : `${totalLoaded} ${t('alerts.occurrences').toLowerCase()}`}
                 </span>
               )}
             </div>
-            <div className="mt-3 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted pointer-events-none" />
+            <div className="relative mt-3">
+              <Search className="text-text-muted pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 placeholder={t('alerts.searchPlaceholder')}
-                className="pl-9 pr-9"
+                className="pr-9 pl-9"
                 aria-label={t('common.search')}
               />
               {searchText && (
@@ -470,7 +466,7 @@ function AlertMonitor() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setSearchText('')}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                  className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2"
                   aria-label={t('common.clearFilters')}
                 >
                   <X className="h-4 w-4" />
@@ -480,7 +476,7 @@ function AlertMonitor() {
           </CardHeader>
           <CardContent>
             {patrolQuery.isLoading ? (
-              <div className="py-12 flex justify-center">
+              <div className="flex justify-center py-12">
                 <Spinner />
               </div>
             ) : totalLoaded === 0 ? (
@@ -525,7 +521,7 @@ function AlertMonitor() {
             </CardHeader>
             <CardContent>
               {timeQuery.isLoading ? (
-                <div className="py-12 flex justify-center">
+                <div className="flex justify-center py-12">
                   <Spinner />
                 </div>
               ) : timeEntries.length === 0 ? (
@@ -535,7 +531,7 @@ function AlertMonitor() {
                   description={t('common.noData')}
                 />
               ) : (
-                <div className="space-y-2 max-h-[720px] overflow-y-auto pr-1">
+                <div className="max-h-[720px] space-y-2 overflow-y-auto pr-1">
                   {timeEntries.map((entry) => (
                     <MonitorTimeEntryRow
                       key={entry._id}
@@ -750,4 +746,3 @@ function last7DaysISO(): string {
 function nowISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
-

@@ -2,6 +2,7 @@ import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestCo
 
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000;
+const RETRY_AFTER_MAX_MS = 30_000;
 const REQUEST_TIMEOUT = 30_000;
 const RETRYABLE_STATUS = [500, 502, 503, 504, 408, 429];
 
@@ -14,8 +15,18 @@ const RETRYABLE_STATUS = [500, 502, 503, 504, 408, 429];
  * request, while still catching a true outage within seconds.
  */
 const UNAVAILABLE_THRESHOLD = 2;
-let _consecutiveFailures = 0;
-let _unavailableBroadcast = false;
+
+/**
+ * Module-scoped failure counters, kept inside a single object so the
+ * state can't accidentally diverge across multiple imports of this
+ * module (esbuild / Turbopack hot reload paths) and so the surface is
+ * obvious to anyone reading the interceptor.
+ */
+const failureState = {
+  consecutiveFailures: 0,
+  consecutiveAuthFailures: 0,
+  unavailableBroadcast: false,
+};
 
 function dispatchServiceEvent(kind: 'unavailable' | 'restored') {
   if (typeof window === 'undefined') return;
@@ -27,17 +38,19 @@ function dispatchServiceEvent(kind: 'unavailable' | 'restored') {
 }
 
 function onRequestSuccess() {
-  _consecutiveFailures = 0;
-  if (_unavailableBroadcast) {
-    _unavailableBroadcast = false;
+  failureState.consecutiveFailures = 0;
+  failureState.consecutiveAuthFailures = 0;
+  if (failureState.unavailableBroadcast) {
+    failureState.unavailableBroadcast = false;
     dispatchServiceEvent('restored');
   }
 }
 
 function onRequestFailure(error: AxiosError) {
-  // Only count 5xx + network errors (4xx are user/client issues - not
-  // the platform being down). 401 is caught upstream before reaching
-  // here in the interceptor chain, so no double-count.
+  // Count 5xx + network errors (4xx are user/client issues - not the
+  // platform being down). 401 is handled separately - we still want
+  // the banner if 401s come together with 5xx (a bad gateway can
+  // return spurious 401s during an outage).
   const status = error.response?.status;
   const isServerOrNetwork =
     !error.response ||
@@ -45,12 +58,12 @@ function onRequestFailure(error: AxiosError) {
     status === 408 ||
     status === 429;
   if (!isServerOrNetwork) return;
-  _consecutiveFailures += 1;
+  failureState.consecutiveFailures += 1;
   if (
-    _consecutiveFailures >= UNAVAILABLE_THRESHOLD &&
-    !_unavailableBroadcast
+    failureState.consecutiveFailures >= UNAVAILABLE_THRESHOLD &&
+    !failureState.unavailableBroadcast
   ) {
-    _unavailableBroadcast = true;
+    failureState.unavailableBroadcast = true;
     dispatchServiceEvent('unavailable');
   }
 }
@@ -82,6 +95,86 @@ function getCorrelationId(): string | null {
 function isRetryable(error: AxiosError): boolean {
   if (!error.response) return true; // network error
   return RETRYABLE_STATUS.includes(error.response.status);
+}
+
+/**
+ * Honor `Retry-After` (RFC 7231) on 429/503. Accepts both seconds
+ * and HTTP-date formats. Falls back to the linear default delay so
+ * the existing retry budget is preserved when the header is missing.
+ * Capped at RETRY_AFTER_MAX_MS so a malicious / buggy backend can't
+ * stall the UI for hours.
+ */
+function resolveRetryDelay(error: AxiosError): number {
+  const header = error.response?.headers?.['retry-after'];
+  if (typeof header !== 'string' && typeof header !== 'number') return RETRY_DELAY;
+  const raw = String(header).trim();
+  const asInt = Number(raw);
+  if (Number.isFinite(asInt) && asInt >= 0) {
+    return Math.min(asInt * 1000, RETRY_AFTER_MAX_MS);
+  }
+  const asDate = Date.parse(raw);
+  if (!Number.isNaN(asDate)) {
+    const ms = asDate - Date.now();
+    if (ms > 0) return Math.min(ms, RETRY_AFTER_MAX_MS);
+  }
+  return RETRY_DELAY;
+}
+
+/**
+ * Default 401 handler: clear the local session and bounce to /login.
+ * Exposed so the dispatched `session:expired` event can call it from
+ * the SessionExpiredOverlay (e.g. after the operator confirms they
+ * want to reauthenticate). The overlay can also choose to skip the
+ * redirect and let the user wrap up something in flight.
+ */
+function destroyLocalSessionAndRedirect() {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.removeItem('alertport_session');
+  } catch {
+    /* ignore */
+  }
+  // Preserve the path the user was on so login can bounce them back.
+  try {
+    const here = window.location.pathname + window.location.search;
+    if (here && here !== '/login') {
+      sessionStorage.setItem('alertport_login_return', here);
+    }
+  } catch {
+    /* ignore */
+  }
+  window.location.href = '/login';
+}
+
+function handleAuthExpiry() {
+  if (typeof window === 'undefined') return;
+  failureState.consecutiveAuthFailures += 1;
+  // If auth failures coincide with a confirmed outage, the 401 is
+  // most likely a bad-gateway artifact. Surface the unavailable banner
+  // so the operator isn't dumped into /login mid-incident.
+  if (
+    failureState.consecutiveAuthFailures >= UNAVAILABLE_THRESHOLD &&
+    !failureState.unavailableBroadcast
+  ) {
+    failureState.unavailableBroadcast = true;
+    dispatchServiceEvent('unavailable');
+  }
+
+  // Give a UI listener (SessionExpiredOverlay) a chance to intercept
+  // and present a non-destructive modal (e.g. "Sua sessão expirou.
+  // Reconectar?"). If no listener calls preventDefault(), fall back to
+  // the legacy hard redirect so behavior remains identical.
+  let intercepted = false;
+  try {
+    const ev = new CustomEvent('session:expired', {
+      cancelable: true,
+      detail: { proceed: destroyLocalSessionAndRedirect },
+    });
+    intercepted = !window.dispatchEvent(ev); // dispatch returns false iff preventDefault was called
+  } catch {
+    intercepted = false;
+  }
+  if (!intercepted) destroyLocalSessionAndRedirect();
 }
 
 const apiClient: AxiosInstance = axios.create({
@@ -120,12 +213,9 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // 401 → redirect to login (preserve legacy behavior)
+    // 401 → expire session (with UI bridge — see handleAuthExpiry).
     if (error.response?.status === 401) {
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('alertport_session');
-        window.location.href = '/login';
-      }
+      handleAuthExpiry();
       return Promise.reject(error);
     }
 
@@ -133,7 +223,8 @@ apiClient.interceptors.response.use(
     config._retryCount = config._retryCount || 0;
     if (config._retryCount < MAX_RETRIES && isRetryable(error)) {
       config._retryCount += 1;
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+      const delay = resolveRetryDelay(error);
+      await new Promise((resolve) => setTimeout(resolve, delay));
       return apiClient(config);
     }
 

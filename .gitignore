@@ -34,10 +34,15 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
-# Commit templates (no secrets) so the Vercel projects can mirror them
+# Only the .env.example template stays tracked. Real values for HML
+# and PROD live in Vercel's Environment Variables pane - never commit
+# them, even if they look "public" today (a future contributor may add
+# a real secret next to NEXT_PUBLIC_* vars without noticing). Existing
+# tracked .env.hml / .env.production files stay tracked until rotated;
+# remove them with `git rm --cached` after migrating values to Vercel.
 !.env.example
-!.env.hml
-!.env.production
+# !.env.hml          ← DO NOT re-enable. Use `vercel env pull` instead.
+# !.env.production   ← DO NOT re-enable. Use `vercel env pull` instead.
 
 # vercel
 .vercel

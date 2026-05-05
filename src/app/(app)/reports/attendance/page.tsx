@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -9,11 +10,15 @@ import { DataTable, type Column } from '@/components/shared/data-table';
 import { RoleGuard } from '@/components/shared/role-guard';
 import { ModuleGuard } from '@/components/shared/module-guard';
 import { useAttendanceReport } from '@/features/reports/use-reports';
+import { useClientPagination } from '@/hooks/use-client-pagination';
 import { ReportFilterPanel, type ReportFilterValue } from '@/features/reports/report-filter-panel';
 import { ReportExportButton } from '@/features/reports/report-export-button';
 import { ReportPageLayout } from '@/features/reports/report-page-layout';
 import { ReportKpiGrid, ReportKpiTile, formatNumber } from '@/features/reports/report-kpi';
-import { defaultReportRange, validateReportFilter } from '@/features/reports/report-filter-validator';
+import {
+  defaultReportRange,
+  validateReportFilter,
+} from '@/features/reports/report-filter-validator';
 import { useAuth } from '@/hooks/use-auth';
 import { isSuperAdminMaster } from '@/config/roles';
 import type { AttendanceRow, ReportFilterParams } from '@/types/reports';
@@ -70,6 +75,7 @@ function AttendancePageBody() {
   const data = query.data;
   const summary = data?.summary;
   const rows = useMemo<AttendanceRow[]>(() => data?.results ?? [], [data]);
+  const pagination = useClientPagination(rows, { initialPageSize: 20 });
 
   // Column order (user-facing requirement):
   //   1. Timestamp, 2. Tipo Evento, 3. Funcionário, 4. Conta (SAM-only),
@@ -134,7 +140,10 @@ function AttendancePageBody() {
         { label: t('reports.attendance.kpi.total'), value: formatNumber(summary.total) },
         { label: t('reports.attendance.kpi.clockIns'), value: formatNumber(summary.clockIns) },
         { label: t('reports.attendance.kpi.clockOuts'), value: formatNumber(summary.clockOuts) },
-        { label: t('reports.attendance.kpi.uniqueUsers'), value: formatNumber(summary.uniqueUsers) },
+        {
+          label: t('reports.attendance.kpi.uniqueUsers'),
+          value: formatNumber(summary.uniqueUsers),
+        },
       ],
       columns: [
         { header: t('attendance.timestamp'), value: (r) => new Date(r.createdAt) },
@@ -152,7 +161,15 @@ function AttendancePageBody() {
       ],
       rows,
     };
-  }, [data?.generatedAt, filterValue.endDate, filterValue.startDate, rows, showAccountColumn, summary, t]);
+  }, [
+    data?.generatedAt,
+    filterValue.endDate,
+    filterValue.startDate,
+    rows,
+    showAccountColumn,
+    summary,
+    t,
+  ]);
 
   return (
     <ReportPageLayout
@@ -180,7 +197,7 @@ function AttendancePageBody() {
       isEmpty={!query.isLoading && !query.isError && (data?.totalCount ?? 0) === 0}
       footer={
         data ? (
-          <p className="text-xs text-text-muted text-right">
+          <p className="text-text-muted text-right text-xs">
             {t('reports.meta.generatedAt', {
               when: new Date(data.generatedAt).toLocaleString(),
               ms: data.durationMs,
@@ -225,14 +242,14 @@ function AttendancePageBody() {
         <CardContent>
           <DataTable
             columns={columns}
-            data={rows}
+            data={pagination.paged}
             isLoading={query.isLoading}
-            page={1}
-            pageSize={rows.length || 50}
-            totalCount={data?.totalCount ?? 0}
-            totalPages={1}
-            onPageChange={() => {}}
-            onPageSizeChange={() => {}}
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            totalCount={pagination.totalCount}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
             getRowKey={(r) => r._id}
           />
         </CardContent>
@@ -244,7 +261,13 @@ function AttendancePageBody() {
 function TimeEntryBadge({ type }: { type: AttendanceRow['eventType'] }) {
   const t = useTranslations();
   const variant: 'success' | 'info' | 'warning' | 'muted' =
-    type === 'CLOCK_IN' ? 'success' : type === 'CLOCK_OUT' ? 'info' : type === 'BREAK_START' ? 'warning' : 'muted';
+    type === 'CLOCK_IN'
+      ? 'success'
+      : type === 'CLOCK_OUT'
+        ? 'info'
+        : type === 'BREAK_START'
+          ? 'warning'
+          : 'muted';
   return <Badge variant={variant}>{t(`attendance.${labelKey(type)}`)}</Badge>;
 }
 

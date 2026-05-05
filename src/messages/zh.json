@@ -133,6 +133,10 @@
     "loginArchivedCompany": "公司已归档。请联系支持。",
     "loginUnauthorized": "用户无权访问管理面板。",
     "sessionExpired": "您的会话已过期。请重新登录。",
+    "sessionExpiredTitle": "会话已过期",
+    "sessionExpiredInactivity": "您长时间未操作，出于安全考虑会话已结束。请重新连接以继续。",
+    "sessionExpiredUnauthorized": "会话已过期或您不再拥有权限。请重新连接以继续。",
+    "sessionExpiredReconnect": "重新连接",
     "welcomeBack": "欢迎回来",
     "recovery": {
       "title": "找回密码",
@@ -561,7 +565,8 @@
     },
     "errors": {
       "missingReference": "无法识别日程或发生。请刷新重试。",
-      "firestorePushFailed": "已保存，但与设备同步失败。新的发生可能需要更长时间才能显示在应用中。"
+      "firestorePushFailed": "已保存，但与设备同步失败。新的发生可能需要更长时间才能显示在应用中。",
+      "scheduleAlreadyOccurred": "该日程已经发生。请选择另一个。"
     },
     "editOccurrenceTitle": "编辑发生",
     "editOccurrenceDescription": "仅调整所选日期,不更改系列。",
@@ -697,7 +702,8 @@
     "loading": "数据加载中...",
     "rowsPerPage": "每页行数",
     "page": "页",
-    "of": "/"
+    "of": "/",
+    "sortBy": "按 {column} 排序"
   },
   "notifications": {
     "savedSuccessfully": "保存成功",
@@ -836,8 +842,10 @@
       "devices": "设备",
       "sites": "站点",
       "clients": "客户",
-      "incidents": "事件",
-      "integrations": "集成",
+      "sosAlerts": "SOS 发送",
+      "attendances": "考勤管理",
+      "alertSchedules": "警报发生排程",
+      "recordings": "主动收听录音",
       "reportsPerMonth": "报表 / 月"
     },
     "featuresList": {
@@ -845,11 +853,12 @@
       "devices": "设备",
       "sites": "站点",
       "clients": "客户",
-      "incidents": "事件",
-      "integrations": "集成",
+      "sos": "SOS 发送",
+      "attendance": "考勤管理",
+      "alertSchedules": "警报发生排程",
+      "recordings": "主动收听录音",
       "reports_export": "报表导出",
       "monitor_realtime": "实时监控",
-      "chat": "聊天",
       "analytics_advanced": "高级分析"
     }
   },
@@ -1269,6 +1278,9 @@
       "description": "此模块在贵公司已被禁用。请联系管理员开启访问权限。",
       "backToDashboard": "返回仪表板"
     },
+    "errorTitle": "无法验证您的访问权限",
+    "errorDescription": "加载模块配置失败。出于安全考虑，在验证完成之前访问将被阻止。",
+    "errorRetry": "重试",
     "categories": {
       "operations": "运营",
       "calls": "通话",

@@ -121,11 +121,24 @@ export default function AlertSchedulingPage() {
     setRange({ start: r.start.toISOString(), end: r.end.toISOString() });
   }, []);
 
-  const handleEventClick = useCallback((event: ScheduleCalendarEvent) => {
-    // Click on a generated occurrence → ask whether to edit just today
-    // or the whole series via the scope dialog.
-    setPendingScope({ action: 'edit', row: event.extendedProps.row });
-  }, []);
+  const handleEventClick = useCallback(
+    (event: ScheduleCalendarEvent) => {
+      // Safety net: even though `useScheduleEvents` already filters past
+      // occurrences out of the events list, a stale React Query cache or
+      // the user lingering on the page across the start instant can
+      // produce a click on an event that has already happened. Block it
+      // with a friendly toast instead of opening the edit dialog.
+      const startMs = new Date(event.start).getTime();
+      if (!Number.isNaN(startMs) && startMs < Date.now()) {
+        toast.error(t('alerts.errors.scheduleAlreadyOccurred'));
+        return;
+      }
+      // Click on a generated occurrence → ask whether to edit just today
+      // or the whole series via the scope dialog.
+      setPendingScope({ action: 'edit', row: event.extendedProps.row });
+    },
+    [t],
+  );
 
   const handleDateSelect = useCallback(
     ({ startISO, allDay }: { startISO: string; endISO: string; allDay: boolean }) => {

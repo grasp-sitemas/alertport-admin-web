@@ -13,8 +13,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:fixtures:snapshot": "tsx scripts/snapshot-api-fixtures.ts",
+    "check:force-dynamic": "node scripts/check-force-dynamic.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx,json,css}\"",
-    "validate": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "validate": "npm run typecheck && npm run lint && npm run test && node scripts/check-force-dynamic.mjs --strict && npm run build",
     "clean": "rm -rf .next .turbo",
     "deploy:prod": "scripts/deploy.sh admin-alertport",
     "deploy:hml": "scripts/deploy.sh admin-alertport-hml"

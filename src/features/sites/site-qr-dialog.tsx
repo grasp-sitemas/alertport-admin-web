@@ -107,20 +107,18 @@ export function SiteQrDialog({ open, onOpenChange, site }: Props) {
           {payload ? (
             <div
               ref={qrRef}
-              className="p-4 bg-white rounded-2xl shadow-[0_0_60px_rgba(179,38,30,0.08)]"
+              className="rounded-2xl bg-white p-4 shadow-[0_0_60px_rgba(179,38,30,0.08)]"
             >
               <QRCode value={payload} size={220} bgColor="#ffffff" fgColor="#0a0e1a" />
             </div>
           ) : (
-            <p className="text-sm text-text-muted py-8">{t('common.noData')}</p>
+            <p className="text-text-muted py-8 text-sm">{t('common.noData')}</p>
           )}
-          <p className="text-[10px] text-text-muted font-mono break-all text-center">
-            {payload}
-          </p>
+          <p className="text-text-muted text-center font-mono text-[10px] break-all">{payload}</p>
           {codeDisplay ? (
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-text-muted">{t('sites.manualCodeLabel')}</span>
-              <code className="px-3 py-1 rounded-lg bg-bg-tertiary text-text-primary font-mono text-sm tracking-widest">
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-text-muted text-xs">{t('sites.manualCodeLabel')}</span>
+              <code className="bg-bg-tertiary text-text-primary rounded-lg px-3 py-1 font-mono text-sm tracking-widest">
                 {codeDisplay}
               </code>
               <Button
@@ -137,12 +135,7 @@ export function SiteQrDialog({ open, onOpenChange, site }: Props) {
         </div>
 
         <DialogFooter>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleDownload}
-            disabled={!payload}
-          >
+          <Button type="button" variant="secondary" onClick={handleDownload} disabled={!payload}>
             <Download className="h-4 w-4" />
             {t('sites.qrDownload')}
           </Button>
