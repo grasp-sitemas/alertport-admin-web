@@ -77,6 +77,19 @@ function getIdOrEmpty(v: unknown): string {
 }
 
 /**
+ * YYYY-MM-DD da data LOCAL do operador (TZ do browser, igual a TZ da
+ * empresa). NUNCA usar `toISOString().slice(0,10)` aqui — isso devolve
+ * a data em UTC, e às 21h BRT (= 00h UTC do dia seguinte) o operador
+ * acabaria agendando para o dia errado. O backend depois compõe com
+ * `accountTimezone` em cima desse YYYY-MM-DD local pra gerar o trigger
+ * UTC absoluto correto.
+ */
+function toLocalDayPart(d: Date): string {
+  // 'sv-SE' devolve "YYYY-MM-DD" no fuso local — formato ISO 8601 date.
+  return d.toLocaleDateString('sv-SE');
+}
+
+/**
  * Pull the YYYY-MM-DD piece out of whatever datetime string the backend
  * shipped. FullCalendar occurrences arrive as `start`/`startDate` (ISO),
  * plain schedules arrive as `beginDate` (already date-only).
@@ -89,11 +102,11 @@ function extractDayPart(row: AlertSchedule | undefined): string {
     row?.appointment?.start ??
     row?.beginDate ??
     '';
-  if (!raw) return new Date().toISOString().slice(0, 10);
+  if (!raw) return toLocalDayPart(new Date());
   if (raw.length === 10) return raw; // already YYYY-MM-DD
   const d = new Date(raw);
-  if (Number.isNaN(d.getTime())) return new Date().toISOString().slice(0, 10);
-  return d.toISOString().slice(0, 10);
+  if (Number.isNaN(d.getTime())) return toLocalDayPart(new Date());
+  return toLocalDayPart(d);
 }
 
 /**
@@ -107,7 +120,7 @@ function normalizeDatePart(raw: string | null | undefined): string {
   if (raw.length === 10) return raw;
   const d = new Date(raw);
   if (Number.isNaN(d.getTime())) return '';
-  return d.toISOString().slice(0, 10);
+  return toLocalDayPart(d);
 }
 
 /**
