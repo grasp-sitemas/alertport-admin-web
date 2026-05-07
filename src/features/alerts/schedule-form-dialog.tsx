@@ -90,6 +90,19 @@ function toLocalDayPart(d: Date): string {
 }
 
 /**
+ * Default name when the user opens "+ Criar Agendamento" (Flavio, 07/05).
+ * Operador estava recebendo o campo vazio e o schema exige min 1. Usa
+ * data+hora locais como placeholder editável — operador pode trocar
+ * depois mas já tem algo razoável.
+ */
+function generateDefaultScheduleName(): string {
+  const now = new Date();
+  const date = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  const time = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  return `Agendamento ${date} ${time}`;
+}
+
+/**
  * Pull the YYYY-MM-DD piece out of whatever datetime string the backend
  * shipped. FullCalendar occurrences arrive as `start`/`startDate` (ISO),
  * plain schedules arrive as `beginDate` (already date-only).
@@ -271,6 +284,7 @@ export function ScheduleFormDialog({
       }
     : {
         ...DEFAULT_ALERT_SCHEDULE,
+        name: generateDefaultScheduleName(),
         account: canSelectAccount ? '' : sessionAccountId || '',
       };
 

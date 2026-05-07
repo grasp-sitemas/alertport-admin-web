@@ -49,8 +49,14 @@ function getServerSnapshot(): User | null {
  * Resolve inactivity threshold from env. Defaults to 30 min for
  * production-safe behavior. Set `NEXT_PUBLIC_INACTIVITY_MINUTES=0`
  * to disable entirely (e.g. for kiosk-style monitor displays).
+ *
+ * OPERATOR exception (Flavio, 07/05): operators run a 24x7 monitoring
+ * post and the auto-logout was kicking them out. They get inactivity
+ * disabled regardless of the env setting. Other roles still respect
+ * the env to keep admin sessions tight.
  */
-function resolveInactivityMinutes(): number {
+function resolveInactivityMinutes(user: User | null): number {
+  if (user?.companyUser?.subtype === 'OPERATOR') return 0;
   const raw = process.env.NEXT_PUBLIC_INACTIVITY_MINUTES;
   if (!raw) return 30;
   const n = Number(raw);
@@ -92,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Inactivity timer fires `session:expired` after N idle minutes.
   // Mounted unconditionally — the hook short-circuits when minutes<=0
   // and when no session is present.
-  useInactivityTimer({ inactivityMinutes: resolveInactivityMinutes() });
+  useInactivityTimer({ inactivityMinutes: resolveInactivityMinutes(user) });
 
   return (
     <AuthContext.Provider value={value}>

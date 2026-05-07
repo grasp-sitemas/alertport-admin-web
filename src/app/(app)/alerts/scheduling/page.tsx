@@ -175,7 +175,17 @@ export default function AlertSchedulingPage() {
       const scheduleId = resolveScheduleId(row);
       if (!scheduleId) throw new Error('MISSING_SCHEDULE_ID');
       if (scope === 'series') {
-        const startDate = rowDateString(row) || new Date().toISOString().slice(0, 10);
+        // Flavio (07/05): exclusão da série deve afetar SOMENTE
+        // ocorrências futuras — nunca a do momento nem as passadas
+        // (atendidas/não atendidas). Forçamos startDate ao máximo
+        // entre a data do row clicado e amanhã (dia local). Assim
+        // hoje + passado ficam protegidos independentemente de qual
+        // linha o operador clicou no calendário.
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = tomorrow.toLocaleDateString('sv-SE');
+        const rowDate = rowDateString(row);
+        const startDate = !rowDate || rowDate < tomorrowStr ? tomorrowStr : rowDate;
         return alertsService.cancelAppointmentSeries({
           schedule: scheduleId,
           startDate,
