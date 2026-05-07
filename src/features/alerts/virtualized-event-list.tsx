@@ -14,6 +14,10 @@ interface Props {
   callInProgress: boolean;
   socketConnected: boolean;
   isFlashingEvent: (id: string) => boolean;
+  /** Default true. False hides Phone (NORMAL call) button. */
+  callNormalEnabled?: boolean;
+  /** Default true. False hides Radio (SILENT_LISTEN) button. */
+  callSilentEnabled?: boolean;
 }
 
 /**
@@ -51,6 +55,8 @@ export function VirtualizedEventList({
   callInProgress,
   socketConnected,
   isFlashingEvent,
+  callNormalEnabled = true,
+  callSilentEnabled = true,
 }: Props) {
   const parentRef = useRef<HTMLDivElement | null>(null);
 
@@ -86,6 +92,8 @@ export function VirtualizedEventList({
             callInProgress={callInProgress}
             socketConnected={socketConnected}
             flash={isFlashingEvent(event._id)}
+            callNormalEnabled={callNormalEnabled}
+            callSilentEnabled={callSilentEnabled}
           />
         ))}
       </div>

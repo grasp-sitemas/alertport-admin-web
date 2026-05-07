@@ -65,6 +65,10 @@ interface Props {
   socketConnected: boolean;
   /** Highlight the card briefly after it arrived/updated via real-time. */
   flash?: boolean;
+  /** Default true. False hides Phone (NORMAL call) button. */
+  callNormalEnabled?: boolean;
+  /** Default true. False hides Radio (SILENT_LISTEN) button. */
+  callSilentEnabled?: boolean;
 }
 
 /**
@@ -86,6 +90,8 @@ function MonitorEventCardImpl({
   callInProgress,
   socketConnected,
   flash,
+  callNormalEnabled = true,
+  callSilentEnabled = true,
 }: Props) {
   const t = useTranslations();
   const meta = EVENT_META[event.type] ?? { labelKey: 'common.info', accent: 'info' as const };
@@ -253,23 +259,25 @@ function MonitorEventCardImpl({
             onClick={() => onAttend(event)}
           />
 
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => onCall(event, 'NORMAL')}
-            disabled={!canCall}
-            title={
-              !socketConnected
-                ? t('calls.chatDisconnected')
-                : !hasCallTarget
-                  ? t('calls.noTarget')
-                  : undefined
-            }
-          >
-            <Phone className="h-4 w-4" />
-            {t('calls.callNormal')}
-          </Button>
-          {event.type === 'SOS_ALERT' && (
+          {callNormalEnabled && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => onCall(event, 'NORMAL')}
+              disabled={!canCall}
+              title={
+                !socketConnected
+                  ? t('calls.chatDisconnected')
+                  : !hasCallTarget
+                    ? t('calls.noTarget')
+                    : undefined
+              }
+            >
+              <Phone className="h-4 w-4" />
+              {t('calls.callNormal')}
+            </Button>
+          )}
+          {callSilentEnabled && event.type === 'SOS_ALERT' && (
             <Button
               size="sm"
               variant="secondary"

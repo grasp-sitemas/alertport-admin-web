@@ -128,6 +128,12 @@ function AlertMonitor() {
   // of the disabled tenant never spends a request fetching data they
   // can't see. SAM bypasses the gate (sees everything to administer it).
   const timeEntriesModuleEnabled = isModuleEnabled('TIME_ENTRIES');
+  // Call modules. When both off (AP 2G replacement tier), socket
+  // never connects (gated in CallProvider) and call buttons / online
+  // badge are hidden from the operator UI.
+  const callNormalEnabled = isModuleEnabled('CALL_NORMAL');
+  const callSilentEnabled = isModuleEnabled('CALL_SILENT');
+  const callsAnyEnabled = callNormalEnabled || callSilentEnabled;
   const call = useCallContext();
   const { user } = useAuth();
   const currentUserId = user?._id;
@@ -404,7 +410,7 @@ function AlertMonitor() {
       <PageHeader
         title={t('alerts.monitor')}
         description={t('sidebar.monitoring')}
-        action={<ChatConnectionBadge connected={socketConnected} />}
+        action={callsAnyEnabled ? <ChatConnectionBadge connected={socketConnected} /> : null}
       />
 
       <FilterPanel
@@ -537,6 +543,8 @@ function AlertMonitor() {
                 callInProgress={callInProgress}
                 socketConnected={socketConnected}
                 isFlashingEvent={isFlashingEvent}
+                callNormalEnabled={callNormalEnabled}
+                callSilentEnabled={callSilentEnabled}
               />
             )}
           </CardContent>

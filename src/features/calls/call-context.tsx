@@ -13,6 +13,7 @@ import { createContext, useContext } from 'react';
 import { useCall, type CallActions, type CallState } from './use-call';
 import { CallDialog } from './call-dialog';
 import { useAuth } from '@/hooks/use-auth';
+import { useSessionAccountModules } from '@/features/modules/use-session-account-modules';
 
 type CallContextValue = (CallState & CallActions) | null;
 
@@ -20,10 +21,19 @@ const CallContext = createContext<CallContextValue>(null);
 
 export function CallProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
+  const { isEnabled, isLoading } = useSessionAccountModules();
 
   // Only instantiate the socket/call machinery while authenticated - otherwise
   // we'd be trying to register with ms-chat without a userId.
   if (!isAuthenticated) {
+    return <CallContext.Provider value={null}>{children}</CallContext.Provider>;
+  }
+
+  // Module gate: when both CALL_NORMAL and CALL_SILENT are disabled for
+  // this account, skip the socket entirely. "AP 2G replacement" tier
+  // doesn't need calls — alerts come via Firestore push, independent
+  // of ms-chat. Wait for module load to avoid false-negative gating.
+  if (!isLoading && !isEnabled('CALL_NORMAL') && !isEnabled('CALL_SILENT')) {
     return <CallContext.Provider value={null}>{children}</CallContext.Provider>;
   }
 
