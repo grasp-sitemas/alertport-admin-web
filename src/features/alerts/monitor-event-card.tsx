@@ -50,6 +50,7 @@ const EVENT_META: Record<
   LOWVOLTAGE: { labelKey: 'alerts.lowVoltage', accent: 'warning' },
   CANCEL_PATROL: { labelKey: 'alerts.cancelPatrol', accent: 'info' },
   FAILURE_PATROL: { labelKey: 'alerts.failurePatrol', accent: 'warning' },
+  OCCURRENCE_MISSED: { labelKey: 'alerts.occurrenceMissed', accent: 'warning' },
 };
 
 interface Props {
@@ -113,8 +114,8 @@ function MonitorEventCardImpl({
     <div
       className={cn(
         'rounded-xl border border-white/8 p-4 transition-all',
-        meta.accent === 'danger' && 'bg-red-500/5 border-red-500/20',
-        meta.accent === 'warning' && 'bg-amber-500/5 border-amber-500/20',
+        meta.accent === 'danger' && 'border-red-500/20 bg-red-500/5',
+        meta.accent === 'warning' && 'border-amber-500/20 bg-amber-500/5',
         // Fresh events get a calm breathing outline so the operator's eye
         // is drawn to actionable items without the noise of a full pulse
         // animation on every card.
@@ -123,8 +124,8 @@ function MonitorEventCardImpl({
         flash && 'border-brand-500/50 animate-pulse',
       )}
     >
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-3">
           <div
             className={cn(
               'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
@@ -137,20 +138,20 @@ function MonitorEventCardImpl({
             <AlertTriangle className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge variant={meta.accent}>{t(meta.labelKey)}</Badge>
               <AttendanceStateBadge state={state} ownerName={ownerName} />
             </div>
-            <div className="mt-1 flex items-center gap-2 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{deviceLabel}</p>
+            <div className="mt-1 flex min-w-0 items-center gap-2">
+              <p className="truncate text-sm font-medium text-white">{deviceLabel}</p>
               {coords && (
                 <button
                   type="button"
                   onClick={() => setMapDialogOpen(true)}
                   className={cn(
-                    'inline-flex h-6 shrink-0 items-center gap-1 rounded-lg border border-white/10 px-2 text-xs text-text-secondary',
+                    'text-text-secondary inline-flex h-6 shrink-0 items-center gap-1 rounded-lg border border-white/10 px-2 text-xs',
                     'bg-white/5 transition-colors hover:bg-white/10 hover:text-white',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                    'focus-visible:ring-brand-500/40 focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
                   )}
                   aria-label={t('alerts.geolocation.openMapModal')}
                   title={t('alerts.geolocation.openMapModal')}
@@ -160,7 +161,7 @@ function MonitorEventCardImpl({
                 </button>
               )}
             </div>
-            <p className="text-xs text-text-muted mt-0.5">
+            <p className="text-text-muted mt-0.5 text-xs">
               {(event.date || event.createdDate) &&
                 new Date(event.date || event.createdDate!).toLocaleString()}
               {state === 'IN_PROGRESS_BY_OTHER' && (
@@ -174,7 +175,7 @@ function MonitorEventCardImpl({
               )}
             </p>
             {(equipmentName || ownerLineName) && (
-              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-muted">
+              <div className="text-text-muted mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                 {equipmentName && (
                   <span className="inline-flex items-center gap-1">
                     <Router className="h-3 w-3" />
@@ -191,8 +192,8 @@ function MonitorEventCardImpl({
             )}
             {coords && (
               <Dialog open={mapDialogOpen} onOpenChange={setMapDialogOpen}>
-                <DialogContent className="max-w-3xl overflow-hidden border border-white/10 bg-bg-secondary p-0">
-                  <DialogHeader className="border-b border-white/10 bg-gradient-to-r from-cyan-500/10 via-emerald-500/10 to-bg-secondary px-6 py-4">
+                <DialogContent className="bg-bg-secondary max-w-3xl overflow-hidden border border-white/10 p-0">
+                  <DialogHeader className="to-bg-secondary border-b border-white/10 bg-gradient-to-r from-cyan-500/10 via-emerald-500/10 px-6 py-4">
                     <div className="flex items-start gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/10 text-cyan-200">
                         <MapPin className="h-5 w-5" aria-hidden="true" />
@@ -206,7 +207,7 @@ function MonitorEventCardImpl({
                     </div>
                   </DialogHeader>
 
-                  <div className="space-y-4 px-6 pb-6 pt-4">
+                  <div className="space-y-4 px-6 pt-4 pb-6">
                     <div className="overflow-hidden rounded-xl border border-white/10 bg-black/20">
                       <iframe
                         src={buildMapsEmbedUrl(coords)}
@@ -236,15 +237,15 @@ function MonitorEventCardImpl({
               </Dialog>
             )}
             {notesSnippet && (
-              <p className="mt-1 flex items-start gap-1 text-xs text-text-secondary/90">
-                <FileText className="h-3 w-3 mt-0.5 shrink-0 text-text-muted" />
+              <p className="text-text-secondary/90 mt-1 flex items-start gap-1 text-xs">
+                <FileText className="text-text-muted mt-0.5 h-3 w-3 shrink-0" />
                 <span className="line-clamp-2">{notesSnippet}</span>
               </p>
             )}
           </div>
         </div>
 
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex flex-wrap gap-2">
           <AttendanceActionButton
             state={state}
             ownerName={ownerName}
@@ -286,19 +287,13 @@ function MonitorEventCardImpl({
   );
 }
 
-function AttendanceStateBadge({
-  state,
-  ownerName,
-}: {
-  state: AttendanceState;
-  ownerName: string;
-}) {
+function AttendanceStateBadge({ state, ownerName }: { state: AttendanceState; ownerName: string }) {
   const t = useTranslations();
   if (state === 'AVAILABLE') {
     return (
       <Badge variant="success" className="gap-1">
         <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
         </span>
         {t('alerts.attendance.statusAvailable')}
@@ -309,11 +304,7 @@ function AttendanceStateBadge({
     return <Badge variant="success">{t('alerts.attendance.statusClosedBadge')}</Badge>;
   }
   if (state === 'IN_PROGRESS_BY_ME') {
-    return (
-      <Badge variant="warning">
-        {t('alerts.attendance.statusInProgressByYou')}
-      </Badge>
-    );
+    return <Badge variant="warning">{t('alerts.attendance.statusInProgressByYou')}</Badge>;
   }
   return (
     <Badge variant="warning" className="gap-1">

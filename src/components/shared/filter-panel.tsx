@@ -191,7 +191,7 @@ export function FilterPanel({
             {extras}
             {fields.map((field) => (
               <div key={field.key} className="flex flex-col gap-1">
-                <label className="text-[11px] font-medium text-text-secondary uppercase tracking-wide">
+                <label className="text-xs font-medium text-text-secondary">
                   {t(field.labelKey)}
                 </label>
                 {field.type === 'text' && (

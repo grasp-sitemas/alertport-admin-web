@@ -1,6 +1,10 @@
 import type { EventType, PatrolAction } from '@/types/api';
 import { formatDeviceLabel } from './device-label';
-import { classifyAttendance, extractAttendanceOwner, type AttendanceState } from './attendance-state';
+import {
+  classifyAttendance,
+  extractAttendanceOwner,
+  type AttendanceState,
+} from './attendance-state';
 
 export const MONITOR_EVENT_TYPES: EventType[] = [
   'SOS_ALERT',
@@ -9,6 +13,7 @@ export const MONITOR_EVENT_TYPES: EventType[] = [
   'LOWVOLTAGE',
   'CANCEL_PATROL',
   'FAILURE_PATROL',
+  'OCCURRENCE_MISSED',
 ];
 
 export const MONITOR_STATUS_VALUES: AttendanceState[] = [
@@ -18,6 +23,33 @@ export const MONITOR_STATUS_VALUES: AttendanceState[] = [
   'CLOSED',
 ];
 
+/**
+ * Categoria de alto nível do monitor — agrupa tipos detalhados em
+ * 3 buckets que o operador entende:
+ *   - SOS: panic alerts (SOS_ALERT)
+ *   - OCCURRENCE_MISSED: alertas de ocorrência não atendidos no device
+ *   - TIME_TRACKING: registros de ponto (não são PatrolAction; gated
+ *     pelo módulo TIME_ENTRIES)
+ */
+export type MonitorCategory = 'SOS' | 'OCCURRENCE_MISSED' | 'TIME_TRACKING';
+
+export const MONITOR_CATEGORIES: MonitorCategory[] = [
+  'SOS',
+  'OCCURRENCE_MISSED',
+  'TIME_TRACKING',
+];
+
+/**
+ * Mapeia categoria → set de EventType. TIME_TRACKING não tem EventType
+ * (é renderizado em outra coluna), mas a presença na categoria
+ * controla se essa coluna aparece.
+ */
+const CATEGORY_TO_EVENT_TYPES: Record<MonitorCategory, EventType[]> = {
+  SOS: ['SOS_ALERT'],
+  OCCURRENCE_MISSED: ['OCCURRENCE_MISSED'],
+  TIME_TRACKING: [],
+};
+
 export interface MonitorClientFilters {
   /** Free-text search, case-insensitive. Empty string matches everything. */
   q: string;
@@ -25,6 +57,8 @@ export interface MonitorClientFilters {
   type: EventType | '';
   /** Attendance state or empty string for all. */
   status: AttendanceState | '';
+  /** High-level category or empty string for all. */
+  category: MonitorCategory | '';
 }
 
 function asName(obj: unknown): string {
@@ -68,10 +102,19 @@ export function filterMonitorEvents(
   typeLabelFor: (type: EventType) => string | undefined,
 ): PatrolAction[] {
   const q = filters.q.trim().toLowerCase();
-  if (!filters.type && !filters.status && !q) return events;
+  if (!filters.type && !filters.status && !filters.category && !q) return events;
+
+  // Categoria → conjunto de EventTypes que essa categoria abrange.
+  // TIME_TRACKING não casa nenhum PatrolAction (renderizado em outra
+  // coluna), então retorna lista vazia quando selecionada — cards SOS/etc.
+  // somem.
+  const allowedTypesByCategory = filters.category
+    ? new Set(CATEGORY_TO_EVENT_TYPES[filters.category])
+    : null;
 
   const out: PatrolAction[] = [];
   for (const event of events) {
+    if (allowedTypesByCategory && !allowedTypesByCategory.has(event.type)) continue;
     if (filters.type && event.type !== filters.type) continue;
     if (filters.status) {
       const state = classifyAttendance(event, currentUserId);

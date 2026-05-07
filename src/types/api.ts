@@ -362,7 +362,11 @@ export type EventType =
   | 'CRASH'
   | 'LOWVOLTAGE'
   | 'CANCEL_PATROL'
-  | 'FAILURE_PATROL';
+  | 'FAILURE_PATROL'
+  // AlertPort: criado pelo backend (ms-patrolhub) quando uma AlertOccurrence
+  // expira sem ser atendida no device. Aparece no monitor e segue o mesmo
+  // fluxo de attendance do SOS.
+  | 'OCCURRENCE_MISSED';
 
 // Attendance flag lifecycle as stored on the patrol-action itself (legacy contract).
 export type AttendanceFlagStatus = 'IN_PROGRESS' | 'CLOSED';

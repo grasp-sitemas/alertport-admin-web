@@ -16,6 +16,26 @@ function siteName(site: PatrolAction['site']): string {
 }
 
 /**
+ * Device identifier fallback chain. Para tipos como OCCURRENCE_MISSED,
+ * o device nunca reportou (não atendeu o alerta), então `deviceInfo.deviceId`
+ * costuma vir vazio. Cai pra `equipment.code` (humano-amigável, vem do QR
+ * do site), depois `serialNumber`, depois `_id` como último recurso.
+ */
+function resolveDeviceIdString(event: Pick<PatrolAction, 'deviceInfo' | 'equipment'>): string {
+  const direct = event.deviceInfo?.deviceId;
+  if (direct) return String(direct);
+
+  const eq = event.equipment;
+  if (eq && typeof eq === 'object') {
+    const obj = eq as { code?: string; serialNumber?: string; _id?: string };
+    if (obj.code) return String(obj.code);
+    if (obj.serialNumber) return String(obj.serialNumber);
+    if (obj._id) return String(obj._id);
+  }
+  return '';
+}
+
+/**
  * Human-readable label for a device associated with a patrol-action event.
  *
  * Format: `${siteName} - ${last4 of deviceId}`.
@@ -26,9 +46,11 @@ function siteName(site: PatrolAction['site']): string {
  *   - site missing but device present  → "Dispositivo …02b2"
  *   - both missing                      → "Dispositivo AlertPort"
  */
-export function formatDeviceLabel(event: Pick<PatrolAction, 'site' | 'deviceInfo'>): string {
+export function formatDeviceLabel(
+  event: Pick<PatrolAction, 'site' | 'deviceInfo' | 'equipment'>,
+): string {
   const name = siteName(event.site);
-  const last4 = lastFourOfDevice(event.deviceInfo?.deviceId);
+  const last4 = lastFourOfDevice(resolveDeviceIdString(event));
 
   if (name && last4) return `${name} - ${last4}`;
   if (name) return name;

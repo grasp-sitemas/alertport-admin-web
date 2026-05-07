@@ -40,9 +40,11 @@ import { MonitorTimeEntryRow } from '@/features/alerts/monitor-time-entry-row';
 import { VirtualizedEventList } from '@/features/alerts/virtualized-event-list';
 import { classifyAttendance, type AttendanceState } from '@/features/alerts/attendance-state';
 import {
+  MONITOR_CATEGORIES,
   MONITOR_EVENT_TYPES,
   MONITOR_STATUS_VALUES,
   filterMonitorEvents,
+  type MonitorCategory,
   type MonitorClientFilters,
 } from '@/features/alerts/monitor-filter';
 
@@ -65,6 +67,7 @@ interface DraftFilters {
   endDate: string;
   type: EventType | '';
   status: AttendanceState | '';
+  category: MonitorCategory | '';
 }
 
 const EMPTY_DRAFT_FILTERS: DraftFilters = {
@@ -72,6 +75,13 @@ const EMPTY_DRAFT_FILTERS: DraftFilters = {
   endDate: '',
   type: '',
   status: '',
+  category: '',
+};
+
+const CATEGORY_LABEL_KEYS: Record<MonitorCategory, string> = {
+  SOS: 'alerts.categories.sos',
+  OCCURRENCE_MISSED: 'alerts.categories.occurrenceMissed',
+  TIME_TRACKING: 'alerts.categories.timeTracking',
 };
 
 /**
@@ -86,6 +96,7 @@ const EVENT_TYPE_LABEL_KEYS: Record<EventType, string> = {
   LOWVOLTAGE: 'alerts.lowVoltage',
   CANCEL_PATROL: 'alerts.cancelPatrol',
   FAILURE_PATROL: 'alerts.failurePatrol',
+  OCCURRENCE_MISSED: 'alerts.occurrenceMissed',
 };
 
 const ATTENDANCE_STATUS_LABEL_KEYS: Record<AttendanceState, string> = {
@@ -208,8 +219,9 @@ function AlertMonitor() {
       q: searchText,
       type: activeFilters.type,
       status: activeFilters.status,
+      category: activeFilters.category,
     }),
-    [searchText, activeFilters.type, activeFilters.status],
+    [searchText, activeFilters.type, activeFilters.status, activeFilters.category],
   );
 
   const filteredEvents = useMemo(
@@ -220,7 +232,22 @@ function AlertMonitor() {
   const totalLoaded = events.length;
   const totalShown = filteredEvents.length;
   const hasClientFilter =
-    !!clientFilters.q.trim() || !!clientFilters.type || !!clientFilters.status;
+    !!clientFilters.q.trim() ||
+    !!clientFilters.type ||
+    !!clientFilters.status ||
+    !!clientFilters.category;
+
+  // Categorias disponíveis no filtro respeitam módulos da empresa.
+  // - TIME_TRACKING só aparece se TIME_ENTRIES habilitado.
+  // - OCCURRENCE_MISSED depende do módulo MONITOR (já gateado pelo
+  //   ModuleGuard da página, mas mantemos coerência).
+  // SAM (super admin) vê tudo via isModuleEnabled().
+  const availableCategories = useMemo<MonitorCategory[]>(() => {
+    return MONITOR_CATEGORIES.filter((cat) => {
+      if (cat === 'TIME_TRACKING') return timeEntriesModuleEnabled;
+      return true;
+    });
+  }, [timeEntriesModuleEnabled]);
 
   // When another operator claims/closes the event this dialog is showing,
   // the `events` list refreshes but the `attendanceEvent` state still holds
@@ -385,6 +412,15 @@ function AlertMonitor() {
         fields={[
           { key: 'startDate', labelKey: 'common.startDate', type: 'date' },
           { key: 'endDate', labelKey: 'common.endDate', type: 'date' },
+          {
+            key: 'category',
+            labelKey: 'alerts.category',
+            type: 'select',
+            options: availableCategories.map((value) => ({
+              value,
+              label: t(CATEGORY_LABEL_KEYS[value]),
+            })),
+          },
           {
             key: 'type',
             labelKey: 'alerts.type',

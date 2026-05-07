@@ -508,6 +508,14 @@
     "lowVoltage": "Bajo Voltaje",
     "cancelPatrol": "Patrulla Cancelada",
     "failurePatrol": "Fallo de Patrulla",
+    "occurrenceMissed": "Alerta de Ocurrencia No Atendida",
+    "type": "Tipo",
+    "category": "Categoría",
+    "categories": {
+      "sos": "SOS",
+      "occurrenceMissed": "Alerta no atendida",
+      "timeTracking": "Control de presencia"
+    },
     "maxDateRange": "El rango máximo de fechas es de 30 días",
     "deleteSuccess": "Agenda eliminada correctamente",
     "geolocation": {
