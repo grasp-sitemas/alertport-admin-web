@@ -23,6 +23,53 @@ export interface CallRecordingRow {
   mimeType: string;
   bytes: number;
   createdAt: string;
+  /**
+   * Optional product discriminator. AlertPort and ShieldGo share the same
+   * legacy recordings storage, but each product has its own admin web. When
+   * the backend attaches one of these fields we use it to filter so this
+   * admin only shows AlertPort recordings.
+   *
+   * The backend may surface the discriminator as `source`/`product` directly
+   * on the recording, or via the peer's `clientType` (e.g. `ALERTPORT_DEVICE`
+   * vs `SHIELDGO_DEVICE`). All shapes are accepted - see
+   * `isAlertportRecording`.
+   */
+  source?: string | null;
+  product?: string | null;
+  peerClientType?: string | null;
+}
+
+/**
+ * Source/product tokens that identify a recording as belonging to AlertPort.
+ * Matched case-insensitively so backend variants (`alertport`, `ALERTPORT`,
+ * `ALERTPORT_DEVICE`, ...) all resolve correctly.
+ */
+const ALERTPORT_SOURCE_TOKENS = ['ALERTPORT', 'ALERTPORT_DEVICE'];
+
+/**
+ * Predicate used to filter ShieldGo recordings out of the AlertPort admin.
+ *
+ * Strategy (per Flavio's feedback "Não trazer gravações do ShieldGo"):
+ *  - We send `source: 'ALERTPORT'` in the socket filter payload as a hint
+ *    for the backend (option A in the design doc).
+ *  - Independently, we filter client-side here using whatever discriminator
+ *    the row carries (option B): `source`, `product`, or `peerClientType`.
+ *  - When no discriminator exists at all (option C), we keep the row to
+ *    stay graceful and avoid hiding legitimate AlertPort traffic on a
+ *    backend that hasn't been updated yet. The hint above is harmless in
+ *    that case.
+ */
+export function isAlertportRecording(row: CallRecordingRow): boolean {
+  const candidates = [row.source, row.product, row.peerClientType];
+  const present = candidates.filter(
+    (value): value is string => typeof value === 'string' && value.length > 0,
+  );
+  if (present.length === 0) {
+    return true;
+  }
+  return present.some((value) =>
+    ALERTPORT_SOURCE_TOKENS.includes(value.toUpperCase()),
+  );
 }
 
 interface ListAck {
@@ -132,6 +179,12 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
       const payload: Record<string, unknown> = {
         limit: current.limit,
         cursor,
+        // Hint to the backend that this admin only wants AlertPort
+        // recordings. Backends that honor the field do the filtering
+        // server-side; older builds ignore the extra key as a no-op. We
+        // also filter defensively on the client (see `isAlertportRecording`)
+        // so ShieldGo recordings never leak into the AlertPort UI.
+        source: 'ALERTPORT',
       };
       // Only send filter keys the user actually set - the backend treats
       // missing keys as "no filter", so this keeps the payload small and
@@ -171,7 +224,10 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
           return;
         }
 
-        const incoming = ack.recordings ?? [];
+        // Defensive client-side filter: drop ShieldGo rows in case the
+        // backend ignored the `source: 'ALERTPORT'` hint above. Keeps the
+        // AlertPort admin focused on its own product.
+        const incoming = (ack.recordings ?? []).filter(isAlertportRecording);
         setRecordings((prev) => (mode === 'replace' ? incoming : [...prev, ...incoming]));
         setNextCursor(ack.nextCursor ?? null);
       });

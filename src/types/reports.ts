@@ -16,6 +16,14 @@ export interface ReportFilterParams {
   account?: string;
   client?: string;
   site?: string;
+  /**
+   * Optional equipment (device) scope. Only meaningful for the
+   * device-event reports today, but accepted on every report payload
+   * so the UI can apply a single device filter consistently. The
+   * backend ignores the field for reports that don't support it -
+   * graceful degradation. See feedback Flavio (RP3).
+   */
+  equipment?: string;
   /** ISO date - required. */
   startDate: string;
   /** ISO date - required. Must be within 30 days of startDate. */

@@ -11,6 +11,14 @@ import { DataTable, type Column } from '@/components/shared/data-table';
 import { TimeEntryBadge } from '@/components/shared/status-badge';
 import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
 import { useTimeEntries } from '@/features/alerts/use-occurrences';
+import { useEquipmentsBySiteLookup } from '@/features/shared/use-hierarchy-lookups';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { usePagination } from '@/hooks/use-pagination';
 import { useFilters } from '@/hooks/use-filters';
 import { RoleGuard } from '@/components/shared/role-guard';
@@ -35,8 +43,19 @@ export default function AttendancePage() {
   });
 
   const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
+  const [equipmentId, setEquipmentId] = useState<string>('');
   const [activeFilters, setActiveFilters] = useState<Record<string, unknown>>(initialFilters);
   const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
+  const [activeEquipmentId, setActiveEquipmentId] = useState<string>('');
+
+  // Devices só fazem sentido quando há um site selecionado. Resetamos a
+  // seleção local quando o site muda para evitar id stale na próxima query.
+  const equipmentsLookup = useEquipmentsBySiteLookup({
+    account: hierarchy.account,
+    client: hierarchy.client,
+    site: hierarchy.site,
+  });
+  const equipmentOptions = equipmentsLookup.data?.results ?? [];
 
   const queryParams = {
     ...buildFilterParams(pagination.paginationParams),
@@ -44,6 +63,7 @@ export default function AttendancePage() {
     ...(activeHierarchy.account ? { account: activeHierarchy.account } : {}),
     ...(activeHierarchy.client ? { client: activeHierarchy.client } : {}),
     ...(activeHierarchy.site ? { site: activeHierarchy.site } : {}),
+    ...(activeEquipmentId ? { equipment: activeEquipmentId } : {}),
   };
 
   const { data, isLoading, isError, error, refetch } = useTimeEntries(queryParams);
@@ -65,6 +85,11 @@ export default function AttendancePage() {
       key: 'timestamp',
       headerKey: 'attendance.timestamp',
       render: (item) => formatTimestamp(item),
+      // Backend grava `createdAt`; o legado mapeava para `timestamp`. Aceitamos
+      // ambos no sort para acompanhar o que `formatTimestamp` renderiza, e
+      // devolvemos uma string ISO para que o DataTable use Date.parse e
+      // ordene cronologicamente (dia + hora crescentes).
+      sortAccessor: (item) => item.createdAt ?? item.timestamp ?? item.createdDate ?? '',
     },
     {
       key: 'user',
@@ -113,6 +138,7 @@ export default function AttendancePage() {
     pagination.setPage(1);
     setActiveFilters(filters);
     setActiveHierarchy(hierarchy);
+    setActiveEquipmentId(equipmentId);
     // Always re-issue the request: when the operator hits Buscar with the
     // same filters as before, the queryKey is unchanged and TanStack
     // Query would otherwise return cached data — defeating the user's
@@ -125,7 +151,16 @@ export default function AttendancePage() {
     setActiveFilters(initialFilters);
     setHierarchy({});
     setActiveHierarchy({});
+    setEquipmentId('');
+    setActiveEquipmentId('');
     pagination.setPage(1);
+  };
+
+  const handleHierarchyChange = (next: HierarchyFiltersValue) => {
+    if (next.site !== hierarchy.site) {
+      setEquipmentId('');
+    }
+    setHierarchy(next);
   };
 
   return (
@@ -135,7 +170,33 @@ export default function AttendancePage() {
       <PageHeader title={t('attendance.title')} description={t('attendance.timeEntries')} />
 
       <FilterPanel
-        extras={<HierarchyFilters value={hierarchy} onChange={setHierarchy} />}
+        extras={
+          <>
+            <HierarchyFilters value={hierarchy} onChange={handleHierarchyChange} />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-text-secondary">
+                {t('common.device')}
+              </label>
+              <Select
+                value={equipmentId || '__all__'}
+                onValueChange={(val) => setEquipmentId(val === '__all__' ? '' : val)}
+                disabled={!hierarchy.site}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('common.selectOption')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">{t('common.all')}</SelectItem>
+                  {equipmentOptions.map((eq) => (
+                    <SelectItem key={eq._id} value={eq._id}>
+                      {eq.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        }
         fields={[
           { key: 'startDate', labelKey: 'common.startDate', type: 'date' },
           { key: 'endDate', labelKey: 'common.endDate', type: 'date' },
@@ -184,6 +245,10 @@ export default function AttendancePage() {
           onPageChange={pagination.setPage}
           onPageSizeChange={pagination.setPageSize}
           getRowKey={(item) => item._id}
+          // Carga inicial cronológica: dia + hora crescentes. O accessor
+          // espelha `formatTimestamp` para que o sort use o mesmo campo
+          // canônico (`createdAt` com fallback) que a célula renderiza.
+          initialSort={{ key: 'timestamp', dir: 'asc' }}
         />
       )}
       </div>

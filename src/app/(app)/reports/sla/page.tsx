@@ -77,6 +77,7 @@ function SlaPageBody() {
       ...(filterValue.hierarchy.account ? { account: filterValue.hierarchy.account } : {}),
       ...(filterValue.hierarchy.client ? { client: filterValue.hierarchy.client } : {}),
       ...(filterValue.hierarchy.site ? { site: filterValue.hierarchy.site } : {}),
+      ...(filterValue.equipment ? { equipment: filterValue.equipment } : {}),
       slaThresholdSec: Math.max(
         1,
         Math.floor(Number(slaThresholdSec) || DEFAULT_SLA_THRESHOLD_SEC),
@@ -93,7 +94,13 @@ function SlaPageBody() {
   }, []);
   const data = query.data;
   const summary = data?.summary;
-  const rows = useMemo<SlaRow[]>(() => data?.results ?? [], [data]);
+  // RP4: default chronological sort - oldest first by trigger date.
+  const rows = useMemo<SlaRow[]>(() => {
+    const list = data?.results ?? [];
+    return [...list].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
+  }, [data]);
   const pagination = useClientPagination(rows, { initialPageSize: 20 });
   const operators = useMemo(() => data?.operators ?? [], [data]);
 

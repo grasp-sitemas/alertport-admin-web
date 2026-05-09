@@ -70,6 +70,7 @@ function AdherencePageBody() {
       ...(filterValue.hierarchy.account ? { account: filterValue.hierarchy.account } : {}),
       ...(filterValue.hierarchy.client ? { client: filterValue.hierarchy.client } : {}),
       ...(filterValue.hierarchy.site ? { site: filterValue.hierarchy.site } : {}),
+      ...(filterValue.equipment ? { equipment: filterValue.equipment } : {}),
     });
     // Same reasoning as on the CRUD pages: re-clicking Aplicar with the
     // same range was a no-op because TanStack Query saw an unchanged
@@ -84,7 +85,16 @@ function AdherencePageBody() {
   }, []);
   const data = query.data;
   const summary = data?.summary;
-  const rows = useMemo<AdherenceRow[]>(() => data?.results ?? [], [data]);
+  // RP4: default chronological sort - oldest first by scheduledAt.
+  // Backend returns rows in arbitrary order; sort client-side so the
+  // operator always sees the timeline reading top-to-bottom.
+  const rows = useMemo<AdherenceRow[]>(() => {
+    const list = data?.results ?? [];
+    return [...list].sort(
+      (a, b) =>
+        new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime(),
+    );
+  }, [data]);
   const pagination = useClientPagination(rows, { initialPageSize: 20 });
 
   // Column order (user-facing requirement):

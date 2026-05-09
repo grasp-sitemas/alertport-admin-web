@@ -1,14 +1,22 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { AlertCircle, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   HierarchyFilters,
   type HierarchyFiltersValue,
 } from '@/components/shared/hierarchy-filters';
+import { useEquipmentsBySiteLookup } from '@/features/shared/use-hierarchy-lookups';
 import { cn } from '@/lib/utils';
 import {
   MAX_RANGE_DAYS,
@@ -35,6 +43,13 @@ import {
 
 export interface ReportFilterValue {
   hierarchy: HierarchyFiltersValue;
+  /**
+   * Optional device (equipment) filter. Only enabled once a site is
+   * picked - mirrors the cascading hierarchy behaviour. Backend
+   * silently ignores it for reports that don't index by equipment;
+   * for device-event reports it scopes to a single device.
+   */
+  equipment?: string;
   startDate: string;
   endDate: string;
 }
@@ -72,6 +87,26 @@ export function ReportFilterPanel({
 
   const canApply = validation.ok && !isLoading;
 
+  // Device lookup (RP3): only fires once a site is picked. Hook is
+  // cascading-aware - it auto-clears when site changes upstream.
+  const equipmentsLookup = useEquipmentsBySiteLookup({
+    account: value.hierarchy.account || undefined,
+    client: value.hierarchy.client || undefined,
+    site: value.hierarchy.site || undefined,
+  });
+
+  // When site changes (or is cleared), wipe any equipment selection so
+  // the filter never sends a device id that doesn't belong to the new
+  // hierarchy. Same pattern HierarchyFilters uses for client → site.
+  useEffect(() => {
+    if (!value.hierarchy.site && value.equipment) {
+      onChange({ ...value, equipment: undefined });
+    }
+  }, [value.hierarchy.site, value.equipment, value, onChange]);
+
+  const equipmentOptions = equipmentsLookup.data?.results ?? [];
+  const equipmentDisabled = !value.hierarchy.site || equipmentsLookup.isLoading;
+
   return (
     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 space-y-2">
       {/* One dense responsive grid for every filter field. On xl the
@@ -81,9 +116,46 @@ export function ReportFilterPanel({
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-3 gap-y-2">
         <HierarchyFilters
           value={value.hierarchy}
-          onChange={(hierarchy) => onChange({ ...value, hierarchy })}
+          onChange={(hierarchy) =>
+            onChange({
+              ...value,
+              hierarchy,
+              // Picking a new site/client/account invalidates the previously
+              // chosen device — drop it so the next request is clean.
+              equipment: undefined,
+            })
+          }
           compact
         />
+
+        <div>
+          <label className={LABEL_CLASS}>
+            {t('reports.filters.device')}
+          </label>
+          <Select
+            value={value.equipment || '__all__'}
+            onValueChange={(val) => {
+              const equipment = val === '__all__' ? undefined : val;
+              onChange({ ...value, equipment });
+            }}
+            disabled={equipmentDisabled}
+          >
+            <SelectTrigger className="h-9 px-3 text-sm">
+              <SelectValue placeholder={t('common.selectOption')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">{t('common.all')}</SelectItem>
+              {equipmentOptions.map((eq) => {
+                const label = eq.code || eq.name || eq._id;
+                return (
+                  <SelectItem key={eq._id} value={eq._id}>
+                    {label}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
 
         <div>
           <label htmlFor="report-start-date" className={LABEL_CLASS}>

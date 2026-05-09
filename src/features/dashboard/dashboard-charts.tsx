@@ -128,9 +128,34 @@ export function StatusDonut({ data }: { data: StatusSlice[] }) {
 export interface RankedSite {
   name: string;
   count: number;
+  /** D3 (Flavio): breakdown por status — opcional para callers legados. */
+  responded?: number;
+  pending?: number;
+  missed?: number;
 }
 
-export function TopSitesBars({ data }: { data: RankedSite[] }) {
+/**
+ * D3: cores fixas por status (verde / laranja / vermelho) — espelham a
+ * paleta do donut de status para coerência visual.
+ */
+const STATUS_BAR_COLORS = {
+  responded: 'rgb(16,185,129)',
+  pending: 'rgb(245,158,11)',
+  missed: 'rgb(239,68,68)',
+} as const;
+
+interface TopSitesBarsProps {
+  data: RankedSite[];
+  /**
+   * Quando true, renderiza barra empilhada por status (verde/laranja/vermelho).
+   * Quando false (default), mantém a barra única (comportamento legado).
+   */
+  stacked?: boolean;
+  /** Labels traduzidos para os segmentos da legenda da barra empilhada. */
+  labels?: { responded: string; pending: string; missed: string };
+}
+
+export function TopSitesBars({ data, stacked = false, labels }: TopSitesBarsProps) {
   if (data.length === 0) {
     return (
       <div className="flex h-[240px] items-center justify-center text-sm text-text-muted">
@@ -139,6 +164,15 @@ export function TopSitesBars({ data }: { data: RankedSite[] }) {
     );
   }
   const height = Math.max(240, data.length * 28 + 40);
+  const showStacked =
+    stacked &&
+    data.some(
+      (d) => d.responded !== undefined || d.pending !== undefined || d.missed !== undefined,
+    );
+  const respondedLabel = labels?.responded ?? 'Responded';
+  const pendingLabel = labels?.pending ?? 'Pending';
+  const missedLabel = labels?.missed ?? 'Missed';
+
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart
@@ -161,12 +195,37 @@ export function TopSitesBars({ data }: { data: RankedSite[] }) {
           contentStyle={TOOLTIP_STYLE}
           formatter={(v) => String(v)}
         />
-        <Bar
-          dataKey="count"
-          fill="rgb(99,102,241)"
-          radius={[0, 6, 6, 0]}
-          label={{ position: 'right', fill: 'rgba(255,255,255,0.7)', fontSize: 11 }}
-        />
+        {showStacked ? (
+          <>
+            <Bar
+              dataKey="responded"
+              name={respondedLabel}
+              stackId="status"
+              fill={STATUS_BAR_COLORS.responded}
+              radius={[6, 0, 0, 6]}
+            />
+            <Bar
+              dataKey="pending"
+              name={pendingLabel}
+              stackId="status"
+              fill={STATUS_BAR_COLORS.pending}
+            />
+            <Bar
+              dataKey="missed"
+              name={missedLabel}
+              stackId="status"
+              fill={STATUS_BAR_COLORS.missed}
+              radius={[0, 6, 6, 0]}
+            />
+          </>
+        ) : (
+          <Bar
+            dataKey="count"
+            fill="rgb(99,102,241)"
+            radius={[0, 6, 6, 0]}
+            label={{ position: 'right', fill: 'rgba(255,255,255,0.7)', fontSize: 11 }}
+          />
+        )}
       </BarChart>
     </ResponsiveContainer>
   );

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Play, RefreshCw, Mic } from 'lucide-react';
+import { Play, RefreshCw, Mic, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useCallRecordings, type RecordingsFilter } from './use-call-recordings';
@@ -112,6 +112,17 @@ export function CallRecordingsPanel({ filter, roomId, limit = 50, hideTitle = fa
     }
   };
 
+  /**
+   * Close the inline audio label. Used both by the auto-close path (fired
+   * from `<audio onEnded>`) and the manual close button (rendered when the
+   * user paused mid-playback). Immutable state update - we just clear the
+   * "currently open" pointers.
+   */
+  const handleClosePlayer = () => {
+    setPlayingId(null);
+    setPlayingUrl(null);
+  };
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -178,9 +189,34 @@ export function CallRecordingsPanel({ filter, roomId, limit = 50, hideTitle = fa
                 </Button>
               </div>
               {playingId === r._id && playingUrl && (
-                <audio src={playingUrl} controls autoPlay className="w-full">
-                  <track kind="captions" />
-                </audio>
+                <div className="flex items-center gap-2">
+                  {/*
+                    Auto-close on natural end (Flavio's feedback: "Se foi
+                    ouvido, fecha no fim da execução"). If the user pauses
+                    or seeks-and-stops before the file ends, `onEnded` never
+                    fires and the X button below remains the only way to
+                    close - matching "Não sendo ouvido, permitir fechar".
+                  */}
+                  <audio
+                    src={playingUrl}
+                    controls
+                    autoPlay
+                    className="w-full"
+                    onEnded={handleClosePlayer}
+                  >
+                    <track kind="captions" />
+                  </audio>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClosePlayer}
+                    aria-label={t('calls.recordings.close')}
+                    title={t('calls.recordings.close')}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               )}
             </div>
           ))}

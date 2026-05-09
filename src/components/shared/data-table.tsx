@@ -64,6 +64,12 @@ interface DataTableProps<T> {
   getRowKey: (item: T) => string;
   emptyTitle?: string;
   emptyDescription?: string;
+  /**
+   * Optional initial sort applied on first render. The user can still
+   * override it by clicking a column header. Useful for timeline pages
+   * that want chronological order out of the box.
+   */
+  initialSort?: SortState;
 }
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
@@ -134,9 +140,10 @@ export function DataTable<T>({
   getRowKey,
   emptyTitle,
   emptyDescription,
+  initialSort,
 }: DataTableProps<T>) {
   const t = useTranslations();
-  const [sort, setSort] = useState<SortState | null>(null);
+  const [sort, setSort] = useState<SortState | null>(initialSort ?? null);
 
   const columnByKey = useMemo(() => {
     const map = new Map<string, Column<T>>();

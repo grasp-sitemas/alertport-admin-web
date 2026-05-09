@@ -118,7 +118,8 @@
     "fileTypeInvalid": "Tipo de arquivo não permitido",
     "fileEmpty": "Arquivo vazio. Selecione uma imagem válida.",
     "photoUploadHint": "Imagens até {size}. JPG, PNG ou similar.",
-    "filters": "Filtros"
+    "filters": "Filtros",
+    "device": "Dispositivo"
   },
   "auth": {
     "login": "Entrar",
@@ -222,11 +223,15 @@
     "reportEquipmentStatus": "Equipamento Ligado/Desligado",
     "reportViolation": "Violação",
     "reportRemoteRestart": "Reiniciado Remotamente",
-    "reportsDeviceEvents": "Operação dos Dispositivos"
+    "reportsDeviceEvents": "Operação dos Dispositivos",
+    "deviceLogs": "Logs dos Dispositivos"
   },
   "reports": {
     "filter": {
       "maxRangeHint": "Intervalo máximo: {max} dias"
+    },
+    "filters": {
+      "device": "Dispositivo"
     },
     "errors": {
       "datesRequired": "Selecione as datas de início e fim",
@@ -413,6 +418,9 @@
     "missedAlerts": "Alertas Perdidos",
     "activeEquipments": "Equipamentos Ativos",
     "activeCollaborators": "Colaboradores Ativos",
+    "registeredDevices": "Dispositivos cadastrados",
+    "activeDevices": "Dispositivos Ativos",
+    "activeDevicesEstimateHint": "Estimativa baseada em última atualização",
     "todayOccurrences": "Ocorrências Hoje",
     "weekSummary": "Resumo da Semana",
     "alertsByDay": "Alertas por Dia",
@@ -752,6 +760,7 @@
       "title": "Gravações de chamadas",
       "empty": "Nenhuma gravação disponível.",
       "play": "Ouvir",
+      "close": "Fechar",
       "pageTitle": "Gravações",
       "pageDescription": "Chamadas de escuta ativa concluídas ficam disponíveis para reprodução.",
       "loadMore": "Carregar mais",

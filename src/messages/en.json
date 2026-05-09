@@ -118,7 +118,8 @@
     "fileTypeInvalid": "File type not allowed",
     "fileEmpty": "Empty file. Please select a valid image.",
     "photoUploadHint": "Images up to {size}. JPG, PNG, etc.",
-    "filters": "Filters"
+    "filters": "Filters",
+    "device": "Device"
   },
   "auth": {
     "login": "Sign in",
@@ -222,11 +223,15 @@
     "reportEquipmentStatus": "Equipment On/Off",
     "reportViolation": "Tamper / Violation",
     "reportRemoteRestart": "Remote Restart",
-    "reportsDeviceEvents": "Device Operation"
+    "reportsDeviceEvents": "Device Operation",
+    "deviceLogs": "Device Logs"
   },
   "reports": {
     "filter": {
       "maxRangeHint": "Max window: {max} days"
+    },
+    "filters": {
+      "device": "Device"
     },
     "errors": {
       "datesRequired": "Pick both a start and end date",
@@ -413,6 +418,9 @@
     "missedAlerts": "Missed Alerts",
     "activeEquipments": "Active Equipment",
     "activeCollaborators": "Active Collaborators",
+    "registeredDevices": "Registered Devices",
+    "activeDevices": "Active Devices",
+    "activeDevicesEstimateHint": "Estimate based on last update",
     "todayOccurrences": "Today's Occurrences",
     "weekSummary": "Week Summary",
     "alertsByDay": "Alerts by Day",
@@ -752,6 +760,7 @@
       "title": "Call recordings",
       "empty": "No recordings available.",
       "play": "Listen",
+      "close": "Close",
       "pageTitle": "Recordings",
       "pageDescription": "Completed silent-listen calls become available for playback.",
       "loadMore": "Load more",

@@ -5,6 +5,7 @@ import { alertsService } from '@/services/alerts.service';
 import { equipmentService } from '@/services/equipment.service';
 import { usersService } from '@/services/users.service';
 import { useUserScope, applyUserScope } from '@/hooks/use-user-scope';
+import type { Equipment } from '@/types/api';
 
 export interface DashboardRange {
   /** ISO date-time (inclusive) at the start of the analysis window. */
@@ -22,6 +23,48 @@ export interface DashboardHierarchyOverride {
   account?: string;
   client?: string;
   site?: string;
+}
+
+/**
+ * Tipos de equipamento que devem ser EXCLUÍDOS do count de "Dispositivos
+ * cadastrados". O backend ainda mistura bastões de ronda e patrol staff
+ * dentro da coleção `equipments`. Como `Equipment.type` é apenas um id,
+ * esta heurística inspeciona campos textuais (`code`, `brand`, `name`,
+ * `model`) — a importação Patrol/GWronda costuma colocar "ronda"/"patrol"
+ * nesses campos.
+ *
+ * TODO(backend): expor `equipmentType.category` ou `Equipment.kind` para
+ * eliminar a heurística client-side. Ver feedback do Flavio (D1).
+ */
+const PATROL_DEVICE_PATTERN = /ronda|patrol|bast(a|ã)o/i;
+
+/** Janela de "atividade recente" para o keep-alive de devices legados/mobile. */
+const ACTIVE_DEVICE_WINDOW_HOURS = 24;
+const HOUR_MS = 60 * 60 * 1000;
+
+const DEVICE_TIMESTAMP_FIELDS: Array<keyof Equipment> = [
+  'updateDate',
+  'updatedDate',
+  'createDate',
+  'createdDate',
+];
+
+function isPatrolDevice(eq: Equipment): boolean {
+  const haystack = [eq.code, eq.brand, eq.name, eq.model]
+    .filter((v): v is string => typeof v === 'string' && v.length > 0)
+    .join(' ');
+  return PATROL_DEVICE_PATTERN.test(haystack);
+}
+
+function getLatestTimestamp(eq: Equipment): number | null {
+  for (const field of DEVICE_TIMESTAMP_FIELDS) {
+    const raw = eq[field];
+    if (typeof raw === 'string' && raw.length > 0) {
+      const t = new Date(raw).getTime();
+      if (!Number.isNaN(t)) return t;
+    }
+  }
+  return null;
 }
 
 /**
@@ -86,6 +129,28 @@ export function useDashboardData(
       ),
   });
 
+  /**
+   * D1 + D2 (feedback Flavio): puxa a lista real de equipments para
+   * (a) excluir bastões de ronda/patrol do count "Dispositivos cadastrados"
+   *     e (b) derivar o contador de "Dispositivos Ativos" via keep-alive.
+   *
+   * Limit alto (até 1000) cobre o universo atual do AlertPort. Para tenants
+   * maiores, mover esta agregação para um endpoint dedicado no backend.
+   */
+  const equipmentList = useQuery({
+    queryKey: [
+      'dashboard',
+      'equipment-list',
+      effectiveScope.accountId ?? '',
+      effectiveScope.clientId ?? '',
+      effectiveScope.siteId ?? '',
+    ],
+    queryFn: () =>
+      equipmentService.filter(
+        applyUserScope({ skip: 1, limit: 1000, status: 'ACTIVE' }, effectiveScope),
+      ),
+  });
+
   const collaboratorCount = useQuery({
     queryKey: [
       'dashboard',
@@ -100,11 +165,32 @@ export function useDashboardData(
       ),
   });
 
+  // Derived AlertPort device counters. Calculados aqui para deixar a página declarativa.
+  const allEquipments = equipmentList.data?.results ?? [];
+  const nonPatrolEquipments = allEquipments.filter((e) => !isPatrolDevice(e));
+  const registeredDevicesCount = nonPatrolEquipments.length;
+
+  const cutoff = Date.now() - ACTIVE_DEVICE_WINDOW_HOURS * HOUR_MS;
+  const activeDevicesCount = nonPatrolEquipments.filter((e) => {
+    const t = getLatestTimestamp(e);
+    return t !== null && t >= cutoff;
+  }).length;
+
   return {
     occurrences,
     equipmentCount,
+    equipmentList,
     collaboratorCount,
+    /** D1: count após excluir bastões de patrol/ronda. */
+    registeredDevicesCount,
+    /** D2: best-effort active devices via timestamp de update como keep-alive. */
+    activeDevicesCount,
+    /** Quando true, o cálculo de activeDevices é uma estimativa (ver tooltip). */
+    activeDevicesIsEstimate: true,
     isLoading:
-      occurrences.isLoading || equipmentCount.isLoading || collaboratorCount.isLoading,
+      occurrences.isLoading ||
+      equipmentCount.isLoading ||
+      equipmentList.isLoading ||
+      collaboratorCount.isLoading,
   };
 }

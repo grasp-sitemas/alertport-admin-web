@@ -118,7 +118,8 @@
     "fileTypeInvalid": "不支持的文件类型",
     "fileEmpty": "空文件。请选择有效的图片。",
     "photoUploadHint": "最大 {size} 的图片 (JPG, PNG 等)",
-    "filters": "筛选"
+    "filters": "筛选",
+    "device": "设备"
   },
   "auth": {
     "login": "登录",
@@ -222,11 +223,15 @@
     "reportEquipmentStatus": "设备开机/关机",
     "reportViolation": "违规/拆机",
     "reportRemoteRestart": "远程重启",
-    "reportsDeviceEvents": "设备运行情况"
+    "reportsDeviceEvents": "设备运行情况",
+    "deviceLogs": "设备日志"
   },
   "reports": {
     "filter": {
       "maxRangeHint": "最大区间:{max} 天"
+    },
+    "filters": {
+      "device": "设备"
     },
     "errors": {
       "datesRequired": "请选择开始与结束日期",
@@ -413,6 +418,9 @@
     "missedAlerts": "未响应警报",
     "activeEquipments": "活跃设备",
     "activeCollaborators": "活跃协作者",
+    "registeredDevices": "已注册设备",
+    "activeDevices": "活跃设备数",
+    "activeDevicesEstimateHint": "基于最后更新的估算",
     "todayOccurrences": "今日事件",
     "weekSummary": "周总结",
     "alertsByDay": "按日警报",
@@ -752,6 +760,7 @@
       "title": "通话录音",
       "empty": "暂无录音。",
       "play": "播放",
+      "close": "关闭",
       "pageTitle": "录音",
       "pageDescription": "静听通话结束后可供回放。",
       "loadMore": "加载更多",

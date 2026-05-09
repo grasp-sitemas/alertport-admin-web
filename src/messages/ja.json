@@ -118,7 +118,8 @@
     "fileTypeInvalid": "許可されていないファイル形式",
     "fileEmpty": "空のファイルです。有効な画像を選択してください。",
     "photoUploadHint": "最大 {size} の画像。JPG、PNG など。",
-    "filters": "フィルター"
+    "filters": "フィルター",
+    "device": "デバイス"
   },
   "auth": {
     "login": "ログイン",
@@ -222,11 +223,15 @@
     "reportEquipmentStatus": "機器の電源 ON/OFF",
     "reportViolation": "改ざん/違反",
     "reportRemoteRestart": "リモート再起動",
-    "reportsDeviceEvents": "デバイス運用"
+    "reportsDeviceEvents": "デバイス運用",
+    "deviceLogs": "デバイスログ"
   },
   "reports": {
     "filter": {
       "maxRangeHint": "最大期間: {max}日"
+    },
+    "filters": {
+      "device": "デバイス"
     },
     "errors": {
       "datesRequired": "開始日と終了日を選択してください",
@@ -413,6 +418,9 @@
     "missedAlerts": "未対応アラート",
     "activeEquipments": "稼働中の機器",
     "activeCollaborators": "アクティブな協力者",
+    "registeredDevices": "登録済みデバイス",
+    "activeDevices": "アクティブなデバイス",
+    "activeDevicesEstimateHint": "最終更新に基づく推定値",
     "todayOccurrences": "本日の発生件数",
     "weekSummary": "週間サマリー",
     "alertsByDay": "日別アラート",
@@ -752,6 +760,7 @@
       "title": "通話の録音",
       "empty": "録音はありません。",
       "play": "再生",
+      "close": "閉じる",
       "pageTitle": "録音",
       "pageDescription": "サイレントリッスン通話は終了後に再生できます。",
       "loadMore": "もっと見る",

@@ -10,6 +10,7 @@ import {
   Cpu,
   MapPin,
   PieChart as PieIcon,
+  Smartphone,
   TrendingUp,
   UserCheck,
   XCircle,
@@ -63,11 +64,23 @@ export default function DashboardPage() {
   const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
   const [activeHierarchy, setActiveHierarchy] = useState<HierarchyFiltersValue>({});
   const range = useMemo(() => buildRange(rangeDays), [rangeDays]);
-  const { occurrences, equipmentCount, collaboratorCount } = useDashboardData(
-    range,
-    activeHierarchy,
-  );
+  const {
+    occurrences,
+    equipmentList,
+    collaboratorCount,
+    registeredDevicesCount,
+    activeDevicesCount,
+    activeDevicesIsEstimate,
+  } = useDashboardData(range, activeHierarchy);
   const occurrencesLoading = occurrences.isLoading;
+  const equipmentLoading = equipmentList.isLoading;
+
+  /**
+   * D2 (feedback Flavio): mantemos o card "Colaboradores Ativos" oculto
+   * via flag (NÃO deletado) para regressão futura. Flip para true se
+   * precisar do card de volta sem novo deploy.
+   */
+  const SHOW_LEGACY_COLLABORATORS_CARD = false;
 
   const applyFilters = () => setActiveHierarchy(hierarchy);
   const clearFilters = () => {
@@ -106,6 +119,12 @@ export default function DashboardPage() {
 
   const topSites = useMemo<RankedSite[]>(
     () => rankSites(occurrenceList, 10),
+    [occurrenceList],
+  );
+
+  // D4: 20 linhas, mais recente primeiro, dedupe por site.
+  const recentActivity = useMemo<AlertOccurrence[]>(
+    () => buildRecentActivity(occurrenceList, 20),
     [occurrenceList],
   );
 
@@ -203,20 +222,41 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* D1: renomeado de "Equipamentos ativos" para "Dispositivos
+            cadastrados", excluindo bastões de ronda/patrol via heurística
+            client-side (ver use-dashboard-data.ts). */}
         <KpiCard
-          title={t('dashboard.activeEquipments')}
-          value={equipmentCount.data?.totalCount ?? 0}
+          title={t('dashboard.registeredDevices')}
+          value={registeredDevicesCount}
           icon={Cpu}
           accent="info"
-          isLoading={equipmentCount.isLoading}
+          isLoading={equipmentLoading}
         />
+        {/* D2: novo card "Dispositivos Ativos". Estimativa via última
+            atualização (keep-alive). Sufixo "*" + tooltip via title. */}
         <KpiCard
-          title={t('dashboard.activeCollaborators')}
-          value={collaboratorCount.data?.totalCount ?? 0}
-          icon={UserCheck}
-          accent="brand"
-          isLoading={collaboratorCount.isLoading}
+          title={
+            activeDevicesIsEstimate
+              ? `${t('dashboard.activeDevices')} *`
+              : t('dashboard.activeDevices')
+          }
+          value={activeDevicesCount}
+          icon={Smartphone}
+          accent="success"
+          isLoading={equipmentLoading}
+          trend={activeDevicesIsEstimate ? t('dashboard.activeDevicesEstimateHint') : undefined}
         />
+        {/* D2: card legado preservado atrás de flag (default OFF) — não
+            deletado para permitir regressão sem novo deploy. */}
+        {SHOW_LEGACY_COLLABORATORS_CARD ? (
+          <KpiCard
+            title={t('dashboard.activeCollaborators')}
+            value={collaboratorCount.data?.totalCount ?? 0}
+            icon={UserCheck}
+            accent="brand"
+            isLoading={collaboratorCount.isLoading}
+          />
+        ) : null}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -284,7 +324,15 @@ export default function DashboardPage() {
             {occurrencesLoading ? (
               <div className="h-[240px] animate-pulse rounded-lg bg-white/[0.02]" />
             ) : (
-              <TopSitesBars data={topSites} />
+              <TopSitesBars
+                data={topSites}
+                stacked
+                labels={{
+                  responded: t('alerts.responded'),
+                  pending: t('alerts.pending'),
+                  missed: t('alerts.missed'),
+                }}
+              />
             )}
           </CardContent>
         </Card>
@@ -301,10 +349,10 @@ export default function DashboardPage() {
                     <div key={i} className="h-12 animate-pulse rounded-lg bg-white/[0.02]" />
                   ))}
                 </div>
-              ) : occurrenceList.length === 0 ? (
+              ) : recentActivity.length === 0 ? (
                 <p className="py-8 text-center text-sm text-text-muted">{t('common.noData')}</p>
               ) : (
-                occurrenceList.slice(0, 8).map((occ) => (
+                recentActivity.map((occ) => (
                   <div
                     key={occ._id}
                     className="flex items-center justify-between gap-3 rounded-lg p-2 transition-colors hover:bg-white/[0.03]"
@@ -356,17 +404,50 @@ function buildTrend(list: AlertOccurrence[], days: number): TrendPoint[] {
 }
 
 function rankSites(list: AlertOccurrence[], limit: number): RankedSite[] {
-  const counts = new Map<string, number>();
+  // D3 (Flavio): além do total, somamos o breakdown por status para a
+  // barra empilhada (verde / laranja / vermelho).
+  type Bucket = { count: number; responded: number; pending: number; missed: number };
+  const counts = new Map<string, Bucket>();
   for (const occ of list) {
     const siteName =
       typeof occ.site === 'object' && occ.site?.name ? occ.site.name : undefined;
     if (!siteName) continue;
-    counts.set(siteName, (counts.get(siteName) ?? 0) + 1);
+    const cur = counts.get(siteName) ?? { count: 0, responded: 0, pending: 0, missed: 0 };
+    cur.count += 1;
+    if (occ.status === 'RESPONDED') cur.responded += 1;
+    else if (occ.status === 'PENDING') cur.pending += 1;
+    else if (occ.status === 'MISSED') cur.missed += 1;
+    counts.set(siteName, cur);
   }
   return [...counts.entries()]
-    .map(([name, count]) => ({ name, count }))
+    .map(([name, bucket]) => ({ name, ...bucket }))
     .sort((a, b) => b.count - a.count)
     .slice(0, limit);
+}
+
+/**
+ * D4 (Flavio): atividade recente — ordem desc, dedupe por site (último
+ * evento de cada site), corte em 20 linhas.
+ */
+function buildRecentActivity(list: AlertOccurrence[], maxRows: number): AlertOccurrence[] {
+  const sorted = [...list].sort((a, b) => {
+    const ta = new Date(a.scheduledAt ?? a.createdDate ?? 0).getTime();
+    const tb = new Date(b.scheduledAt ?? b.createdDate ?? 0).getTime();
+    return tb - ta;
+  });
+  const seen = new Map<string, AlertOccurrence>();
+  for (const occ of sorted) {
+    const siteId =
+      typeof occ.site === 'object' && occ.site?._id
+        ? occ.site._id
+        : typeof occ.site === 'string'
+          ? occ.site
+          : null;
+    if (!siteId) continue;
+    if (!seen.has(siteId)) seen.set(siteId, occ);
+    if (seen.size >= maxRows) break;
+  }
+  return [...seen.values()];
 }
 
 function formatDayShort(day: string): string {

@@ -90,6 +90,7 @@ export function DeviceEventReportBody({ variant }: Props) {
       ...(filterValue.hierarchy.account ? { account: filterValue.hierarchy.account } : {}),
       ...(filterValue.hierarchy.client ? { client: filterValue.hierarchy.client } : {}),
       ...(filterValue.hierarchy.site ? { site: filterValue.hierarchy.site } : {}),
+      ...(filterValue.equipment ? { equipment: filterValue.equipment } : {}),
     });
     void query.refetch();
   }, [filterValue, query]);
@@ -101,7 +102,14 @@ export function DeviceEventReportBody({ variant }: Props) {
   }, []);
   const data = query.data;
   const summary = data?.summary;
-  const rows = useMemo<DeviceEventRow[]>(() => data?.results ?? [], [data]);
+  // RP4: default chronological sort - oldest first by eventDate.
+  const rows = useMemo<DeviceEventRow[]>(() => {
+    const list = data?.results ?? [];
+    return [...list].sort(
+      (a, b) =>
+        new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime(),
+    );
+  }, [data]);
   const pagination = useClientPagination(rows, { initialPageSize: 20 });
 
   const eventCategoryLabel = useCallback(

@@ -159,10 +159,24 @@ export const navigation: NavSection[] = [
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER'],
         moduleKey: 'REPORTS',
       },
-      // ── Operação dos Dispositivos ────────────────────────
-      // Five device-event slices over the same eventTypes
-      // collection (filtered server-side). Same role gating
-      // as the other reports - any operator+ can read them.
+    ],
+  },
+  // ── Logs dos Dispositivos (RP2) ─────────────────────────────
+  // Split out of `sidebar.reports` so analytical reports stay
+  // separate from device-event logs. Five device-event slices over
+  // the same eventTypes collection (filtered server-side). Same
+  // role gating as the analytical reports - any operator+ can read.
+  //
+  // NOTE on SOS placement: Flavio's feedback listed SOS alongside
+  // these device logs, but SOS is an operational alert with an
+  // attendance flow (operator response, resolution time), not a raw
+  // device log. We deliberately keep `reportSos` under
+  // `sidebar.reports` so the menu separates "operational reports"
+  // from "device telemetry logs".
+  {
+    titleKey: 'sidebar.deviceLogs',
+    icon: BarChart3,
+    items: [
       {
         titleKey: 'sidebar.reportPowerEvents',
         href: '/reports/power-events',

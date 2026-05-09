@@ -63,6 +63,7 @@ function AttendancePageBody() {
       ...(filterValue.hierarchy.account ? { account: filterValue.hierarchy.account } : {}),
       ...(filterValue.hierarchy.client ? { client: filterValue.hierarchy.client } : {}),
       ...(filterValue.hierarchy.site ? { site: filterValue.hierarchy.site } : {}),
+      ...(filterValue.equipment ? { equipment: filterValue.equipment } : {}),
     });
     void query.refetch();
   }, [filterValue, query]);
@@ -74,7 +75,14 @@ function AttendancePageBody() {
   }, []);
   const data = query.data;
   const summary = data?.summary;
-  const rows = useMemo<AttendanceRow[]>(() => data?.results ?? [], [data]);
+  // RP4: default chronological sort - oldest first by createdAt.
+  const rows = useMemo<AttendanceRow[]>(() => {
+    const list = data?.results ?? [];
+    return [...list].sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
+  }, [data]);
   const pagination = useClientPagination(rows, { initialPageSize: 20 });
 
   // Column order (user-facing requirement):
