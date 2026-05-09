@@ -80,16 +80,8 @@ export function CallRecordingsPanel({ filter, roomId, limit = 50, hideTitle = fa
     ...(roomId ? { roomId } : {}),
     ...filter,
   };
-  const {
-    recordings,
-    loading,
-    loadingMore,
-    error,
-    hasMore,
-    refresh,
-    loadMore,
-    getSignedUrl,
-  } = useCallRecordings(effectiveFilter);
+  const { recordings, loading, loadingMore, error, hasMore, refresh, loadMore, getSignedUrl } =
+    useCallRecordings(effectiveFilter);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [playingUrl, setPlayingUrl] = useState<string | null>(null);
 
@@ -129,8 +121,8 @@ export function CallRecordingsPanel({ filter, roomId, limit = 50, hideTitle = fa
         {hideTitle ? (
           <span />
         ) : (
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-            <Mic className="h-4 w-4 text-brand-500" />
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
+            <Mic className="text-brand-500 h-4 w-4" />
             {t('calls.recordings.title')}
           </h3>
         )}
@@ -146,16 +138,10 @@ export function CallRecordingsPanel({ filter, roomId, limit = 50, hideTitle = fa
         </div>
       )}
 
-      {error && (
-        <p className="text-xs text-red-400">
-          {t(mapRecordingErrorKey(error))}
-        </p>
-      )}
+      {error && <p className="text-xs text-red-400">{t(mapRecordingErrorKey(error))}</p>}
 
       {!loading && recordings.length === 0 && (
-        <p className="text-sm text-text-muted py-4 text-center">
-          {t('calls.recordings.empty')}
-        </p>
+        <p className="text-text-muted py-4 text-center text-sm">{t('calls.recordings.empty')}</p>
       )}
 
       {recordings.length > 0 && (
@@ -163,15 +149,16 @@ export function CallRecordingsPanel({ filter, roomId, limit = 50, hideTitle = fa
           {recordings.map((r) => (
             <div
               key={r._id}
-              className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3 space-y-2"
+              className="space-y-2 rounded-xl border border-white/[0.08] bg-white/[0.02] p-3"
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm text-white truncate">
+                  <p className="truncate text-sm text-white">
                     {new Date(r.createdAt).toLocaleString()}
                   </p>
-                  <p className="text-xs text-text-muted truncate">
-                    {formatDuration(r.durationSec)} · {formatBytes(r.bytes)} · {t(mapCallModeKey(r.callMode))}
+                  <p className="text-text-muted truncate text-xs">
+                    {formatDuration(r.durationSec)} · {formatBytes(r.bytes)} ·{' '}
+                    {t(mapCallModeKey(r.callMode))}
                     {r.clientName ? ` · ${r.clientName}` : ''}
                     {r.siteName ? ` · ${r.siteName}` : ''}
                     {r.peerLabel ? ` · ${r.peerLabel}` : ''}

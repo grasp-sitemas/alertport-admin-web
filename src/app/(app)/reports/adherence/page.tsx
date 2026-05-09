@@ -25,6 +25,7 @@ import {
   defaultReportRange,
   validateReportFilter,
 } from '@/features/reports/report-filter-validator';
+import { toIsoEndOfDay, toIsoStartOfDay } from '@/lib/date-range';
 import { useAuth } from '@/hooks/use-auth';
 import { isSuperAdminMaster } from '@/config/roles';
 import type { AdherenceRow, ReportFilterParams } from '@/types/reports';
@@ -56,7 +57,7 @@ function AdherencePageBody() {
   });
   const [appliedFilter, setAppliedFilter] = useState<ReportFilterParams | null>(() => {
     const { startDate, endDate } = defaultReportRange();
-    return { startDate, endDate };
+    return { startDate: toIsoStartOfDay(startDate), endDate: toIsoEndOfDay(endDate) };
   });
 
   const query = useAdherenceReport(appliedFilter);
@@ -65,8 +66,10 @@ function AdherencePageBody() {
     const v = validateReportFilter(filterValue);
     if (!v.ok) return;
     setAppliedFilter({
-      startDate: filterValue.startDate,
-      endDate: filterValue.endDate,
+      // RP5: widen YYYY-MM-DD to full local-day ISO so Mongo `$gte/$lte`
+      // captures the operator's "today" instead of an empty UTC window.
+      startDate: toIsoStartOfDay(filterValue.startDate),
+      endDate: toIsoEndOfDay(filterValue.endDate),
       ...(filterValue.hierarchy.account ? { account: filterValue.hierarchy.account } : {}),
       ...(filterValue.hierarchy.client ? { client: filterValue.hierarchy.client } : {}),
       ...(filterValue.hierarchy.site ? { site: filterValue.hierarchy.site } : {}),
@@ -81,7 +84,10 @@ function AdherencePageBody() {
   const clear = useCallback(() => {
     const { startDate, endDate } = defaultReportRange();
     setFilterValue({ hierarchy: {}, startDate, endDate });
-    setAppliedFilter({ startDate, endDate });
+    setAppliedFilter({
+      startDate: toIsoStartOfDay(startDate),
+      endDate: toIsoEndOfDay(endDate),
+    });
   }, []);
   const data = query.data;
   const summary = data?.summary;
@@ -91,8 +97,7 @@ function AdherencePageBody() {
   const rows = useMemo<AdherenceRow[]>(() => {
     const list = data?.results ?? [];
     return [...list].sort(
-      (a, b) =>
-        new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime(),
+      (a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime(),
     );
   }, [data]);
   const pagination = useClientPagination(rows, { initialPageSize: 20 });

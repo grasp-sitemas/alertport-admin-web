@@ -117,10 +117,7 @@ export default function DashboardPage() {
     [t, respondedCount, pendingCount, missedCount],
   );
 
-  const topSites = useMemo<RankedSite[]>(
-    () => rankSites(occurrenceList, 10),
-    [occurrenceList],
-  );
+  const topSites = useMemo<RankedSite[]>(() => rankSites(occurrenceList, 10), [occurrenceList]);
 
   // D4: 20 linhas, mais recente primeiro, dedupe por site.
   const recentActivity = useMemo<AlertOccurrence[]>(
@@ -128,8 +125,7 @@ export default function DashboardPage() {
     [occurrenceList],
   );
 
-  const responseRate =
-    totalCount > 0 ? Math.round((respondedCount / totalCount) * 100) : null;
+  const responseRate = totalCount > 0 ? Math.round((respondedCount / totalCount) * 100) : null;
 
   return (
     <div className="space-y-5">
@@ -142,12 +138,12 @@ export default function DashboardPage() {
         {/* Hierarchy row — each SAM/ADMIN select sits in its own column so
             the three fit on one line on md+ screens, matching the shared
             FilterPanel grid used elsewhere. */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-3 gap-y-2">
+        <div className="grid grid-cols-1 gap-x-3 gap-y-2 sm:grid-cols-2 md:grid-cols-3">
           <HierarchyFilters value={hierarchy} onChange={setHierarchy} compact />
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <label className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block">
+            <label className="text-text-secondary mb-1 block text-[10px] font-semibold tracking-wider uppercase">
               {t('dashboard.rangeLabel')}
             </label>
             <div className="inline-flex rounded-lg border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-1">
@@ -188,7 +184,7 @@ export default function DashboardPage() {
 
       <div
         data-tour="dashboard-kpis"
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
       >
         <KpiCard
           title={t('dashboard.totalAlerts')}
@@ -196,7 +192,9 @@ export default function DashboardPage() {
           icon={Bell}
           accent="brand"
           isLoading={occurrencesLoading}
-          trend={responseRate !== null ? `${responseRate}% ${t('dashboard.responseRate')}` : undefined}
+          trend={
+            responseRate !== null ? `${responseRate}% ${t('dashboard.responseRate')}` : undefined
+          }
         />
         <KpiCard
           title={t('dashboard.pendingAlerts')}
@@ -221,7 +219,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* D1: renomeado de "Equipamentos ativos" para "Dispositivos
             cadastrados", excluindo bastões de ronda/patrol via heurística
             client-side (ver use-dashboard-data.ts). */}
@@ -259,11 +257,11 @@ export default function DashboardPage() {
         ) : null}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-brand-500" />
+              <TrendingUp className="text-brand-500 h-4 w-4" />
               {t('dashboard.alertsByDay')}
             </CardTitle>
             <CardDescription>{t('dashboard.trendDescription')}</CardDescription>
@@ -280,7 +278,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <PieIcon className="h-4 w-4 text-brand-500" />
+              <PieIcon className="text-brand-500 h-4 w-4" />
               {t('dashboard.statusBreakdown')}
             </CardTitle>
             <CardDescription>{t('dashboard.statusBreakdownDescription')}</CardDescription>
@@ -294,7 +292,7 @@ export default function DashboardPage() {
                 <ul className="mt-3 space-y-1.5 text-xs">
                   {statusSlices.map((slice) => (
                     <li key={slice.name} className="flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-2 text-text-secondary">
+                      <span className="text-text-secondary inline-flex items-center gap-2">
                         <span
                           className="inline-block h-2.5 w-2.5 rounded-full"
                           style={{ background: slice.color }}
@@ -311,11 +309,11 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-brand-500" />
+              <MapPin className="text-brand-500 h-4 w-4" />
               {t('dashboard.topSites')}
             </CardTitle>
             <CardDescription>{t('dashboard.topSitesDescription')}</CardDescription>
@@ -342,7 +340,7 @@ export default function DashboardPage() {
             <CardTitle>{t('dashboard.recentActivity')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+            <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
               {occurrencesLoading ? (
                 <div className="space-y-2">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -350,7 +348,7 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : recentActivity.length === 0 ? (
-                <p className="py-8 text-center text-sm text-text-muted">{t('common.noData')}</p>
+                <p className="text-text-muted py-8 text-center text-sm">{t('common.noData')}</p>
               ) : (
                 recentActivity.map((occ) => (
                   <div
@@ -361,7 +359,7 @@ export default function DashboardPage() {
                       <p className="truncate text-sm font-medium text-white">
                         {typeof occ.site === 'object' ? occ.site?.name : t('common.site')}
                       </p>
-                      <p className="text-xs text-text-muted">{safeDateString(occ.scheduledAt)}</p>
+                      <p className="text-text-muted text-xs">{safeDateString(occ.scheduledAt)}</p>
                     </div>
                     <OccurrenceStatusBadge status={occ.status} />
                   </div>
@@ -409,8 +407,7 @@ function rankSites(list: AlertOccurrence[], limit: number): RankedSite[] {
   type Bucket = { count: number; responded: number; pending: number; missed: number };
   const counts = new Map<string, Bucket>();
   for (const occ of list) {
-    const siteName =
-      typeof occ.site === 'object' && occ.site?.name ? occ.site.name : undefined;
+    const siteName = typeof occ.site === 'object' && occ.site?.name ? occ.site.name : undefined;
     if (!siteName) continue;
     const cur = counts.get(siteName) ?? { count: 0, responded: 0, pending: 0, missed: 0 };
     cur.count += 1;

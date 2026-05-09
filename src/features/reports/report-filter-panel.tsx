@@ -18,11 +18,7 @@ import {
 } from '@/components/shared/hierarchy-filters';
 import { useEquipmentsBySiteLookup } from '@/features/shared/use-hierarchy-lookups';
 import { cn } from '@/lib/utils';
-import {
-  MAX_RANGE_DAYS,
-  rangeErrorKey,
-  validateReportFilter,
-} from './report-filter-validator';
+import { MAX_RANGE_DAYS, rangeErrorKey, validateReportFilter } from './report-filter-validator';
 
 /**
  * Compact filter panel used by every report page.
@@ -67,14 +63,7 @@ interface Props {
 const LABEL_CLASS =
   'text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block';
 
-export function ReportFilterPanel({
-  value,
-  onChange,
-  onApply,
-  onClear,
-  extras,
-  isLoading,
-}: Props) {
+export function ReportFilterPanel({ value, onChange, onApply, onClear, extras, isLoading }: Props) {
   const t = useTranslations();
   const validation = useMemo(
     () =>
@@ -108,12 +97,12 @@ export function ReportFilterPanel({
   const equipmentDisabled = !value.hierarchy.site || equipmentsLookup.isLoading;
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 space-y-2">
+    <div className="space-y-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
       {/* One dense responsive grid for every filter field. On xl the
           row can hold: account + client + site + start + end + extras
           in six columns. Actions live in their own compact sub-row
           below so they stay discoverable without stealing a grid cell. */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-3 gap-y-2">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
         <HierarchyFilters
           value={value.hierarchy}
           onChange={(hierarchy) =>
@@ -129,9 +118,7 @@ export function ReportFilterPanel({
         />
 
         <div>
-          <label className={LABEL_CLASS}>
-            {t('reports.filters.device')}
-          </label>
+          <label className={LABEL_CLASS}>{t('reports.filters.device')}</label>
           <Select
             value={value.equipment || '__all__'}
             onValueChange={(val) => {
@@ -192,7 +179,7 @@ export function ReportFilterPanel({
             'border-amber-500/20 bg-amber-500/5 text-amber-200',
           )}
         >
-          <AlertCircle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
           <span>
             {t(rangeErrorKey(validation.error), {
               max: MAX_RANGE_DAYS,
@@ -211,7 +198,7 @@ export function ReportFilterPanel({
           <X className="h-4 w-4" />
           {t('common.clearFilters')}
         </Button>
-        <span className="ml-auto text-[11px] text-text-muted">
+        <span className="text-text-muted ml-auto text-[11px]">
           {t('reports.filter.maxRangeHint', { max: MAX_RANGE_DAYS })}
         </span>
       </div>

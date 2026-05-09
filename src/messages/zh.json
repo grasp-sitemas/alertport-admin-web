@@ -579,6 +579,52 @@
       "occurrenceHint": "仅应用于所选日期。",
       "seriesHint": "从此日期开始应用于每次发生。"
     },
+    "preview": {
+      "title": "警报日程",
+      "frequency": {
+        "NOT_REPEAT": "一次性",
+        "DAILY": "每日",
+        "EVERY_OTHER_DAY": "隔日",
+        "WEEKLY": "每周",
+        "MONTHLY": "每月",
+        "YEARLY": "每年"
+      },
+      "status": {
+        "ACTIVE": "活跃",
+        "ARCHIVED": "已归档"
+      },
+      "fields": {
+        "schedule": "日程",
+        "dateTime": "日期和时间",
+        "frequency": "频率",
+        "hierarchy": "位置",
+        "alertType": "警报类型",
+        "status": "状态"
+      },
+      "actions": {
+        "editOccurrence": {
+          "title": "编辑此次发生",
+          "hint": "仅 {date}"
+        },
+        "editSeries": {
+          "title": "编辑整个系列",
+          "hint": "应用于所有重复"
+        },
+        "deleteOccurrence": {
+          "title": "删除此次发生",
+          "hint": "仅删除 {date}"
+        },
+        "deleteSeries": {
+          "title": "删除整个系列",
+          "hint": "删除所有未来的重复"
+        }
+      },
+      "confirm": {
+        "title": "确认删除",
+        "cancel": "取消",
+        "confirm": "是的，删除"
+      }
+    },
     "errors": {
       "missingReference": "无法识别日程或发生。请刷新重试。",
       "firestorePushFailed": "已保存，但与设备同步失败。新的发生可能需要更长时间才能显示在应用中。",

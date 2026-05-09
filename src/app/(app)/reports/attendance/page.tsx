@@ -19,6 +19,7 @@ import {
   defaultReportRange,
   validateReportFilter,
 } from '@/features/reports/report-filter-validator';
+import { toIsoEndOfDay, toIsoStartOfDay } from '@/lib/date-range';
 import { useAuth } from '@/hooks/use-auth';
 import { isSuperAdminMaster } from '@/config/roles';
 import type { AttendanceRow, ReportFilterParams } from '@/types/reports';
@@ -50,7 +51,7 @@ function AttendancePageBody() {
   });
   const [appliedFilter, setAppliedFilter] = useState<ReportFilterParams | null>(() => {
     const { startDate, endDate } = defaultReportRange();
-    return { startDate, endDate };
+    return { startDate: toIsoStartOfDay(startDate), endDate: toIsoEndOfDay(endDate) };
   });
 
   const query = useAttendanceReport(appliedFilter);
@@ -58,8 +59,9 @@ function AttendancePageBody() {
   const apply = useCallback(() => {
     if (!validateReportFilter(filterValue).ok) return;
     setAppliedFilter({
-      startDate: filterValue.startDate,
-      endDate: filterValue.endDate,
+      // RP5: widen to full local-day ISO bounds — see src/lib/date-range.ts.
+      startDate: toIsoStartOfDay(filterValue.startDate),
+      endDate: toIsoEndOfDay(filterValue.endDate),
       ...(filterValue.hierarchy.account ? { account: filterValue.hierarchy.account } : {}),
       ...(filterValue.hierarchy.client ? { client: filterValue.hierarchy.client } : {}),
       ...(filterValue.hierarchy.site ? { site: filterValue.hierarchy.site } : {}),
@@ -71,7 +73,10 @@ function AttendancePageBody() {
   const clear = useCallback(() => {
     const { startDate, endDate } = defaultReportRange();
     setFilterValue({ hierarchy: {}, startDate, endDate });
-    setAppliedFilter({ startDate, endDate });
+    setAppliedFilter({
+      startDate: toIsoStartOfDay(startDate),
+      endDate: toIsoEndOfDay(endDate),
+    });
   }, []);
   const data = query.data;
   const summary = data?.summary;
@@ -79,8 +84,7 @@ function AttendancePageBody() {
   const rows = useMemo<AttendanceRow[]>(() => {
     const list = data?.results ?? [];
     return [...list].sort(
-      (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     );
   }, [data]);
   const pagination = useClientPagination(rows, { initialPageSize: 20 });

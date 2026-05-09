@@ -579,6 +579,52 @@
       "occurrenceHint": "Aplica solo al día seleccionado.",
       "seriesHint": "Se aplica a todas las ocurrencias desde esta fecha en adelante."
     },
+    "preview": {
+      "title": "Programación de Alerta",
+      "frequency": {
+        "NOT_REPEAT": "Único",
+        "DAILY": "Diario",
+        "EVERY_OTHER_DAY": "Días alternos",
+        "WEEKLY": "Semanal",
+        "MONTHLY": "Mensual",
+        "YEARLY": "Anual"
+      },
+      "status": {
+        "ACTIVE": "Activo",
+        "ARCHIVED": "Archivado"
+      },
+      "fields": {
+        "schedule": "Programación",
+        "dateTime": "Fecha y hora",
+        "frequency": "Frecuencia",
+        "hierarchy": "Ubicación",
+        "alertType": "Tipo de alerta",
+        "status": "Estado"
+      },
+      "actions": {
+        "editOccurrence": {
+          "title": "Editar esta ocurrencia",
+          "hint": "Solo {date}"
+        },
+        "editSeries": {
+          "title": "Editar toda la serie",
+          "hint": "Se aplica a todas las recurrencias"
+        },
+        "deleteOccurrence": {
+          "title": "Eliminar esta ocurrencia",
+          "hint": "Elimina solo {date}"
+        },
+        "deleteSeries": {
+          "title": "Eliminar toda la serie",
+          "hint": "Elimina todas las recurrencias futuras"
+        }
+      },
+      "confirm": {
+        "title": "Confirmar eliminación",
+        "cancel": "Cancelar",
+        "confirm": "Sí, eliminar"
+      }
+    },
     "errors": {
       "missingReference": "No se pudo identificar la agenda u ocurrencia. Recargue e inténtelo de nuevo.",
       "firestorePushFailed": "Guardado, pero la sincronización con el dispositivo falló. Las nuevas ocurrencias pueden tardar en aparecer en la app.",

@@ -9,7 +9,10 @@ import { PageHeader } from '@/components/shared/page-header';
 import { FilterPanel } from '@/components/shared/filter-panel';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { TimeEntryBadge } from '@/components/shared/status-badge';
-import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
+import {
+  HierarchyFilters,
+  type HierarchyFiltersValue,
+} from '@/components/shared/hierarchy-filters';
 import { useTimeEntries } from '@/features/alerts/use-occurrences';
 import { useEquipmentsBySiteLookup } from '@/features/shared/use-hierarchy-lookups';
 import {
@@ -97,8 +100,7 @@ export default function AttendancePage() {
       render: (item) => {
         if (!item.user) return '-';
         const full =
-          item.user.fullName ??
-          `${item.user.firstName ?? ''} ${item.user.lastName ?? ''}`.trim();
+          item.user.fullName ?? `${item.user.firstName ?? ''} ${item.user.lastName ?? ''}`.trim();
         return full || '-';
       },
     },
@@ -166,92 +168,92 @@ export default function AttendancePage() {
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}>
       <ModuleGuard moduleKey="TIME_ENTRIES">
-      <div className="space-y-6">
-      <PageHeader title={t('attendance.title')} description={t('attendance.timeEntries')} />
+        <div className="space-y-6">
+          <PageHeader title={t('attendance.title')} description={t('attendance.timeEntries')} />
 
-      <FilterPanel
-        extras={
-          <>
-            <HierarchyFilters value={hierarchy} onChange={handleHierarchyChange} />
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-text-secondary">
-                {t('common.device')}
-              </label>
-              <Select
-                value={equipmentId || '__all__'}
-                onValueChange={(val) => setEquipmentId(val === '__all__' ? '' : val)}
-                disabled={!hierarchy.site}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('common.selectOption')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">{t('common.all')}</SelectItem>
-                  {equipmentOptions.map((eq) => (
-                    <SelectItem key={eq._id} value={eq._id}>
-                      {eq.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </>
-        }
-        fields={[
-          { key: 'startDate', labelKey: 'common.startDate', type: 'date' },
-          { key: 'endDate', labelKey: 'common.endDate', type: 'date' },
-          {
-            key: 'eventType',
-            labelKey: 'attendance.eventType',
-            type: 'select',
-            options: [
-              { value: 'CLOCK_IN', label: t('attendance.clockIn') },
-              { value: 'CLOCK_OUT', label: t('attendance.clockOut') },
-              { value: 'BREAK_START', label: t('attendance.breakStart') },
-              { value: 'BREAK_END', label: t('attendance.breakEnd') },
-            ],
-          },
-        ]}
-        values={filters}
-        onChange={setFilter}
-        onSearch={handleSearch}
-        onClear={handleClear}
-      />
+          <FilterPanel
+            extras={
+              <>
+                <HierarchyFilters value={hierarchy} onChange={handleHierarchyChange} />
+                <div className="flex flex-col gap-1">
+                  <label className="text-text-secondary text-xs font-medium">
+                    {t('common.device')}
+                  </label>
+                  <Select
+                    value={equipmentId || '__all__'}
+                    onValueChange={(val) => setEquipmentId(val === '__all__' ? '' : val)}
+                    disabled={!hierarchy.site}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('common.selectOption')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__all__">{t('common.all')}</SelectItem>
+                      {equipmentOptions.map((eq) => (
+                        <SelectItem key={eq._id} value={eq._id}>
+                          {eq.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            }
+            fields={[
+              { key: 'startDate', labelKey: 'common.startDate', type: 'date' },
+              { key: 'endDate', labelKey: 'common.endDate', type: 'date' },
+              {
+                key: 'eventType',
+                labelKey: 'attendance.eventType',
+                type: 'select',
+                options: [
+                  { value: 'CLOCK_IN', label: t('attendance.clockIn') },
+                  { value: 'CLOCK_OUT', label: t('attendance.clockOut') },
+                  { value: 'BREAK_START', label: t('attendance.breakStart') },
+                  { value: 'BREAK_END', label: t('attendance.breakEnd') },
+                ],
+              },
+            ]}
+            values={filters}
+            onChange={setFilter}
+            onSearch={handleSearch}
+            onClear={handleClear}
+          />
 
-      {isError ? (
-        <div className="flex flex-col items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/5 px-4 py-4 text-sm text-red-200">
-          <div className="flex items-start gap-2">
-            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium">{t('notifications.errorOccurred')}</p>
-              {error instanceof Error && error.message && (
-                <p className="text-xs text-red-200/80 mt-0.5">{error.message}</p>
-              )}
+          {isError ? (
+            <div className="flex flex-col items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/5 px-4 py-4 text-sm text-red-200">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">{t('notifications.errorOccurred')}</p>
+                  {error instanceof Error && error.message && (
+                    <p className="mt-0.5 text-xs text-red-200/80">{error.message}</p>
+                  )}
+                </div>
+              </div>
+              <Button size="sm" variant="secondary" onClick={() => refetch()}>
+                {t('common.refresh')}
+              </Button>
             </div>
-          </div>
-          <Button size="sm" variant="secondary" onClick={() => refetch()}>
-            {t('common.refresh')}
-          </Button>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={results}
+              isLoading={isLoading}
+              page={pagination.page}
+              pageSize={pagination.pageSize}
+              totalCount={pagination.totalCount}
+              totalPages={pagination.totalPages}
+              onPageChange={pagination.setPage}
+              onPageSizeChange={pagination.setPageSize}
+              getRowKey={(item) => item._id}
+              // Carga inicial cronológica: dia + hora crescentes. O accessor
+              // espelha `formatTimestamp` para que o sort use o mesmo campo
+              // canônico (`createdAt` com fallback) que a célula renderiza.
+              initialSort={{ key: 'timestamp', dir: 'asc' }}
+            />
+          )}
         </div>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={results}
-          isLoading={isLoading}
-          page={pagination.page}
-          pageSize={pagination.pageSize}
-          totalCount={pagination.totalCount}
-          totalPages={pagination.totalPages}
-          onPageChange={pagination.setPage}
-          onPageSizeChange={pagination.setPageSize}
-          getRowKey={(item) => item._id}
-          // Carga inicial cronológica: dia + hora crescentes. O accessor
-          // espelha `formatTimestamp` para que o sort use o mesmo campo
-          // canônico (`createdAt` com fallback) que a célula renderiza.
-          initialSort={{ key: 'timestamp', dir: 'asc' }}
-        />
-      )}
-      </div>
       </ModuleGuard>
     </RoleGuard>
   );

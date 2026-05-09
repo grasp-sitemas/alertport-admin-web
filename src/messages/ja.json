@@ -579,6 +579,52 @@
       "occurrenceHint": "選択した日のみに適用されます。",
       "seriesHint": "この日以降のすべての発生に適用されます。"
     },
+    "preview": {
+      "title": "アラートのスケジュール",
+      "frequency": {
+        "NOT_REPEAT": "単発",
+        "DAILY": "毎日",
+        "EVERY_OTHER_DAY": "隔日",
+        "WEEKLY": "毎週",
+        "MONTHLY": "毎月",
+        "YEARLY": "毎年"
+      },
+      "status": {
+        "ACTIVE": "有効",
+        "ARCHIVED": "アーカイブ済み"
+      },
+      "fields": {
+        "schedule": "スケジュール",
+        "dateTime": "日時",
+        "frequency": "頻度",
+        "hierarchy": "場所",
+        "alertType": "アラートタイプ",
+        "status": "ステータス"
+      },
+      "actions": {
+        "editOccurrence": {
+          "title": "この発生を編集",
+          "hint": "{date} のみ"
+        },
+        "editSeries": {
+          "title": "シリーズ全体を編集",
+          "hint": "すべての繰り返しに適用"
+        },
+        "deleteOccurrence": {
+          "title": "この発生を削除",
+          "hint": "{date} のみを削除"
+        },
+        "deleteSeries": {
+          "title": "シリーズ全体を削除",
+          "hint": "今後のすべての繰り返しを削除"
+        }
+      },
+      "confirm": {
+        "title": "削除の確認",
+        "cancel": "キャンセル",
+        "confirm": "はい、削除します"
+      }
+    },
     "errors": {
       "missingReference": "スケジュールまたは発生を識別できませんでした。再読み込みしてもう一度お試しください。",
       "firestorePushFailed": "保存されましたが、デバイスとの同期に失敗しました。新しい発生がアプリに表示されるまで時間がかかる場合があります。",

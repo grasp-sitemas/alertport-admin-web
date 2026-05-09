@@ -37,7 +37,13 @@ export interface TrendPoint {
   count: number;
 }
 
-export function EventsTrendChart({ data, formatDay }: { data: TrendPoint[]; formatDay: (day: string) => string }) {
+export function EventsTrendChart({
+  data,
+  formatDay,
+}: {
+  data: TrendPoint[];
+  formatDay: (day: string) => string;
+}) {
   return (
     <ResponsiveContainer width="100%" height={240}>
       <AreaChart data={data} margin={{ top: 8, right: 12, left: -18, bottom: 0 }}>
@@ -91,9 +97,7 @@ export function StatusDonut({ data }: { data: StatusSlice[] }) {
 
   if (total === 0) {
     return (
-      <div className="flex h-[240px] items-center justify-center text-sm text-text-muted">
-        —
-      </div>
+      <div className="text-text-muted flex h-[240px] items-center justify-center text-sm">—</div>
     );
   }
 
@@ -118,7 +122,7 @@ export function StatusDonut({ data }: { data: StatusSlice[] }) {
         </PieChart>
       </ResponsiveContainer>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <p className="text-3xl font-bold text-white font-heading">{total}</p>
+        <p className="font-heading text-3xl font-bold text-white">{total}</p>
       </div>
     </div>
   );
@@ -158,9 +162,7 @@ interface TopSitesBarsProps {
 export function TopSitesBars({ data, stacked = false, labels }: TopSitesBarsProps) {
   if (data.length === 0) {
     return (
-      <div className="flex h-[240px] items-center justify-center text-sm text-text-muted">
-        —
-      </div>
+      <div className="text-text-muted flex h-[240px] items-center justify-center text-sm">—</div>
     );
   }
   const height = Math.max(240, data.length * 28 + 40);

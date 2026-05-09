@@ -67,9 +67,7 @@ export function isAlertportRecording(row: CallRecordingRow): boolean {
   if (present.length === 0) {
     return true;
   }
-  return present.some((value) =>
-    ALERTPORT_SOURCE_TOKENS.includes(value.toUpperCase()),
-  );
+  return present.some((value) => ALERTPORT_SOURCE_TOKENS.includes(value.toUpperCase()));
 }
 
 interface ListAck {
@@ -164,76 +162,73 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
   // rightly flags the forward-reference. Storing the current implementation
   // on a ref makes the retry path explicit and resilient to future edits
   // that might change fetchPage's deps.
-  const fetchPageRef = useRef<
-    ((cursor: string | null, mode: 'replace' | 'append') => void) | null
-  >(null);
+  const fetchPageRef = useRef<((cursor: string | null, mode: 'replace' | 'append') => void) | null>(
+    null,
+  );
 
-  const fetchPage = useCallback(
-    (cursor: string | null, mode: 'replace' | 'append') => {
-      const socket = getSocket();
-      if (mode === 'replace') setLoading(true);
-      else setLoadingMore(true);
-      setError(null);
+  const fetchPage = useCallback((cursor: string | null, mode: 'replace' | 'append') => {
+    const socket = getSocket();
+    if (mode === 'replace') setLoading(true);
+    else setLoadingMore(true);
+    setError(null);
 
-      const current = filterRef.current;
-      const payload: Record<string, unknown> = {
-        limit: current.limit,
-        cursor,
-        // Hint to the backend that this admin only wants AlertPort
-        // recordings. Backends that honor the field do the filtering
-        // server-side; older builds ignore the extra key as a no-op. We
-        // also filter defensively on the client (see `isAlertportRecording`)
-        // so ShieldGo recordings never leak into the AlertPort UI.
-        source: 'ALERTPORT',
-      };
-      // Only send filter keys the user actually set - the backend treats
-      // missing keys as "no filter", so this keeps the payload small and
-      // the Heroku logs readable.
-      if (current.accountId) payload.accountId = current.accountId;
-      if (current.clientId) payload.clientId = current.clientId;
-      if (current.siteId) payload.siteId = current.siteId;
-      if (current.roomId) payload.roomId = current.roomId;
-      if (current.callMode) payload.callMode = current.callMode;
-      if (current.startDate) payload.startDate = current.startDate;
-      if (current.endDate) payload.endDate = current.endDate;
+    const current = filterRef.current;
+    const payload: Record<string, unknown> = {
+      limit: current.limit,
+      cursor,
+      // Hint to the backend that this admin only wants AlertPort
+      // recordings. Backends that honor the field do the filtering
+      // server-side; older builds ignore the extra key as a no-op. We
+      // also filter defensively on the client (see `isAlertportRecording`)
+      // so ShieldGo recordings never leak into the AlertPort UI.
+      source: 'ALERTPORT',
+    };
+    // Only send filter keys the user actually set - the backend treats
+    // missing keys as "no filter", so this keeps the payload small and
+    // the Heroku logs readable.
+    if (current.accountId) payload.accountId = current.accountId;
+    if (current.clientId) payload.clientId = current.clientId;
+    if (current.siteId) payload.siteId = current.siteId;
+    if (current.roomId) payload.roomId = current.roomId;
+    if (current.callMode) payload.callMode = current.callMode;
+    if (current.startDate) payload.startDate = current.startDate;
+    if (current.endDate) payload.endDate = current.endDate;
 
-      socket.emit('call:recordings:list', payload, (ack: ListAck) => {
-        // Transient errors (socket not yet registered, generic server hiccup)
-        // keep the UI in loading state and retry automatically. The user
-        // never sees a raw error code.
-        if (!ack?.ok && ack?.error && TRANSIENT_ERRORS.has(ack.error)) {
-          if (retryCountRef.current < MAX_TRANSIENT_RETRIES) {
-            retryCountRef.current += 1;
-            if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-            retryTimerRef.current = setTimeout(
-              () => fetchPageRef.current?.(cursor, mode),
-              RETRY_DELAY_MS,
-            );
-            return;
-          }
-          // Exhausted retries - fall through to the real-error branch below.
-        }
-
-        retryCountRef.current = 0;
-        if (mode === 'replace') setLoading(false);
-        else setLoadingMore(false);
-
-        if (!ack?.ok) {
-          setError(ack?.error ?? 'UNKNOWN');
-          if (mode === 'replace') setRecordings([]);
+    socket.emit('call:recordings:list', payload, (ack: ListAck) => {
+      // Transient errors (socket not yet registered, generic server hiccup)
+      // keep the UI in loading state and retry automatically. The user
+      // never sees a raw error code.
+      if (!ack?.ok && ack?.error && TRANSIENT_ERRORS.has(ack.error)) {
+        if (retryCountRef.current < MAX_TRANSIENT_RETRIES) {
+          retryCountRef.current += 1;
+          if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+          retryTimerRef.current = setTimeout(
+            () => fetchPageRef.current?.(cursor, mode),
+            RETRY_DELAY_MS,
+          );
           return;
         }
+        // Exhausted retries - fall through to the real-error branch below.
+      }
 
-        // Defensive client-side filter: drop ShieldGo rows in case the
-        // backend ignored the `source: 'ALERTPORT'` hint above. Keeps the
-        // AlertPort admin focused on its own product.
-        const incoming = (ack.recordings ?? []).filter(isAlertportRecording);
-        setRecordings((prev) => (mode === 'replace' ? incoming : [...prev, ...incoming]));
-        setNextCursor(ack.nextCursor ?? null);
-      });
-    },
-    [],
-  );
+      retryCountRef.current = 0;
+      if (mode === 'replace') setLoading(false);
+      else setLoadingMore(false);
+
+      if (!ack?.ok) {
+        setError(ack?.error ?? 'UNKNOWN');
+        if (mode === 'replace') setRecordings([]);
+        return;
+      }
+
+      // Defensive client-side filter: drop ShieldGo rows in case the
+      // backend ignored the `source: 'ALERTPORT'` hint above. Keeps the
+      // AlertPort admin focused on its own product.
+      const incoming = (ack.recordings ?? []).filter(isAlertportRecording);
+      setRecordings((prev) => (mode === 'replace' ? incoming : [...prev, ...incoming]));
+      setNextCursor(ack.nextCursor ?? null);
+    });
+  }, []);
   // Keep the ref pointing at the current implementation so the retry
   // timer always calls the latest version of fetchPage. With `[]` deps
   // this is a no-op refresh, but future edits that add deps get safe
@@ -267,7 +262,18 @@ export function useCallRecordings(filter: RecordingsFilter = {}) {
     queueMicrotask(() => {
       refresh();
     });
-  }, [accountId, clientId, siteId, roomId, callMode, startDate, endDate, limit, socketReady, refresh]);
+  }, [
+    accountId,
+    clientId,
+    siteId,
+    roomId,
+    callMode,
+    startDate,
+    endDate,
+    limit,
+    socketReady,
+    refresh,
+  ]);
 
   // Cleanup any pending retry when the hook unmounts or filter changes.
   useEffect(() => {

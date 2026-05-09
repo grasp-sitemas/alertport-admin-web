@@ -75,10 +75,7 @@ function getLatestTimestamp(eq: Equipment): number | null {
  * Caller owns the date range, so operators can switch 7/30/90 day views
  * without the hook recomputing it on every render.
  */
-export function useDashboardData(
-  range: DashboardRange,
-  override: DashboardHierarchyOverride = {},
-) {
+export function useDashboardData(range: DashboardRange, override: DashboardHierarchyOverride = {}) {
   const scope = useUserScope();
 
   // Compose an effective scope so the dashboard honours an explicit

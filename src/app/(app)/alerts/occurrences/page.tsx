@@ -7,7 +7,10 @@ import { Search, X } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { OccurrenceStatusBadge } from '@/components/shared/status-badge';
-import { HierarchyFilters, type HierarchyFiltersValue } from '@/components/shared/hierarchy-filters';
+import {
+  HierarchyFilters,
+  type HierarchyFiltersValue,
+} from '@/components/shared/hierarchy-filters';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -116,8 +119,7 @@ export default function AlertOccurrencesPage() {
     {
       key: 'respondedAt',
       headerKey: 'alerts.respondedAt',
-      render: (item) =>
-        item.respondedAt ? new Date(item.respondedAt).toLocaleString() : '-',
+      render: (item) => (item.respondedAt ? new Date(item.respondedAt).toLocaleString() : '-'),
     },
     {
       key: 'status',
@@ -160,115 +162,115 @@ export default function AlertOccurrencesPage() {
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}>
       <ModuleGuard moduleKey="OCCURRENCES">
-      <div className="space-y-6">
-      <PageHeader title={t('alerts.timeline')} description={t('alerts.maxDateRange')} />
+        <div className="space-y-6">
+          <PageHeader title={t('alerts.timeline')} description={t('alerts.maxDateRange')} />
 
-      {/* Two-row filter bar: hierarchy above, date/status + actions
+          {/* Two-row filter bar: hierarchy above, date/status + actions
           below. Kept on-page (instead of FilterPanel) so the three
           hierarchy selects share a row with the three detail fields
           sharing the second, matching the user's "2 linhas ao total"
           spec. */}
-      <div className="flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-white/[0.01] p-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-2">
-          <HierarchyFilters value={hierarchy} onChange={handleHierarchyChange} compact />
-          <div>
-            <label className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block">
-              {t('common.device')}
-            </label>
-            <Select
-              value={equipmentId || '__all__'}
-              onValueChange={(val) => setEquipmentId(val === '__all__' ? '' : val)}
-              disabled={!hierarchy.site}
-            >
-              <SelectTrigger className="h-9 px-3 text-sm">
-                <SelectValue placeholder={t('common.selectOption')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">{t('common.all')}</SelectItem>
-                {equipmentOptions.map((eq) => (
-                  <SelectItem key={eq._id} value={eq._id}>
-                    {eq.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-end">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-2 flex-1 min-w-0">
-            <div>
-              <label className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block">
-                {t('common.startDate')}
-              </label>
-              <Input
-                type="date"
-                className="h-9"
-                value={(filters.startDate as string) || ''}
-                onChange={(e) => setFilter('startDate', e.target.value)}
-              />
+          <div className="flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-white/[0.01] p-3">
+            <div className="grid grid-cols-1 gap-x-3 gap-y-2 sm:grid-cols-2 md:grid-cols-4">
+              <HierarchyFilters value={hierarchy} onChange={handleHierarchyChange} compact />
+              <div>
+                <label className="text-text-secondary mb-1 block text-[10px] font-semibold tracking-wider uppercase">
+                  {t('common.device')}
+                </label>
+                <Select
+                  value={equipmentId || '__all__'}
+                  onValueChange={(val) => setEquipmentId(val === '__all__' ? '' : val)}
+                  disabled={!hierarchy.site}
+                >
+                  <SelectTrigger className="h-9 px-3 text-sm">
+                    <SelectValue placeholder={t('common.selectOption')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">{t('common.all')}</SelectItem>
+                    {equipmentOptions.map((eq) => (
+                      <SelectItem key={eq._id} value={eq._id}>
+                        {eq.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div>
-              <label className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block">
-                {t('common.endDate')}
-              </label>
-              <Input
-                type="date"
-                className="h-9"
-                value={(filters.endDate as string) || ''}
-                onChange={(e) => setFilter('endDate', e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-[10px] font-semibold uppercase tracking-wider text-text-secondary mb-1 block">
-                {t('alerts.status')}
-              </label>
-              <Select
-                value={(filters.status as string) || '__all__'}
-                onValueChange={(val) => setFilter('status', val === '__all__' ? '' : val)}
-              >
-                <SelectTrigger className="h-9 px-3 text-sm">
-                  <SelectValue placeholder={t('common.selectOption')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">{t('common.all')}</SelectItem>
-                  <SelectItem value="PENDING">{t('alerts.pending')}</SelectItem>
-                  <SelectItem value="RESPONDED">{t('alerts.responded')}</SelectItem>
-                  <SelectItem value="MISSED">{t('alerts.missed')}</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col gap-3 md:flex-row md:items-end">
+              <div className="grid min-w-0 flex-1 grid-cols-1 gap-x-3 gap-y-2 sm:grid-cols-3">
+                <div>
+                  <label className="text-text-secondary mb-1 block text-[10px] font-semibold tracking-wider uppercase">
+                    {t('common.startDate')}
+                  </label>
+                  <Input
+                    type="date"
+                    className="h-9"
+                    value={(filters.startDate as string) || ''}
+                    onChange={(e) => setFilter('startDate', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-text-secondary mb-1 block text-[10px] font-semibold tracking-wider uppercase">
+                    {t('common.endDate')}
+                  </label>
+                  <Input
+                    type="date"
+                    className="h-9"
+                    value={(filters.endDate as string) || ''}
+                    onChange={(e) => setFilter('endDate', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-text-secondary mb-1 block text-[10px] font-semibold tracking-wider uppercase">
+                    {t('alerts.status')}
+                  </label>
+                  <Select
+                    value={(filters.status as string) || '__all__'}
+                    onValueChange={(val) => setFilter('status', val === '__all__' ? '' : val)}
+                  >
+                    <SelectTrigger className="h-9 px-3 text-sm">
+                      <SelectValue placeholder={t('common.selectOption')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__all__">{t('common.all')}</SelectItem>
+                      <SelectItem value="PENDING">{t('alerts.pending')}</SelectItem>
+                      <SelectItem value="RESPONDED">{t('alerts.responded')}</SelectItem>
+                      <SelectItem value="MISSED">{t('alerts.missed')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex items-end gap-2">
+                <Button type="button" variant="ghost" size="sm" onClick={handleClear}>
+                  <X className="h-4 w-4" />
+                  {t('common.clearFilters')}
+                </Button>
+                <Button type="button" size="sm" onClick={handleSearch}>
+                  <Search className="h-4 w-4" />
+                  {t('common.search')}
+                </Button>
+              </div>
             </div>
           </div>
-          <div className="flex items-end gap-2">
-            <Button type="button" variant="ghost" size="sm" onClick={handleClear}>
-              <X className="h-4 w-4" />
-              {t('common.clearFilters')}
-            </Button>
-            <Button type="button" size="sm" onClick={handleSearch}>
-              <Search className="h-4 w-4" />
-              {t('common.search')}
-            </Button>
-          </div>
-        </div>
-      </div>
 
-      <DataTable
-        columns={columns}
-        data={results}
-        isLoading={isLoading}
-        page={pagination.page}
-        pageSize={pagination.pageSize}
-        totalCount={pagination.totalCount}
-        totalPages={pagination.totalPages}
-        onPageChange={pagination.setPage}
-        onPageSizeChange={pagination.setPageSize}
-        getRowKey={(item) => item._id}
-        emptyTitle={t('common.noResults')}
-        // Carga inicial cronológica: data crescente + hora crescente.
-        // `scheduledAt` é o campo canônico de agendamento e ordena tanto
-        // dia quanto hora num único pass de Date.parse no DataTable.
-        initialSort={{ key: 'scheduledAt', dir: 'asc' }}
-      />
-      </div>
+          <DataTable
+            columns={columns}
+            data={results}
+            isLoading={isLoading}
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            totalCount={pagination.totalCount}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+            getRowKey={(item) => item._id}
+            emptyTitle={t('common.noResults')}
+            // Carga inicial cronológica: data crescente + hora crescente.
+            // `scheduledAt` é o campo canônico de agendamento e ordena tanto
+            // dia quanto hora num único pass de Date.parse no DataTable.
+            initialSort={{ key: 'scheduledAt', dir: 'asc' }}
+          />
+        </div>
       </ModuleGuard>
     </RoleGuard>
   );

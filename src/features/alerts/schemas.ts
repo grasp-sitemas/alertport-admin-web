@@ -7,6 +7,15 @@ import { z } from 'zod';
  * Required fields: account (only if SUPER_ADMIN_MASTER), client, site, equipment,
  * name, frequency, beginDate, endDate, beginHour, endHour, alertConfig.alertType.
  * Plus type-conditional: fixedInterval (FIXED), randomMin/randomMax (RANDOM).
+ *
+ * NOTE on null tolerance: legacy backend documents may legitimately ship
+ * `null` for fields like `equipment`, `endDate`, or `_id`. Plain `z.string()`
+ * rejects null with "expected string, received null" and the edit-series
+ * form blows up before the user even sees it. Null/undefined values are
+ * sanitized to '' at the form-defaults layer in `schedule-form-dialog.tsx`
+ * (see `coerceNullableString`), so the schema can stay simple here and
+ * keep its inferred input/output types as plain `string` for compatibility
+ * with the React Hook Form Resolver.
  */
 
 export const alertScheduleSchema = z

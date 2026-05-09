@@ -32,6 +32,7 @@ import {
   DEFAULT_ALERT_SCHEDULE,
 } from './schemas';
 import { alertsService } from '@/services/alerts.service';
+import { stripEmpty } from '@/lib/sanitize-payload';
 import type { AlertSchedule } from '@/types/api';
 import {
   useAccountsLookup,
@@ -183,6 +184,42 @@ function resolveScheduleId(row: AlertSchedule | undefined): string {
   return row._id || '';
 }
 
+/**
+ * Defensive sanitizer for the form defaults. Legacy backend documents
+ * sometimes ship `null` for string fields the schema requires (e.g.
+ * `equipment: null` on schedules created before the device was bound,
+ * or `endDate: null` on open-ended series). Spreading `mergedSource`
+ * into defaults would propagate that null and the Zod resolver would
+ * reject the parse with "expected string, received null", surfacing as
+ * the toast "verifique os campos antes de salvar" before the operator
+ * even sees the form. We coerce every required string slot to '' here
+ * so the existing `.min(1)` `validation.required` path runs instead.
+ */
+function sanitizeFormDefaults(
+  values: AlertScheduleFormValues,
+): AlertScheduleFormValues {
+  const coerce = (v: unknown): string =>
+    v === null || v === undefined ? '' : typeof v === 'string' ? v : String(v);
+  return {
+    ...values,
+    _id: values._id == null ? undefined : String(values._id),
+    name: coerce(values.name),
+    account: values.account == null ? undefined : String(values.account),
+    client: coerce(values.client),
+    site: coerce(values.site),
+    equipment: coerce(values.equipment),
+    beginDate: coerce(values.beginDate),
+    endDate: coerce(values.endDate),
+    beginHour: coerce(values.beginHour),
+    endHour: coerce(values.endHour),
+    category: 'ALERT_CHECK',
+    status: values.status ?? 'ACTIVE',
+    weeklyDays: Array.isArray(values.weeklyDays) ? values.weeklyDays : [],
+    frequencyMonth: values.frequencyMonth ?? { day: '' },
+    frequencyYear: values.frequencyYear ?? { month: '', day: '' },
+  };
+}
+
 function resolveAppointmentId(row: AlertSchedule | undefined): string {
   if (!row) return '';
   // Appointment-shape row: `row._id` might be the appointment's own id
@@ -247,7 +284,25 @@ export function ScheduleFormDialog({
     (fullSchedule as AlertSchedule | null)?.endDate ?? schedule?.endDate,
   );
 
-  const defaults: AlertScheduleFormValues = mergedSource
+  // Calendar-click into create-mode (Bug A1, Flavio 09/05): the click
+  // pre-fills `beginDate`/`endDate` on a partial AlertSchedule row but
+  // leaves account/client/site/equipment/name blank. The merged-edit
+  // branch below would silently send `account: ''` to the backend,
+  // which Mongoose then rejects as a CastError on the ObjectId ref —
+  // surfaced to the operator as a generic "Database Connection error".
+  // For create mode we keep the create defaults (session account +
+  // generated name) and overlay ONLY the dates from the click.
+  const isCalendarClickCreate = isCreate && !!mergedSource;
+
+  const defaults: AlertScheduleFormValues = isCalendarClickCreate
+    ? {
+        ...DEFAULT_ALERT_SCHEDULE,
+        name: generateDefaultScheduleName(),
+        account: canSelectAccount ? '' : sessionAccountId || '',
+        beginDate: normalizeDatePart(mergedSource?.beginDate) || DEFAULT_ALERT_SCHEDULE.beginDate,
+        endDate: normalizeDatePart(mergedSource?.endDate) || '',
+      }
+    : mergedSource
     ? {
         ...DEFAULT_ALERT_SCHEDULE,
         ...mergedSource,
@@ -297,7 +352,7 @@ export function ScheduleFormDialog({
     formState: { errors, isSubmitting },
   } = useAppForm<AlertScheduleFormValues>({
     resolver: zodResolver(alertScheduleSchema),
-    defaultValues: defaults,
+    defaultValues: sanitizeFormDefaults(defaults),
   });
 
   useEffect(() => {
@@ -306,7 +361,7 @@ export function ScheduleFormDialog({
     // critical - without it the form would render once with the
     // half-filled calendar row and never re-hydrate when the complete
     // schedule arrives a few hundred ms later.
-    if (open) reset(defaults);
+    if (open) reset(sanitizeFormDefaults(defaults));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, schedule?._id, mode, scheduleQuery.dataUpdatedAt]);
 
@@ -349,7 +404,11 @@ export function ScheduleFormDialog({
       };
 
       if (mode === 'create') {
-        return alertsService.createSchedule(normalized);
+        // Strip empty strings so backend doesn't try to cast `""` to
+        // ObjectId (CastError) for optional refs like `account` when the
+        // operator is not SUPER_ADMIN_MASTER. Preserves shape otherwise.
+        const cleaned = stripEmpty(normalized);
+        return alertsService.createSchedule(cleaned);
       }
 
       const scheduleId = resolveScheduleId(schedule);
@@ -358,29 +417,36 @@ export function ScheduleFormDialog({
       if (mode === 'edit-occurrence') {
         const appointmentId = resolveAppointmentId(schedule);
         if (!appointmentId) throw new Error('MISSING_APPOINTMENT_ID');
-        return alertsService.updateAppointmentOccurrence({
-          schedule: scheduleId,
-          appointment: appointmentId,
-          name: normalized.name,
-          account: normalized.account,
-          client: normalized.client,
-          site: normalized.site,
-          equipment: normalized.equipment,
-          category: 'ALERT_CHECK',
-          beginDate: pinnedDay || normalized.beginDate,
-          endDate: pinnedDay || normalized.endDate,
-          beginHour: normalized.beginHour,
-          endHour: normalized.endHour,
-          alertConfig: normalized.alertConfig,
-        });
+        // Defensive: strip empty strings so optional ObjectId refs
+        // (account/equipment) aren't cast-rejected by Mongoose.
+        return alertsService.updateAppointmentOccurrence(
+          stripEmpty({
+            schedule: scheduleId,
+            appointment: appointmentId,
+            name: normalized.name,
+            account: normalized.account,
+            client: normalized.client,
+            site: normalized.site,
+            equipment: normalized.equipment,
+            category: 'ALERT_CHECK' as const,
+            beginDate: pinnedDay || normalized.beginDate,
+            endDate: pinnedDay || normalized.endDate,
+            beginHour: normalized.beginHour,
+            endHour: normalized.endHour,
+            alertConfig: normalized.alertConfig,
+          }),
+        );
       }
 
       // edit-series: scheduleId goes on `schedule` (NOT `_id`) because
       // ms-schedule's updateSchedule controller reads it from there.
-      return alertsService.updateScheduleSeries({
-        ...normalized,
-        schedule: scheduleId,
-      });
+      // Strip empty strings to avoid Mongoose CastError on empty refs.
+      return alertsService.updateScheduleSeries(
+        stripEmpty({
+          ...normalized,
+          schedule: scheduleId,
+        }),
+      );
     },
     onSuccess: (response: unknown) => {
       // Invalidate the calendar list, the events index, AND the
@@ -574,6 +640,15 @@ export function ScheduleFormDialog({
 
             <div className="space-y-2">
               <Label>{t('alerts.equipment')}</Label>
+              {/*
+                Equipment is intentionally NOT disabled in edit-occurrence
+                mode. Operators must be able to swap the device for a single
+                appointment when the physical hardware was replaced on-site.
+                Backend (alertsService.updateAppointmentOccurrence) already
+                accepts `equipment` in the payload — only the UI was locked.
+                Account/client/site stay locked because the backend does
+                not rebind appointment scope to a different hierarchy node.
+              */}
               <Controller
                 control={control}
                 name="equipment"
@@ -581,7 +656,6 @@ export function ScheduleFormDialog({
                   <Select
                     value={field.value ?? ''}
                     onValueChange={field.onChange}
-                    disabled={isOccurrenceEdit}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={t('common.selectOption')} />

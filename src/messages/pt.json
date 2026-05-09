@@ -579,6 +579,52 @@
       "occurrenceHint": "Altera somente o dia selecionado.",
       "seriesHint": "Aplica a todas as ocorrências a partir desta data."
     },
+    "preview": {
+      "title": "Agendamento de Alerta",
+      "frequency": {
+        "NOT_REPEAT": "Único",
+        "DAILY": "Diário",
+        "EVERY_OTHER_DAY": "Dias alternados",
+        "WEEKLY": "Semanal",
+        "MONTHLY": "Mensal",
+        "YEARLY": "Anual"
+      },
+      "status": {
+        "ACTIVE": "Ativo",
+        "ARCHIVED": "Arquivado"
+      },
+      "fields": {
+        "schedule": "Agendamento",
+        "dateTime": "Data e hora",
+        "frequency": "Frequência",
+        "hierarchy": "Local",
+        "alertType": "Tipo de alerta",
+        "status": "Status"
+      },
+      "actions": {
+        "editOccurrence": {
+          "title": "Editar esta ocorrência",
+          "hint": "Apenas {date}"
+        },
+        "editSeries": {
+          "title": "Editar toda a série",
+          "hint": "Aplica a todas as recorrências"
+        },
+        "deleteOccurrence": {
+          "title": "Excluir esta ocorrência",
+          "hint": "Remove apenas {date}"
+        },
+        "deleteSeries": {
+          "title": "Excluir toda a série",
+          "hint": "Remove todas as recorrências futuras"
+        }
+      },
+      "confirm": {
+        "title": "Confirmar exclusão",
+        "cancel": "Cancelar",
+        "confirm": "Sim, excluir"
+      }
+    },
     "errors": {
       "missingReference": "Não foi possível identificar a agenda ou ocorrência. Recarregue e tente novamente.",
       "firestorePushFailed": "Salvo, mas a sincronização com o dispositivo falhou. As novas ocorrências podem demorar a aparecer no app.",

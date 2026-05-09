@@ -579,6 +579,52 @@
       "occurrenceHint": "Applies only to the selected day.",
       "seriesHint": "Applies to every occurrence from this date onward."
     },
+    "preview": {
+      "title": "Alert Schedule",
+      "frequency": {
+        "NOT_REPEAT": "One-time",
+        "DAILY": "Daily",
+        "EVERY_OTHER_DAY": "Every other day",
+        "WEEKLY": "Weekly",
+        "MONTHLY": "Monthly",
+        "YEARLY": "Yearly"
+      },
+      "status": {
+        "ACTIVE": "Active",
+        "ARCHIVED": "Archived"
+      },
+      "fields": {
+        "schedule": "Schedule",
+        "dateTime": "Date and time",
+        "frequency": "Frequency",
+        "hierarchy": "Location",
+        "alertType": "Alert type",
+        "status": "Status"
+      },
+      "actions": {
+        "editOccurrence": {
+          "title": "Edit this occurrence",
+          "hint": "Only {date}"
+        },
+        "editSeries": {
+          "title": "Edit entire series",
+          "hint": "Applies to every recurrence"
+        },
+        "deleteOccurrence": {
+          "title": "Delete this occurrence",
+          "hint": "Removes only {date}"
+        },
+        "deleteSeries": {
+          "title": "Delete entire series",
+          "hint": "Removes every future recurrence"
+        }
+      },
+      "confirm": {
+        "title": "Confirm deletion",
+        "cancel": "Cancel",
+        "confirm": "Yes, delete"
+      }
+    },
     "errors": {
       "missingReference": "Could not identify the schedule or occurrence. Refresh and try again.",
       "firestorePushFailed": "Saved, but device sync failed. New occurrences may take longer to appear on the app.",

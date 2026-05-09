@@ -29,6 +29,7 @@ import {
   type ScheduleScope,
   type ScheduleScopeAction,
 } from '@/features/alerts/schedule-scope-dialog';
+import { SchedulePreviewDialog } from '@/features/alerts/schedule-preview-dialog';
 import { alertsService } from '@/services/alerts.service';
 import type { AlertSchedule } from '@/types/api';
 
@@ -101,6 +102,14 @@ export default function AlertSchedulingPage() {
   const [formState, setFormState] = useState<FormState>({ kind: 'closed' });
   const [range, setRange] = useState<{ start: string; end: string } | null>(null);
   const [pendingScope, setPendingScope] = useState<PendingScope | null>(null);
+  // New preview-driven entry point for calendar event clicks. Carries the
+  // clicked schedule plus the YYYY-MM-DD of that specific occurrence so the
+  // dialog can show "this day" context without re-deriving from extendedProps.
+  const [previewState, setPreviewState] = useState<{
+    open: boolean;
+    schedule?: AlertSchedule;
+    occurrenceDate?: string;
+  }>({ open: false });
 
   const eventsFilter = useMemo(
     () => ({
@@ -133,9 +142,16 @@ export default function AlertSchedulingPage() {
         toast.error(t('alerts.errors.scheduleAlreadyOccurred'));
         return;
       }
-      // Click on a generated occurrence → ask whether to edit just today
-      // or the whole series via the scope dialog.
-      setPendingScope({ action: 'edit', row: event.extendedProps.row });
+      // Click on a generated occurrence → open the rich preview that shows
+      // schedule context plus 4 scoped actions (edit/delete × occurrence/
+      // series). Replaces the old two-step ScheduleScopeDialog flow at this
+      // single entry point.
+      const occurrenceDate = (event.start || '').slice(0, 10);
+      setPreviewState({
+        open: true,
+        schedule: event.extendedProps.row,
+        occurrenceDate,
+      });
     },
     [t],
   );
@@ -205,6 +221,10 @@ export default function AlertSchedulingPage() {
       queryClient.invalidateQueries({ queryKey: ['alert-schedule-events'] });
       toast.success(t('alerts.deleteSuccess'));
       setFormState({ kind: 'closed' });
+      // Close the preview dialog when the delete originated there. Cheap
+      // and idempotent: collapsing also when triggered via legacy paths is
+      // fine because the preview is already closed in that scenario.
+      setPreviewState({ open: false });
     },
     onError: (err) => {
       const code = (err as Error)?.message || '';
@@ -212,9 +232,61 @@ export default function AlertSchedulingPage() {
         toast.error(t('alerts.errors.missingReference'));
         return;
       }
+      // Bug A2 (Flavio 09/05): bulk/series delete was failing without
+      // any actionable feedback. Surface the actual axios response body
+      // so the operator sees the real reason (400/404/500 from
+      // ms-schedule) instead of a generic toast.
+      const axiosErr = err as {
+        response?: {
+          data?: {
+            message?: string;
+            messageId?: string;
+            errors?: Array<{ id?: string; text?: string }>;
+          };
+        };
+        message?: string;
+      };
+      const backendMessage =
+        axiosErr?.response?.data?.message ||
+        axiosErr?.response?.data?.messageId ||
+        axiosErr?.response?.data?.errors?.[0]?.text ||
+        axiosErr?.message;
+      if (backendMessage && backendMessage !== 'UNKNOWN') {
+        toast.error(backendMessage);
+        return;
+      }
       toast.error(t('notifications.errorOccurred'));
     },
   });
+
+  // ── Preview dialog callbacks ───────────────────────────────────
+  // The preview is the single entry point for calendar clicks. It hands
+  // off to ScheduleFormDialog for edits and to deleteMutation for deletes.
+  // The dialog stays open during a delete so the operator sees the busy
+  // state; deleteMutation.onSuccess closes it.
+  const handlePreviewEditOccurrence = useCallback(() => {
+    if (!previewState.schedule) return;
+    const row = previewState.schedule;
+    setPreviewState({ open: false });
+    setFormState({ kind: 'open', mode: 'edit-occurrence', row });
+  }, [previewState]);
+
+  const handlePreviewEditSeries = useCallback(() => {
+    if (!previewState.schedule) return;
+    const row = previewState.schedule;
+    setPreviewState({ open: false });
+    setFormState({ kind: 'open', mode: 'edit-series', row });
+  }, [previewState]);
+
+  const handlePreviewDeleteOccurrence = useCallback(() => {
+    if (!previewState.schedule) return;
+    deleteMutation.mutate({ scope: 'occurrence', row: previewState.schedule });
+  }, [previewState, deleteMutation]);
+
+  const handlePreviewDeleteSeries = useCallback(() => {
+    if (!previewState.schedule) return;
+    deleteMutation.mutate({ scope: 'series', row: previewState.schedule });
+  }, [previewState, deleteMutation]);
 
   const handleScopePick = useCallback(
     (scope: ScheduleScope) => {
@@ -357,6 +429,20 @@ export default function AlertSchedulingPage() {
               onDeleteRequest={formState.mode !== 'create' ? handleFormDeleteRequest : undefined}
             />
           )}
+
+          <SchedulePreviewDialog
+            open={previewState.open}
+            onOpenChange={(next) => {
+              if (!next) setPreviewState({ open: false });
+            }}
+            schedule={previewState.schedule}
+            occurrenceDate={previewState.occurrenceDate}
+            onEditOccurrence={handlePreviewEditOccurrence}
+            onEditSeries={handlePreviewEditSeries}
+            onDeleteOccurrence={handlePreviewDeleteOccurrence}
+            onDeleteSeries={handlePreviewDeleteSeries}
+            isDeleting={deleteMutation.isPending}
+          />
 
           {pendingScope && (
             <ScheduleScopeDialog
