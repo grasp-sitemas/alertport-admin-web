@@ -599,7 +599,10 @@
         "frequency": "频率",
         "hierarchy": "位置",
         "alertType": "警报类型",
-        "status": "状态"
+        "status": "状态",
+        "period": "时段",
+        "timeWindow": "时间",
+        "location": "位置"
       },
       "actions": {
         "editOccurrence": {

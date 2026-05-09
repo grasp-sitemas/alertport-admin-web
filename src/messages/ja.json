@@ -599,7 +599,10 @@
         "frequency": "頻度",
         "hierarchy": "場所",
         "alertType": "アラートタイプ",
-        "status": "ステータス"
+        "status": "ステータス",
+        "period": "期間",
+        "timeWindow": "時間",
+        "location": "場所"
       },
       "actions": {
         "editOccurrence": {

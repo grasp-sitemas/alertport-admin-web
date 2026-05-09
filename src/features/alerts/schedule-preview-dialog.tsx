@@ -3,14 +3,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import {
-  Bell,
   Calendar,
   CalendarRange,
-  CircleDot,
   Clock,
   MapPin,
   Pencil,
-  Repeat,
   Trash,
   Trash2,
   X,
@@ -24,32 +21,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import type { AlertSchedule, ScheduleFrequency } from '@/types/api';
-
-const WEEKDAY_KEYS = [
-  'alerts.sunday',
-  'alerts.monday',
-  'alerts.tuesday',
-  'alerts.wednesday',
-  'alerts.thursday',
-  'alerts.friday',
-  'alerts.saturday',
-] as const;
-
-const FREQUENCY_KEY: Record<ScheduleFrequency, string> = {
-  NOT_REPEAT: 'alerts.preview.frequency.NOT_REPEAT',
-  DAILY: 'alerts.preview.frequency.DAILY',
-  EVERY_OTHER_DAY: 'alerts.preview.frequency.EVERY_OTHER_DAY',
-  WEEKLY: 'alerts.preview.frequency.WEEKLY',
-  MONTHLY: 'alerts.preview.frequency.MONTHLY',
-  YEARLY: 'alerts.preview.frequency.YEARLY',
-};
-
-const STATUS_KEY: Record<string, string> = {
-  ACTIVE: 'alerts.preview.status.ACTIVE',
-  ARCHIVED: 'alerts.preview.status.ARCHIVED',
-};
+import type { AlertSchedule } from '@/types/api';
 
 interface SchedulePreviewDialogProps {
   open: boolean;
@@ -81,6 +53,30 @@ function extractCompanyName(value: unknown): string {
   if (typeof value === 'object' && 'name' in value) {
     const n = (value as { name?: unknown }).name;
     if (typeof n === 'string' && n.trim()) return n;
+  }
+  return '';
+}
+
+/**
+ * Pega os 4 últimos caracteres do identificador do equipamento. Aceita
+ * tanto o id raw (string) quanto o objeto populated com `_id`/`code`/
+ * `equipmentNumber`. Retorna '' se não houver nada útil.
+ */
+function extractEquipmentLastFour(value: unknown): string {
+  const pickFromString = (s: string): string => {
+    const trimmed = s.trim();
+    if (!trimmed) return '';
+    return trimmed.length <= 4 ? trimmed : trimmed.slice(-4);
+  };
+  if (!value) return '';
+  if (typeof value === 'string') return pickFromString(value);
+  if (typeof value === 'object') {
+    const obj = value as { code?: unknown; equipmentNumber?: unknown; _id?: unknown };
+    if (typeof obj.code === 'string' && obj.code.trim()) return pickFromString(obj.code);
+    if (typeof obj.equipmentNumber === 'string' && obj.equipmentNumber.trim()) {
+      return pickFromString(obj.equipmentNumber);
+    }
+    if (typeof obj._id === 'string' && obj._id.trim()) return pickFromString(obj._id);
   }
   return '';
 }
@@ -131,13 +127,11 @@ function FieldRow({ icon, label, children }: FieldRowProps) {
       <span className="text-text-muted mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center">
         {icon}
       </span>
-      <div className="flex-1 min-w-0">
-        <div className="text-text-muted text-[11px] uppercase tracking-wide font-medium">
+      <div className="min-w-0 flex-1">
+        <div className="text-text-muted text-[11px] font-medium tracking-wide uppercase">
           {label}
         </div>
-        <div className="text-text-primary text-sm font-medium mt-0.5 break-words">
-          {children}
-        </div>
+        <div className="text-text-primary mt-0.5 text-sm font-medium break-words">{children}</div>
       </div>
     </div>
   );
@@ -173,16 +167,14 @@ function ActionCard({
       aria-describedby={describedById}
       className={
         destructive
-          ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 h-auto justify-start py-3 px-4 text-left'
-          : 'h-auto justify-start py-3 px-4 text-left'
+          ? 'flex h-20 min-h-20 w-full items-start justify-start border border-red-500/30 bg-red-500/10 px-4 py-3 text-left whitespace-normal text-red-400 hover:bg-red-500/20'
+          : 'flex h-20 min-h-20 w-full items-start justify-start px-4 py-3 text-left whitespace-normal'
       }
     >
-      <span className="mr-3 flex h-5 w-5 shrink-0 items-center justify-center">
-        {icon}
-      </span>
-      <span className="flex flex-col items-start gap-0.5">
-        <span className="text-sm font-semibold leading-tight">{title}</span>
-        <span className="text-[11px] font-normal opacity-80 leading-tight">
+      <span className="mt-0.5 mr-3 flex h-5 w-5 shrink-0 items-center justify-center">{icon}</span>
+      <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5 overflow-hidden">
+        <span className="line-clamp-1 w-full text-sm leading-tight font-semibold">{title}</span>
+        <span className="line-clamp-2 w-full text-[11px] leading-tight font-normal opacity-80">
           {hint}
         </span>
       </span>
@@ -212,9 +204,7 @@ export function SchedulePreviewDialog({
 }: SchedulePreviewDialogProps) {
   const t = useTranslations();
   const locale = useLocale();
-  const [pendingConfirm, setPendingConfirm] = useState<
-    'occurrence' | 'series' | null
-  >(null);
+  const [pendingConfirm, setPendingConfirm] = useState<'occurrence' | 'series' | null>(null);
 
   // Reset the inline confirmation whenever the dialog reopens or the
   // schedule changes — operators expect a fresh slate every click.
@@ -223,63 +213,33 @@ export function SchedulePreviewDialog({
   }, [open, schedule?._id]);
 
   const name = useMemo(() => extractScheduleName(schedule), [schedule]);
-  const formattedDate = useMemo(
-    () => formatDate(occurrenceDate, locale),
-    [occurrenceDate, locale],
-  );
+  const formattedDate = useMemo(() => formatDate(occurrenceDate, locale), [occurrenceDate, locale]);
   const beginHour = formatHour(schedule?.beginHour);
   const endHour = formatHour(schedule?.endHour);
 
-  const frequencyLabel = (() => {
-    if (!schedule) return '—';
-    const key = FREQUENCY_KEY[schedule.frequency];
-    return key ? t(key) : schedule.frequency;
-  })();
-
-  const weeklyDaysLabel = (() => {
-    if (!schedule || schedule.frequency !== 'WEEKLY') return '';
-    const days = schedule.weeklyDays ?? [];
-    if (!days.length) return '';
-    return days
-      .map((d) => {
-        const idx = ((d % 7) + 7) % 7;
-        return t(WEEKDAY_KEYS[idx]);
-      })
-      .join(', ');
-  })();
+  // Período da SÉRIE (data início → data fim do agendamento), independente
+  // do dia clicado. Flavio (09/05): o preview deve mostrar o range do
+  // agendamento, não só o dia da ocorrência.
+  const beginDateStr = schedule?.beginDate ? schedule.beginDate.slice(0, 10) : '';
+  const endDateStr = schedule?.endDate ? schedule.endDate.slice(0, 10) : '';
+  const formattedBeginDate = useMemo(
+    () => formatDate(beginDateStr, locale),
+    [beginDateStr, locale],
+  );
+  const formattedEndDate = useMemo(
+    () => (endDateStr ? formatDate(endDateStr, locale) : ''),
+    [endDateStr, locale],
+  );
 
   const siteName = extractCompanyName(schedule?.site);
-  const clientName = extractCompanyName(schedule?.client);
-  const hierarchyLabel = (() => {
-    const parts = [siteName, clientName].filter(Boolean);
+  const equipmentLastFour = extractEquipmentLastFour(schedule?.equipment);
+  // "Local" = nome do site + últimos 4 dígitos do equipamento. Ex.: "Sede SP • 9F2A"
+  // Cai pra '—' se nada útil.
+  const localLabel = (() => {
+    const parts: string[] = [];
+    if (siteName) parts.push(siteName);
+    if (equipmentLastFour) parts.push(equipmentLastFour);
     return parts.length ? parts.join(' • ') : '—';
-  })();
-
-  const alertTypeLabel = (() => {
-    if (!schedule?.alertConfig) return '—';
-    const type = schedule.alertConfig.alertType;
-    const typeText = type === 'FIXED' ? t('alerts.fixed') : t('alerts.random');
-    if (type === 'FIXED' && schedule.alertConfig.fixedInterval) {
-      return `${typeText} • ${schedule.alertConfig.fixedInterval} min`;
-    }
-    if (type === 'RANDOM') {
-      const min = schedule.alertConfig.randomMin;
-      const max = schedule.alertConfig.randomMax;
-      if (min && max) return `${typeText} • ${min}–${max} min`;
-    }
-    return typeText;
-  })();
-
-  const statusVariant: 'success' | 'muted' = (() => {
-    if (!schedule) return 'muted';
-    if (schedule.status === 'ACTIVE') return 'success';
-    return 'muted';
-  })();
-
-  const statusLabel = (() => {
-    if (!schedule) return '—';
-    const key = STATUS_KEY[schedule.status as string];
-    return key ? t(key) : schedule.status;
   })();
 
   const handleDeleteClick = (scope: 'occurrence' | 'series') => {
@@ -302,67 +262,43 @@ export function SchedulePreviewDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle className="text-base">
-            {name || t('alerts.preview.title')}
-          </DialogTitle>
+          <DialogTitle className="text-base">{name || t('alerts.preview.title')}</DialogTitle>
           <DialogDescription>{t('alerts.preview.title')}</DialogDescription>
         </DialogHeader>
 
-        {/* Context block — gives the operator full awareness of WHAT they're
-            about to act on before they pick a scope. */}
-        <div className="bg-bg-tertiary rounded-xl p-4 space-y-3">
+        {/* Context block — Flavio (09/05): mostrar APENAS o essencial pro
+            operador entender o que vai mexer: período, horário e local.
+            Frequência/tipo/status removidos para reduzir ruído. */}
+        <div className="bg-bg-tertiary space-y-3 rounded-xl p-4">
           <FieldRow
             icon={<Calendar className="h-4 w-4" />}
-            label={t('alerts.preview.fields.dateTime')}
+            label={t('alerts.preview.fields.period')}
           >
-            <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span>{formattedDate}</span>
-              <span className="text-text-muted">•</span>
-              <span className="inline-flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5 text-text-muted" />
-                {beginHour} – {endHour}
-              </span>
+            <span>
+              {formattedBeginDate}
+              {formattedEndDate ? ` – ${formattedEndDate}` : ''}
             </span>
           </FieldRow>
 
           <FieldRow
-            icon={<Repeat className="h-4 w-4" />}
-            label={t('alerts.preview.fields.frequency')}
+            icon={<Clock className="h-4 w-4" />}
+            label={t('alerts.preview.fields.timeWindow')}
           >
-            <span className="flex flex-wrap items-center gap-2">
-              <Badge variant="info">{frequencyLabel}</Badge>
-              {weeklyDaysLabel ? (
-                <span className="text-text-secondary text-xs">
-                  {weeklyDaysLabel}
-                </span>
-              ) : null}
+            <span>
+              {beginHour} – {endHour}
             </span>
           </FieldRow>
 
           <FieldRow
             icon={<MapPin className="h-4 w-4" />}
-            label={t('alerts.preview.fields.hierarchy')}
+            label={t('alerts.preview.fields.location')}
           >
-            {hierarchyLabel}
-          </FieldRow>
-
-          <FieldRow
-            icon={<Bell className="h-4 w-4" />}
-            label={t('alerts.preview.fields.alertType')}
-          >
-            {alertTypeLabel}
-          </FieldRow>
-
-          <FieldRow
-            icon={<CircleDot className="h-4 w-4" />}
-            label={t('alerts.preview.fields.status')}
-          >
-            <Badge variant={statusVariant}>{statusLabel}</Badge>
+            {localLabel}
           </FieldRow>
         </div>
 
         {/* Action grid — 2x2 on sm+, stacked on mobile. */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <ActionCard
             icon={<Pencil className="h-4 w-4" />}
             title={t('alerts.preview.actions.editOccurrence.title')}
@@ -384,7 +320,7 @@ export function SchedulePreviewDialog({
 
           {/* Delete-occurrence — confirmation inline */}
           {pendingConfirm === 'occurrence' ? (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-3 flex flex-col gap-2 col-span-1">
+            <div className="col-span-1 flex h-20 flex-col justify-between gap-2 rounded-xl border border-red-500/30 bg-red-500/5 p-3">
               <span className="text-text-primary text-xs font-semibold">
                 {t('alerts.preview.confirm.title')}
               </span>
@@ -428,7 +364,7 @@ export function SchedulePreviewDialog({
 
           {/* Delete-series — destructive emphasis */}
           {pendingConfirm === 'series' ? (
-            <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-3 flex flex-col gap-2 col-span-1">
+            <div className="col-span-1 flex flex-col gap-2 rounded-xl border border-red-500/40 bg-red-500/10 p-3">
               <span className="text-text-primary text-xs font-semibold">
                 {t('alerts.preview.confirm.title')}
               </span>

@@ -599,7 +599,10 @@
         "frequency": "Frecuencia",
         "hierarchy": "Ubicación",
         "alertType": "Tipo de alerta",
-        "status": "Estado"
+        "status": "Estado",
+        "period": "Período",
+        "timeWindow": "Horario",
+        "location": "Ubicación"
       },
       "actions": {
         "editOccurrence": {
