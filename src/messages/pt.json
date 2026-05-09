@@ -213,7 +213,7 @@
     "plan": "Plano",
     "modules": "Módulos",
     "reports": "Relatórios",
-    "reportAdherence": "Aderência de Ronda",
+    "reportAdherence": "Aderência de Alertas",
     "reportAttendance": "Controle de Presença",
     "reportSos": "Alertas de SOS",
     "reportSla": "SLA de Atendimento",
@@ -251,7 +251,7 @@
       "nothingToExport": "Nada para exportar - execute uma busca antes."
     },
     "adherence": {
-      "title": "Aderência de Ronda",
+      "title": "Aderência de Alertas",
       "description": "Agendamentos disparados x atendidos pelo vigia no período.",
       "tableTitle": "Ocorrências no período",
       "scheduledAt": "Agendado em",

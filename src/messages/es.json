@@ -213,7 +213,7 @@
     "plan": "Plan",
     "modules": "Módulos",
     "reports": "Informes",
-    "reportAdherence": "Adherencia de Ronda",
+    "reportAdherence": "Adherencia de Alertas",
     "reportAttendance": "Registro de Presencia",
     "reportSos": "Alertas SOS",
     "reportSla": "SLA de Atención",
@@ -251,7 +251,7 @@
       "nothingToExport": "Nada para exportar - realice una búsqueda antes."
     },
     "adherence": {
-      "title": "Adherencia de Ronda",
+      "title": "Adherencia de Alertas",
       "description": "Programados disparados vs atendidos por el vigilante.",
       "tableTitle": "Ocurrencias en el período",
       "scheduledAt": "Programado en",

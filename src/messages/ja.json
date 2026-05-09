@@ -213,7 +213,7 @@
     "plan": "プラン",
     "modules": "モジュール",
     "reports": "レポート",
-    "reportAdherence": "巡回遵守率",
+    "reportAdherence": "アラート遵守率",
     "reportAttendance": "勤怠記録",
     "reportSos": "SOSアラート",
     "reportSla": "対応SLA",
@@ -251,7 +251,7 @@
       "nothingToExport": "エクスポートするものがありません - 先に検索してください。"
     },
     "adherence": {
-      "title": "巡回遵守率",
+      "title": "アラート遵守率",
       "description": "スケジュールされた巡回と警備員が実際に対応した数。",
       "tableTitle": "期間内の発生",
       "scheduledAt": "予定日時",

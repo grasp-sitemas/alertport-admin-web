@@ -213,7 +213,7 @@
     "plan": "套餐",
     "modules": "模块",
     "reports": "报表",
-    "reportAdherence": "巡更合规",
+    "reportAdherence": "警报合规",
     "reportAttendance": "考勤记录",
     "reportSos": "SOS告警",
     "reportSla": "处置 SLA",
@@ -251,7 +251,7 @@
       "nothingToExport": "暂无可导出数据 - 请先执行搜索。"
     },
     "adherence": {
-      "title": "巡更合规",
+      "title": "警报合规",
       "description": "排期下发与安保实际响应的对比。",
       "tableTitle": "区间内记录",
       "scheduledAt": "排期时间",

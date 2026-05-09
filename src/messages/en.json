@@ -213,7 +213,7 @@
     "plan": "Plan",
     "modules": "Modules",
     "reports": "Reports",
-    "reportAdherence": "Patrol Adherence",
+    "reportAdherence": "Alert Adherence",
     "reportAttendance": "Attendance Log",
     "reportSos": "SOS Alerts",
     "reportSla": "Attendance SLA",
@@ -251,7 +251,7 @@
       "nothingToExport": "Nothing to export - run a search first."
     },
     "adherence": {
-      "title": "Patrol Adherence",
+      "title": "Alert Adherence",
       "description": "Scheduled patrols triggered vs attended by the guard.",
       "tableTitle": "Occurrences in window",
       "scheduledAt": "Scheduled at",
