@@ -67,10 +67,10 @@ export function toIsoEndOfDay(yyyymmdd: string): string {
  * Convenience for the common case of expanding the `(startDate, endDate)`
  * pair coming out of the report filter panel into full-day ISO bounds.
  */
-export function expandDateRange(range: {
+export function expandDateRange(range: { startDate: string; endDate: string }): {
   startDate: string;
   endDate: string;
-}): { startDate: string; endDate: string } {
+} {
   return {
     startDate: toIsoStartOfDay(range.startDate),
     endDate: toIsoEndOfDay(range.endDate),

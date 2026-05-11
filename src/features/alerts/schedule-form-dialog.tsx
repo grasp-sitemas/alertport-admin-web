@@ -193,27 +193,104 @@ function resolveScheduleId(row: AlertSchedule | undefined): string {
  * the toast "verifique os campos antes de salvar" before the operator
  * even sees the form. We coerce every required string slot to '' here
  * so the existing `.min(1)` `validation.required` path runs instead.
+ *
+ * Deep coverage (Flavio, 11/05): the original sanitizer covered only
+ * top-level strings. Legacy docs also ship null for nested fields —
+ * notably `alertConfig.alertType` (enums in Zod are string-typed under
+ * the hood, so null → "expected string, received null"), and
+ * `frequencyMonth.day` / `frequencyYear.{month,day}` (union string|number,
+ * also rejects null). We now rebuild those nested objects from scratch
+ * with null/undefined coerced to safe defaults, and number fields in
+ * `alertConfig` snapped to the DEFAULT_ALERT_SCHEDULE.alertConfig values
+ * when null (Zod number rejects null).
  */
 function sanitizeFormDefaults(values: AlertScheduleFormValues): AlertScheduleFormValues {
-  const coerce = (v: unknown): string =>
+  const coerceStr = (v: unknown): string =>
     v === null || v === undefined ? '' : typeof v === 'string' ? v : String(v);
+  const coerceNum = (v: unknown, fallback: number): number => {
+    if (v === null || v === undefined) return fallback;
+    if (typeof v === 'number' && Number.isFinite(v)) return v;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
+  };
+  const coerceStrOrNum = (v: unknown): string | number => {
+    if (v === null || v === undefined) return '';
+    if (typeof v === 'number') return v;
+    return String(v);
+  };
+
+  const defaultAlertConfig = DEFAULT_ALERT_SCHEDULE.alertConfig;
+  const rawAlertConfig = (values.alertConfig ?? defaultAlertConfig) as Partial<
+    AlertScheduleFormValues['alertConfig']
+  > | null;
+  const ac = rawAlertConfig ?? defaultAlertConfig;
+  const sanitizedAlertConfig: AlertScheduleFormValues['alertConfig'] = {
+    alertType: ac.alertType === 'FIXED' || ac.alertType === 'RANDOM' ? ac.alertType : 'FIXED',
+    fixedInterval: coerceNum(ac.fixedInterval, defaultAlertConfig.fixedInterval ?? 30),
+    durationMin: coerceNum(ac.durationMin, defaultAlertConfig.durationMin ?? 2),
+    volumeLevel: coerceNum(ac.volumeLevel, defaultAlertConfig.volumeLevel ?? 80),
+    randomMin: coerceNum(ac.randomMin, defaultAlertConfig.randomMin ?? 0),
+    randomMax: coerceNum(ac.randomMax, defaultAlertConfig.randomMax ?? 0),
+  };
+
+  const rawFreqMonth = values.frequencyMonth as
+    | { day?: string | number | null }
+    | null
+    | undefined;
+  const sanitizedFreqMonth: { day: string | number } = {
+    day: coerceStrOrNum(rawFreqMonth?.day),
+  };
+
+  const rawFreqYear = values.frequencyYear as
+    | { month?: string | number | null; day?: string | number | null }
+    | null
+    | undefined;
+  const sanitizedFreqYear: { month: string | number; day: string | number } = {
+    month: coerceStrOrNum(rawFreqYear?.month),
+    day: coerceStrOrNum(rawFreqYear?.day),
+  };
+
+  // weeklyDays: drop null/undefined entries that legacy docs occasionally ship.
+  const rawWeekly = Array.isArray(values.weeklyDays) ? values.weeklyDays : [];
+  const sanitizedWeekly = rawWeekly.filter(
+    (d): d is number => typeof d === 'number' && Number.isFinite(d),
+  );
+
+  const freqRaw = values.frequency as AlertScheduleFormValues['frequency'] | null | undefined;
+  const validFrequencies: AlertScheduleFormValues['frequency'][] = [
+    'NOT_REPEAT',
+    'DAILY',
+    'EVERY_OTHER_DAY',
+    'WEEKLY',
+    'MONTHLY',
+    'YEARLY',
+  ];
+  const sanitizedFrequency: AlertScheduleFormValues['frequency'] =
+    freqRaw && validFrequencies.includes(freqRaw) ? freqRaw : 'DAILY';
+
+  const statusRaw = values.status as AlertScheduleFormValues['status'] | null | undefined;
+  const sanitizedStatus: AlertScheduleFormValues['status'] =
+    statusRaw === 'ACTIVE' || statusRaw === 'ARCHIVED' ? statusRaw : 'ACTIVE';
+
   return {
     ...values,
     _id: values._id == null ? undefined : String(values._id),
-    name: coerce(values.name),
+    name: coerceStr(values.name),
     account: values.account == null ? undefined : String(values.account),
-    client: coerce(values.client),
-    site: coerce(values.site),
-    equipment: coerce(values.equipment),
-    beginDate: coerce(values.beginDate),
-    endDate: coerce(values.endDate),
-    beginHour: coerce(values.beginHour),
-    endHour: coerce(values.endHour),
+    client: coerceStr(values.client),
+    site: coerceStr(values.site),
+    equipment: coerceStr(values.equipment),
+    beginDate: coerceStr(values.beginDate),
+    endDate: coerceStr(values.endDate),
+    beginHour: coerceStr(values.beginHour),
+    endHour: coerceStr(values.endHour),
     category: 'ALERT_CHECK',
-    status: values.status ?? 'ACTIVE',
-    weeklyDays: Array.isArray(values.weeklyDays) ? values.weeklyDays : [],
-    frequencyMonth: values.frequencyMonth ?? { day: '' },
-    frequencyYear: values.frequencyYear ?? { month: '', day: '' },
+    status: sanitizedStatus,
+    frequency: sanitizedFrequency,
+    weeklyDays: sanitizedWeekly,
+    frequencyMonth: sanitizedFreqMonth,
+    frequencyYear: sanitizedFreqYear,
+    alertConfig: sanitizedAlertConfig,
   };
 }
 
@@ -359,6 +436,25 @@ export function ScheduleFormDialog({
     if (open) reset(sanitizeFormDefaults(defaults));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, schedule?._id, mode, scheduleQuery.dataUpdatedAt]);
+
+  // Diagnostic: when Zod rejects an edit-open the operator only sees the
+  // generic "verifique os campos" toast from toastFirstError. Surface the
+  // exact field + message in the console so an operator (or a dev pairing
+  // in HML) can pinpoint which legacy field came in null/invalid without
+  // a debugger session. Stays out of production bundles.
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return;
+    if (Object.keys(errors).length === 0) return;
+    // eslint-disable-next-line no-console
+    console.warn(
+      '[ScheduleFormDialog] resolver errors:',
+      JSON.stringify(
+        errors,
+        (_key, value) => (value instanceof Error ? value.message : value),
+        2,
+      ),
+    );
+  }, [errors]);
 
   const accountWatched = useWatch({ control, name: 'account' });
   const clientWatched = useWatch({ control, name: 'client' });

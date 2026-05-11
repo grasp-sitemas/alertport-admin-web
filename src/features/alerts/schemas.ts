@@ -26,14 +26,7 @@ export const alertScheduleSchema = z
     client: z.string().min(1, { message: 'validation.required' }),
     site: z.string().min(1, { message: 'validation.required' }),
     equipment: z.string().min(1, { message: 'validation.required' }),
-    frequency: z.enum([
-      'NOT_REPEAT',
-      'DAILY',
-      'EVERY_OTHER_DAY',
-      'WEEKLY',
-      'MONTHLY',
-      'YEARLY',
-    ]),
+    frequency: z.enum(['NOT_REPEAT', 'DAILY', 'EVERY_OTHER_DAY', 'WEEKLY', 'MONTHLY', 'YEARLY']),
     category: z.literal('ALERT_CHECK'),
     weeklyDays: z.array(z.number()).optional(),
     frequencyMonth: z
@@ -98,13 +91,10 @@ export const alertScheduleSchema = z
     },
     { message: 'validation.required', path: ['frequency'] },
   )
-  .refine(
-    (data) => data.endDate >= data.beginDate,
-    {
-      message: 'A data final deve ser igual ou posterior à data inicial',
-      path: ['endDate'],
-    },
-  );
+  .refine((data) => data.endDate >= data.beginDate, {
+    message: 'A data final deve ser igual ou posterior à data inicial',
+    path: ['endDate'],
+  });
 
 export type AlertScheduleFormValues = z.infer<typeof alertScheduleSchema>;
 

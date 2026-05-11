@@ -311,33 +311,33 @@ export function SchedulePreviewDialog({
             <span className="text-text-secondary text-sm">{t('common.loading')}</span>
           </div>
         ) : (
-        <div className="bg-bg-tertiary space-y-3 rounded-xl p-4">
-          <FieldRow
-            icon={<Calendar className="h-4 w-4" />}
-            label={t('alerts.preview.fields.period')}
-          >
-            <span>
-              {formattedBeginDate}
-              {formattedEndDate ? ` – ${formattedEndDate}` : ''}
-            </span>
-          </FieldRow>
+          <div className="bg-bg-tertiary space-y-3 rounded-xl p-4">
+            <FieldRow
+              icon={<Calendar className="h-4 w-4" />}
+              label={t('alerts.preview.fields.period')}
+            >
+              <span>
+                {formattedBeginDate}
+                {formattedEndDate ? ` – ${formattedEndDate}` : ''}
+              </span>
+            </FieldRow>
 
-          <FieldRow
-            icon={<Clock className="h-4 w-4" />}
-            label={t('alerts.preview.fields.timeWindow')}
-          >
-            <span>
-              {beginHour} – {endHour}
-            </span>
-          </FieldRow>
+            <FieldRow
+              icon={<Clock className="h-4 w-4" />}
+              label={t('alerts.preview.fields.timeWindow')}
+            >
+              <span>
+                {beginHour} – {endHour}
+              </span>
+            </FieldRow>
 
-          <FieldRow
-            icon={<MapPin className="h-4 w-4" />}
-            label={t('alerts.preview.fields.location')}
-          >
-            {localLabel}
-          </FieldRow>
-        </div>
+            <FieldRow
+              icon={<MapPin className="h-4 w-4" />}
+              label={t('alerts.preview.fields.location')}
+            >
+              {localLabel}
+            </FieldRow>
+          </div>
         )}
 
         {/* Action grid — 2x2 on sm+, stacked on mobile. */}
