@@ -75,3 +75,35 @@ export function invalidateHierarchyAfter(
       break;
   }
 }
+
+/**
+ * Invalidate every cache that the Alert Monitor / Attendance flow reads.
+ *
+ * Used after attendance mutations (open / addRecord / close) so the
+ * operator's monitor list reflects the new state without a manual refresh.
+ *
+ * Reported by Flávio 2026-05: after closing an attendance the row stayed
+ * stale until F5. The mutation onSuccess only invalidated
+ * `['patrol-actions']` and the local attendance-records, but didn't force
+ * an active refetch — and never touched `['occurrences']` /
+ * `['time-entries']` that the monitor's parallel cards also use.
+ *
+ * `refetchType: 'active'` forces every currently-mounted query under each
+ * prefix to refetch immediately, instead of just marking them stale.
+ */
+export function invalidateAlerts(
+  queryClient: QueryClient,
+  options?: { patrolActionId?: string | null },
+): void {
+  const refetch = (queryKey: readonly unknown[]) =>
+    queryClient.invalidateQueries({ queryKey, refetchType: 'active' });
+
+  refetch(['patrol-actions']);
+  refetch(['occurrences']);
+  refetch(['time-entries']);
+  if (options?.patrolActionId) {
+    refetch(['attendance-records', options.patrolActionId]);
+  } else {
+    refetch(['attendance-records']);
+  }
+}

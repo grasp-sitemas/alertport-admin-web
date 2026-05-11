@@ -37,6 +37,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { translateDynamicLabel } from '@/lib/i18n-labels';
 import type { PatrolAction } from '@/types/api';
 import { cn } from '@/lib/utils';
+import { invalidateAlerts } from '@/lib/query-invalidation';
 import { classifyAttendance, extractAttendanceOwner } from './attendance-state';
 
 interface AttendanceDialogProps {
@@ -141,17 +142,26 @@ export function AttendanceDialog({
   const [notes, setNotes] = useState<string>('');
 
   useEffect(() => {
-    if (open) {
-      // Reset the form each time the dialog reopens for a different event.
-      setType('');
-      setNotes('');
-    }
+    // Reset the form whenever the dialog opens, closes, OR switches event.
+    // Previously the form only reset on `open` transitions, which left
+    // stale `type`/`notes` when the parent swapped `event` without
+    // toggling `open` (rare but possible via deep-link claim). Also
+    // resetting on close prevents the next opening from inheriting the
+    // previous attendance type selection.
+    setType('');
+    setNotes('');
   }, [open, eventId]);
 
   // ─── Mutations ─────────────────────────────────────────────────
+  // Centralized through `invalidateAlerts` so every cache the monitor
+  // reads (`patrol-actions`, `occurrences`, `time-entries`, plus the
+  // dialog's own `attendance-records`) refetches actively after a
+  // mutation. Prior version only invalidated `patrol-actions` + the
+  // local records list, which left the monitor list stale after close
+  // (reported by Flávio 2026-05). `onChanged` still fires for callers
+  // that want a hook (the monitor uses it to force `refetch()` too).
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ['patrol-actions'] });
-    queryClient.invalidateQueries({ queryKey: ['attendance-records', eventId] });
+    invalidateAlerts(queryClient, { patrolActionId: eventId });
     onChanged?.();
   };
 
@@ -259,17 +269,21 @@ export function AttendanceDialog({
     return `${e.type}${siteName ? ` · ${siteName}` : ''}`;
   }
 
-  // Reset mutation state whenever the dialog targets a different event.
-  // Without this, opening event B after successfully attending event A
-  // leaves `openMutation.isSuccess === true` (useMutation state survives
-  // re-renders), which blocked the auto-open effect below from firing
-  // for B. Reported by Flávio 2026-04-21.
+  // Reset mutation state whenever the dialog targets a different event OR
+  // toggles open. Without this, opening event B after successfully
+  // attending event A leaves `openMutation.isSuccess === true`
+  // (useMutation state survives re-renders), which blocked the auto-open
+  // effect below from firing for B (reported by Flávio 2026-04-21), and
+  // also left `addRecordMutation.isPending === true` if a previous
+  // request was still in-flight when the dialog closed — which kept the
+  // "Adicionar" button disabled on the next open (reported by Flávio
+  // 2026-05).
   useEffect(() => {
     openMutation.reset();
     addRecordMutation.reset();
     closeMutation.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId]);
+  }, [eventId, open]);
 
   // Auto-open the attendance flag when the dialog first appears for an
   // AVAILABLE event - saves the operator one click. Critical guards:
