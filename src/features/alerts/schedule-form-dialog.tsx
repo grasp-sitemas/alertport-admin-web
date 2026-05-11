@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -195,9 +194,7 @@ function resolveScheduleId(row: AlertSchedule | undefined): string {
  * even sees the form. We coerce every required string slot to '' here
  * so the existing `.min(1)` `validation.required` path runs instead.
  */
-function sanitizeFormDefaults(
-  values: AlertScheduleFormValues,
-): AlertScheduleFormValues {
+function sanitizeFormDefaults(values: AlertScheduleFormValues): AlertScheduleFormValues {
   const coerce = (v: unknown): string =>
     v === null || v === undefined ? '' : typeof v === 'string' ? v : String(v);
   return {
@@ -303,45 +300,43 @@ export function ScheduleFormDialog({
         endDate: normalizeDatePart(mergedSource?.endDate) || '',
       }
     : mergedSource
-    ? {
-        ...DEFAULT_ALERT_SCHEDULE,
-        ...mergedSource,
-        name: nameSource,
-        account: getIdOrEmpty(mergedSource.account) || (canSelectAccount ? '' : sessionAccountId || ''),
-        client: getIdOrEmpty(mergedSource.client),
-        site: getIdOrEmpty(mergedSource.site),
-        equipment: getIdOrEmpty(mergedSource.equipment),
-        beginDate: isOccurrenceEdit ? pinnedDay : seriesBeginDate || pinnedDay,
-        endDate: isOccurrenceEdit ? pinnedDay : seriesEndDate,
-        beginHour: extractHourPart(mergedSource.beginHour || mergedSource.startHour, '08:00'),
-        endHour: extractHourPart(mergedSource.endHour, '18:00'),
-        weeklyDays:
-          (fullSchedule as AlertSchedule | null)?.weeklyDays ?? mergedSource.weeklyDays ?? [],
-        frequencyMonth:
-          (fullSchedule as AlertSchedule | null)?.frequencyMonth ??
-          mergedSource.frequencyMonth ?? { day: '' },
-        frequencyYear:
-          (fullSchedule as AlertSchedule | null)?.frequencyYear ??
-          mergedSource.frequencyYear ?? { month: '', day: '' },
-        // Single-day edits are always NOT_REPEAT from the schema's PoV;
-        // the backend rebuilds just this appointment anyway.
-        frequency: isOccurrenceEdit
-          ? 'NOT_REPEAT'
-          : (fullSchedule as AlertSchedule | null)?.frequency ?? mergedSource.frequency ?? 'DAILY',
-        alertConfig:
-          (fullSchedule as AlertSchedule | null)?.alertConfig ??
-          mergedSource.alertConfig ??
-          DEFAULT_ALERT_SCHEDULE.alertConfig,
-        status:
-          (fullSchedule as AlertSchedule | null)?.status ??
-          mergedSource.status ??
-          'ACTIVE',
-      }
-    : {
-        ...DEFAULT_ALERT_SCHEDULE,
-        name: generateDefaultScheduleName(),
-        account: canSelectAccount ? '' : sessionAccountId || '',
-      };
+      ? {
+          ...DEFAULT_ALERT_SCHEDULE,
+          ...mergedSource,
+          name: nameSource,
+          account:
+            getIdOrEmpty(mergedSource.account) || (canSelectAccount ? '' : sessionAccountId || ''),
+          client: getIdOrEmpty(mergedSource.client),
+          site: getIdOrEmpty(mergedSource.site),
+          equipment: getIdOrEmpty(mergedSource.equipment),
+          beginDate: isOccurrenceEdit ? pinnedDay : seriesBeginDate || pinnedDay,
+          endDate: isOccurrenceEdit ? pinnedDay : seriesEndDate,
+          beginHour: extractHourPart(mergedSource.beginHour || mergedSource.startHour, '08:00'),
+          endHour: extractHourPart(mergedSource.endHour, '18:00'),
+          weeklyDays:
+            (fullSchedule as AlertSchedule | null)?.weeklyDays ?? mergedSource.weeklyDays ?? [],
+          frequencyMonth: (fullSchedule as AlertSchedule | null)?.frequencyMonth ??
+            mergedSource.frequencyMonth ?? { day: '' },
+          frequencyYear: (fullSchedule as AlertSchedule | null)?.frequencyYear ??
+            mergedSource.frequencyYear ?? { month: '', day: '' },
+          // Single-day edits are always NOT_REPEAT from the schema's PoV;
+          // the backend rebuilds just this appointment anyway.
+          frequency: isOccurrenceEdit
+            ? 'NOT_REPEAT'
+            : ((fullSchedule as AlertSchedule | null)?.frequency ??
+              mergedSource.frequency ??
+              'DAILY'),
+          alertConfig:
+            (fullSchedule as AlertSchedule | null)?.alertConfig ??
+            mergedSource.alertConfig ??
+            DEFAULT_ALERT_SCHEDULE.alertConfig,
+          status: (fullSchedule as AlertSchedule | null)?.status ?? mergedSource.status ?? 'ACTIVE',
+        }
+      : {
+          ...DEFAULT_ALERT_SCHEDULE,
+          name: generateDefaultScheduleName(),
+          account: canSelectAccount ? '' : sessionAccountId || '',
+        };
 
   const {
     register,
@@ -484,7 +479,13 @@ export function ScheduleFormDialog({
       // errors with a useful response body) so an operator can act on
       // 400/404/500 instead of a generic toast.
       const axiosErr = err as {
-        response?: { data?: { message?: string; messageId?: string; errors?: Array<{ id?: string; text?: string }> } };
+        response?: {
+          data?: {
+            message?: string;
+            messageId?: string;
+            errors?: Array<{ id?: string; text?: string }>;
+          };
+        };
         message?: string;
       };
       const backendMessage =
@@ -520,7 +521,7 @@ export function ScheduleFormDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-3xl max-h-[90vh] overflow-y-auto"
+        className="max-h-[90vh] max-w-3xl overflow-y-auto"
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
@@ -530,7 +531,7 @@ export function ScheduleFormDialog({
 
         <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
           {/* Account / Client / Site / Equipment cascade */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {canSelectAccount && (
               <div className="space-y-2 sm:col-span-3">
                 <Label>{t('common.account')}</Label>
@@ -653,10 +654,7 @@ export function ScheduleFormDialog({
                 control={control}
                 name="equipment"
                 render={({ field }) => (
-                  <Select
-                    value={field.value ?? ''}
-                    onValueChange={field.onChange}
-                  >
+                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
                     <SelectTrigger>
                       <SelectValue placeholder={t('common.selectOption')} />
                     </SelectTrigger>
@@ -676,9 +674,9 @@ export function ScheduleFormDialog({
             </div>
           </div>
 
-          <div className="h-px bg-white/10 my-2" />
+          <div className="my-2 h-px bg-white/10" />
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-2 sm:col-span-3">
               <Label>{t('alerts.scheduleName')}</Label>
               <Input {...register('name')} />
@@ -709,9 +707,7 @@ export function ScheduleFormDialog({
                       <SelectContent>
                         <SelectItem value="NOT_REPEAT">{t('alerts.notRepeat')}</SelectItem>
                         <SelectItem value="DAILY">{t('alerts.daily')}</SelectItem>
-                        <SelectItem value="EVERY_OTHER_DAY">
-                          {t('alerts.everyOtherDay')}
-                        </SelectItem>
+                        <SelectItem value="EVERY_OTHER_DAY">{t('alerts.everyOtherDay')}</SelectItem>
                         <SelectItem value="WEEKLY">{t('alerts.weekly')}</SelectItem>
                         <SelectItem value="MONTHLY">{t('alerts.monthly')}</SelectItem>
                         <SelectItem value="YEARLY">{t('alerts.yearly')}</SelectItem>
@@ -746,7 +742,7 @@ export function ScheduleFormDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
             <div className="space-y-2">
               <Label>{t('alerts.beginDate')}</Label>
               <Input type="date" {...register('beginDate')} disabled={isOccurrenceEdit} />
@@ -810,10 +806,10 @@ export function ScheduleFormDialog({
                                 : [...current, day.val],
                             );
                           }}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                          className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all ${
                             selected
                               ? 'bg-brand-600/20 border-brand-600/40 text-brand-400'
-                              : 'bg-white/5 border-white/10 text-text-secondary hover:bg-white/10'
+                              : 'text-text-secondary border-white/10 bg-white/5 hover:bg-white/10'
                           }`}
                         >
                           {t(day.key)}
@@ -827,14 +823,14 @@ export function ScheduleFormDialog({
           )}
 
           {!isOccurrenceEdit && frequency === 'MONTHLY' && (
-            <div className="space-y-2 max-w-[200px]">
+            <div className="max-w-[200px] space-y-2">
               <Label>{t('alerts.frequencyMonthDay')}</Label>
               <Input type="number" min={1} max={31} {...register('frequencyMonth.day')} />
             </div>
           )}
 
           {!isOccurrenceEdit && frequency === 'YEARLY' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
+            <div className="grid max-w-lg grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>{t('alerts.frequencyYearMonth')}</Label>
                 <Controller
@@ -879,10 +875,10 @@ export function ScheduleFormDialog({
             </div>
           )}
 
-          <div className="h-px bg-white/10 my-2" />
+          <div className="my-2 h-px bg-white/10" />
           <h4 className="text-sm font-semibold text-white">{t('alerts.alertConfig')}</h4>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-2">
               <Label>{t('alerts.alertType')}</Label>
               <Controller
@@ -954,20 +950,12 @@ export function ScheduleFormDialog({
             </div>
           </div>
 
-          <DialogFooter className="sm:justify-between">
-            <div>
-              {!isCreate && onDeleteRequest && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => onDeleteRequest()}
-                  disabled={isSubmitting || mutation.isPending}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  {t('common.delete')}
-                </Button>
-              )}
-            </div>
+          {/* Flavio (11/05): botão de excluir removido daqui — a exclusão
+              agora vive no SchedulePreviewDialog (modal que abre ao clicar
+              no agendamento no calendário). O prop onDeleteRequest fica
+              declarado para preservar a API pública e não quebrar callers
+              que ainda passam, mas não é mais renderizado. */}
+          <DialogFooter>
             <div className="flex gap-2">
               <Button
                 type="button"

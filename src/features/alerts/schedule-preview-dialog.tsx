@@ -2,16 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import {
-  Calendar,
-  CalendarRange,
-  Clock,
-  MapPin,
-  Pencil,
-  Trash,
-  Trash2,
-  X,
-} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Calendar, CalendarRange, Clock, MapPin, Pencil, Trash, Trash2, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -21,7 +13,26 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
+import { alertsService } from '@/services/alerts.service';
 import type { AlertSchedule } from '@/types/api';
+
+/**
+ * Resolve o _id real do schedule. O row do calendário pode estar em
+ * appointment-shape (ref `schedule` para o doc pai) ou em schedule-shape
+ * (já é o doc pai). O endpoint `getScheduleById` precisa do _id do
+ * SCHEDULE, não do appointment — daí esse passo.
+ */
+function resolveScheduleId(row: AlertSchedule | undefined): string {
+  if (!row) return '';
+  const ref = (row as { schedule?: unknown }).schedule;
+  if (typeof ref === 'string') return ref;
+  if (ref && typeof ref === 'object' && '_id' in ref) {
+    const id = (ref as { _id?: unknown })._id;
+    if (typeof id === 'string') return id;
+  }
+  return row._id || '';
+}
 
 interface SchedulePreviewDialogProps {
   open: boolean;
@@ -212,16 +223,41 @@ export function SchedulePreviewDialog({
     if (!open) setPendingConfirm(null);
   }, [open, schedule?._id]);
 
-  const name = useMemo(() => extractScheduleName(schedule), [schedule]);
+  // Fetch the FULL schedule doc by _id. O row vindo do calendário pode
+  // estar em appointment-shape com refs site/equipment/client NÃO
+  // populadas (só IDs). O endpoint /schedules/v1/{id} retorna o doc
+  // completo com refs populadas — mesmo padrão usado pelo form-dialog.
+  // Sem isso o operador não vê o nome do site nem o equipamento.
+  const scheduleIdToFetch = resolveScheduleId(schedule);
+  const fullScheduleQuery = useQuery({
+    queryKey: ['schedule-full', scheduleIdToFetch],
+    queryFn: () => alertsService.getScheduleById(scheduleIdToFetch),
+    enabled: open && !!scheduleIdToFetch,
+    staleTime: 60_000,
+  });
+  const fullSchedule = fullScheduleQuery.data ?? null;
+  const isLoadingFull = open && !!scheduleIdToFetch && fullScheduleQuery.isLoading;
+
+  // Merge calendar row + full schedule. Full doc wins for series-wide
+  // fields (name, dates, refs populadas, hours canônicas); row do
+  // calendário ainda contribui appointment-specific (start) que não
+  // existe no schedule. Cast preservado — type ainda é AlertSchedule.
+  const merged = useMemo<AlertSchedule | undefined>(() => {
+    if (!schedule && !fullSchedule) return undefined;
+    if (!fullSchedule) return schedule;
+    return { ...(schedule ?? {}), ...fullSchedule } as AlertSchedule;
+  }, [schedule, fullSchedule]);
+
+  const name = useMemo(() => extractScheduleName(merged), [merged]);
   const formattedDate = useMemo(() => formatDate(occurrenceDate, locale), [occurrenceDate, locale]);
-  const beginHour = formatHour(schedule?.beginHour);
-  const endHour = formatHour(schedule?.endHour);
+  const beginHour = formatHour(merged?.beginHour);
+  const endHour = formatHour(merged?.endHour);
 
   // Período da SÉRIE (data início → data fim do agendamento), independente
   // do dia clicado. Flavio (09/05): o preview deve mostrar o range do
   // agendamento, não só o dia da ocorrência.
-  const beginDateStr = schedule?.beginDate ? schedule.beginDate.slice(0, 10) : '';
-  const endDateStr = schedule?.endDate ? schedule.endDate.slice(0, 10) : '';
+  const beginDateStr = merged?.beginDate ? merged.beginDate.slice(0, 10) : '';
+  const endDateStr = merged?.endDate ? merged.endDate.slice(0, 10) : '';
   const formattedBeginDate = useMemo(
     () => formatDate(beginDateStr, locale),
     [beginDateStr, locale],
@@ -231,8 +267,8 @@ export function SchedulePreviewDialog({
     [endDateStr, locale],
   );
 
-  const siteName = extractCompanyName(schedule?.site);
-  const equipmentLastFour = extractEquipmentLastFour(schedule?.equipment);
+  const siteName = extractCompanyName(merged?.site);
+  const equipmentLastFour = extractEquipmentLastFour(merged?.equipment);
   // "Local" = nome do site + últimos 4 dígitos do equipamento. Ex.: "Sede SP • 9F2A"
   // Cai pra '—' se nada útil.
   const localLabel = (() => {
@@ -269,6 +305,12 @@ export function SchedulePreviewDialog({
         {/* Context block — Flavio (09/05): mostrar APENAS o essencial pro
             operador entender o que vai mexer: período, horário e local.
             Frequência/tipo/status removidos para reduzir ruído. */}
+        {isLoadingFull ? (
+          <div className="bg-bg-tertiary flex items-center justify-center gap-3 rounded-xl p-6">
+            <Spinner size="sm" />
+            <span className="text-text-secondary text-sm">{t('common.loading')}</span>
+          </div>
+        ) : (
         <div className="bg-bg-tertiary space-y-3 rounded-xl p-4">
           <FieldRow
             icon={<Calendar className="h-4 w-4" />}
@@ -296,6 +338,7 @@ export function SchedulePreviewDialog({
             {localLabel}
           </FieldRow>
         </div>
+        )}
 
         {/* Action grid — 2x2 on sm+, stacked on mobile. */}
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
