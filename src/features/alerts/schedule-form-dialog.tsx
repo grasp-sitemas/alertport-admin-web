@@ -233,10 +233,7 @@ function sanitizeFormDefaults(values: AlertScheduleFormValues): AlertScheduleFor
     randomMax: coerceNum(ac.randomMax, defaultAlertConfig.randomMax ?? 0),
   };
 
-  const rawFreqMonth = values.frequencyMonth as
-    | { day?: string | number | null }
-    | null
-    | undefined;
+  const rawFreqMonth = values.frequencyMonth as { day?: string | number | null } | null | undefined;
   const sanitizedFreqMonth: { day: string | number } = {
     day: coerceStrOrNum(rawFreqMonth?.day),
   };
@@ -448,11 +445,7 @@ export function ScheduleFormDialog({
     // eslint-disable-next-line no-console
     console.warn(
       '[ScheduleFormDialog] resolver errors:',
-      JSON.stringify(
-        errors,
-        (_key, value) => (value instanceof Error ? value.message : value),
-        2,
-      ),
+      JSON.stringify(errors, (_key, value) => (value instanceof Error ? value.message : value), 2),
     );
   }, [errors]);
 
@@ -751,7 +744,7 @@ export function ScheduleFormDialog({
                 name="equipment"
                 render={({ field }) => (
                   <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                    <SelectTrigger>
+                    <SelectTrigger data-testid="schedule-equipment-trigger">
                       <SelectValue placeholder={t('common.selectOption')} />
                     </SelectTrigger>
                     <SelectContent>
