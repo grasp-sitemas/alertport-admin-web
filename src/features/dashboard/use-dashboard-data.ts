@@ -25,19 +25,6 @@ export interface DashboardHierarchyOverride {
   site?: string;
 }
 
-/**
- * Tipos de equipamento que devem ser EXCLUÍDOS do count de "Dispositivos
- * cadastrados". O backend ainda mistura bastões de ronda e patrol staff
- * dentro da coleção `equipments`. Como `Equipment.type` é apenas um id,
- * esta heurística inspeciona campos textuais (`code`, `brand`, `name`,
- * `model`) — a importação Patrol/GWronda costuma colocar "ronda"/"patrol"
- * nesses campos.
- *
- * TODO(backend): expor `equipmentType.category` ou `Equipment.kind` para
- * eliminar a heurística client-side. Ver feedback do Flavio (D1).
- */
-const PATROL_DEVICE_PATTERN = /ronda|patrol|bast(a|ã)o/i;
-
 /** Janela de "atividade recente" para o keep-alive de devices legados/mobile. */
 const ACTIVE_DEVICE_WINDOW_HOURS = 24;
 const HOUR_MS = 60 * 60 * 1000;
@@ -48,13 +35,6 @@ const DEVICE_TIMESTAMP_FIELDS: Array<keyof Equipment> = [
   'createDate',
   'createdDate',
 ];
-
-function isPatrolDevice(eq: Equipment): boolean {
-  const haystack = [eq.code, eq.brand, eq.name, eq.model]
-    .filter((v): v is string => typeof v === 'string' && v.length > 0)
-    .join(' ');
-  return PATROL_DEVICE_PATTERN.test(haystack);
-}
 
 function getLatestTimestamp(eq: Equipment): number | null {
   for (const field of DEVICE_TIMESTAMP_FIELDS) {
@@ -163,12 +143,14 @@ export function useDashboardData(range: DashboardRange, override: DashboardHiera
   });
 
   // Derived AlertPort device counters. Calculados aqui para deixar a página declarativa.
+  // Pós-migração GWRonda → AlertPort (12/05/2026): todos os equipments do tenant
+  // são considerados dispositivos AlertPort. A heurística antiga `isPatrolDevice`
+  // ficou obsoleta e excluía dispositivos legítimos que foram migrados.
   const allEquipments = equipmentList.data?.results ?? [];
-  const nonPatrolEquipments = allEquipments.filter((e) => !isPatrolDevice(e));
-  const registeredDevicesCount = nonPatrolEquipments.length;
+  const registeredDevicesCount = allEquipments.length;
 
   const cutoff = Date.now() - ACTIVE_DEVICE_WINDOW_HOURS * HOUR_MS;
-  const activeDevicesCount = nonPatrolEquipments.filter((e) => {
+  const activeDevicesCount = allEquipments.filter((e) => {
     const t = getLatestTimestamp(e);
     return t !== null && t >= cutoff;
   }).length;

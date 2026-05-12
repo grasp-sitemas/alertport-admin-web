@@ -119,7 +119,10 @@ export default function AlertSchedulingPage() {
       ...(hierarchy.client ? { client: hierarchy.client } : {}),
       ...(hierarchy.site ? { site: hierarchy.site } : {}),
       ...(nameFilter ? { name: nameFilter } : {}),
-      status: statusFilter || 'ACTIVE',
+      // "Todos" (statusFilter === '') NÃO força ACTIVE — antes esse
+      // fallback escondia agendamentos arquivados mesmo quando o
+      // operador selecionava "Todos" no filtro de status.
+      ...(statusFilter ? { status: statusFilter as 'ACTIVE' | 'ARCHIVED' } : {}),
     }),
     [range, hierarchy, nameFilter, statusFilter],
   );

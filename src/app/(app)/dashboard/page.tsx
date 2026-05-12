@@ -423,28 +423,19 @@ function rankSites(list: AlertOccurrence[], limit: number): RankedSite[] {
 }
 
 /**
- * D4 (Flavio): atividade recente — ordem desc, dedupe por site (último
- * evento de cada site), corte em 20 linhas.
+ * D4 (Flavio, atualizado 12/05/2026): atividade recente — ordem desc,
+ * sem dedupe. O dedupe-por-site escondia ocorrências sequenciais do
+ * mesmo site e fazia a lista mostrar apenas 1 linha em tenants com
+ * poucos sites. Agora reflete fielmente as N últimas ocorrências.
  */
 function buildRecentActivity(list: AlertOccurrence[], maxRows: number): AlertOccurrence[] {
-  const sorted = [...list].sort((a, b) => {
-    const ta = new Date(a.scheduledAt ?? a.createdDate ?? 0).getTime();
-    const tb = new Date(b.scheduledAt ?? b.createdDate ?? 0).getTime();
-    return tb - ta;
-  });
-  const seen = new Map<string, AlertOccurrence>();
-  for (const occ of sorted) {
-    const siteId =
-      typeof occ.site === 'object' && occ.site?._id
-        ? occ.site._id
-        : typeof occ.site === 'string'
-          ? occ.site
-          : null;
-    if (!siteId) continue;
-    if (!seen.has(siteId)) seen.set(siteId, occ);
-    if (seen.size >= maxRows) break;
-  }
-  return [...seen.values()];
+  return [...list]
+    .sort((a, b) => {
+      const ta = new Date(a.scheduledAt ?? a.createdDate ?? 0).getTime();
+      const tb = new Date(b.scheduledAt ?? b.createdDate ?? 0).getTime();
+      return tb - ta;
+    })
+    .slice(0, maxRows);
 }
 
 function formatDayShort(day: string): string {

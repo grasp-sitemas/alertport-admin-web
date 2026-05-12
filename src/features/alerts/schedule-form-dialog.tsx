@@ -90,19 +90,6 @@ function toLocalDayPart(d: Date): string {
 }
 
 /**
- * Default name when the user opens "+ Criar Agendamento" (Flavio, 07/05).
- * Operador estava recebendo o campo vazio e o schema exige min 1. Usa
- * data+hora locais como placeholder editável — operador pode trocar
- * depois mas já tem algo razoável.
- */
-function generateDefaultScheduleName(): string {
-  const now = new Date();
-  const date = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-  const time = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-  return `Agendamento ${date} ${time}`;
-}
-
-/**
  * Pull the YYYY-MM-DD piece out of whatever datetime string the backend
  * shipped. FullCalendar occurrences arrive as `start`/`startDate` (ISO),
  * plain schedules arrive as `beginDate` (already date-only).
@@ -368,7 +355,10 @@ export function ScheduleFormDialog({
   const defaults: AlertScheduleFormValues = isCalendarClickCreate
     ? {
         ...DEFAULT_ALERT_SCHEDULE,
-        name: generateDefaultScheduleName(),
+        // Nome vazio em create — o operador preenche manualmente
+        // (Flavio, 12/05/2026). Antes a UX gerava "Agendamento NNNN"
+        // automaticamente, mas isso fazia o campo abrir já preenchido.
+        name: '',
         account: canSelectAccount ? '' : sessionAccountId || '',
         beginDate: normalizeDatePart(mergedSource?.beginDate) || DEFAULT_ALERT_SCHEDULE.beginDate,
         endDate: normalizeDatePart(mergedSource?.endDate) || '',
@@ -408,7 +398,11 @@ export function ScheduleFormDialog({
         }
       : {
           ...DEFAULT_ALERT_SCHEDULE,
-          name: generateDefaultScheduleName(),
+          // Nome vazio quando o operador clica "Criar agendamento" no
+          // header (sem origem de row). Era pré-preenchido com
+          // "Agendamento NNNN"; agora o campo abre vazio para o
+          // próprio operador definir.
+          name: '',
           account: canSelectAccount ? '' : sessionAccountId || '',
         };
 
@@ -536,10 +530,22 @@ export function ScheduleFormDialog({
       // Invalidate the calendar list, the events index, AND the
       // schedule-full cache for this id — without the third the next
       // edit-open within ~30s shows stale field values.
-      queryClient.invalidateQueries({ queryKey: ['alert-schedules'] });
-      queryClient.invalidateQueries({ queryKey: ['alert-schedule-events'] });
+      // `refetchType: 'active'` força o calendário visível a refetchar
+      // imediatamente após criar/editar (o staleTime de 30s da query
+      // de eventos fazia o operador achar que a tela não atualizou).
+      queryClient.invalidateQueries({
+        queryKey: ['alert-schedules'],
+        refetchType: 'active',
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['alert-schedule-events'],
+        refetchType: 'active',
+      });
       if (scheduleIdToFetch) {
-        queryClient.invalidateQueries({ queryKey: ['schedule-full', scheduleIdToFetch] });
+        queryClient.invalidateQueries({
+          queryKey: ['schedule-full', scheduleIdToFetch],
+          refetchType: 'active',
+        });
       }
       // Backend returns 200 with { firestoreWarning } when Mongo writes
       // succeeded but Firestore push failed. The schedule IS saved but
