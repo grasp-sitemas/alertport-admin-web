@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { alertsService } from '@/services/alerts.service';
 import type { AlertSchedule } from '@/types/api';
@@ -48,33 +48,6 @@ function pickEventStart(row: AlertSchedule): string | undefined {
     (row.beginDate ? `${row.beginDate}T${row.beginHour || '00:00'}:00` : undefined) ??
     undefined
   );
-}
-
-/**
- * Resolve o instante "real" de fim de uma ocorrência para fins de
- * filtragem de "ainda em andamento". Prioriza:
- *   1. `row.end` / `appointment.end` / `endDate` (ISO) quando o backend
- *      já entregou o appointment com end materializado.
- *   2. `start date + endHour` (HH:MM) quando o row é um schedule (janela
- *      08:00–18:00, por exemplo) — combina a parte de data do start com
- *      a hora de fim para obter o instante real de encerramento.
- * Retorna `null` quando nenhuma das fontes for válida.
- */
-function resolveOccurrenceEndMs(row: AlertSchedule, startISO: string | undefined): number | null {
-  const direct =
-    row.end ?? (row.endDate && row.endDate.includes('T') ? row.endDate : undefined);
-  if (direct) {
-    const t = new Date(direct).getTime();
-    if (Number.isFinite(t)) return t;
-  }
-  const endHour = row.endHour;
-  if (endHour && startISO && startISO.includes('T')) {
-    const day = startISO.slice(0, 10);
-    const candidate = `${day}T${endHour}:00`;
-    const t = new Date(candidate).getTime();
-    if (Number.isFinite(t)) return t;
-  }
-  return null;
 }
 
 function pickEventEnd(row: AlertSchedule, startISO: string | undefined): string | undefined {
@@ -227,53 +200,20 @@ export function useScheduleEvents(filter: ScheduleEventsFilter, enabled = true) 
     staleTime: 30 * 1000,
   });
 
-  // Tick every 30s so an event that crosses the start instant while
-  // the operator stares at the calendar disappears without waiting
-  // for the 30s React Query stale window. Also re-tick whenever the
-  // tab becomes visible (browsers throttle setInterval in background).
-  const [nowMs, setNowMs] = useState<number>(() => Date.now());
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const tick = () => setNowMs(Date.now());
-    const id = window.setInterval(tick, 30_000);
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') tick();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    window.addEventListener('focus', tick);
-    return () => {
-      window.clearInterval(id);
-      document.removeEventListener('visibilitychange', onVisible);
-      window.removeEventListener('focus', tick);
-    };
-  }, []);
-
   const events = useMemo<ScheduleCalendarEvent[]>(() => {
     const rows = query.data ?? [];
-    // Hide occurrences whose start instant is already in the past so the
-    // calendar only surfaces actionable (current/future) events.
-    // Comparison uses absolute milliseconds so the result is
-    // timezone-safe: both sides resolve to the same instant regardless of
-    // how the backend serialized the date (UTC `...Z` or local-time
-    // ISO without offset). `nowMs` updates every 30s via the tick above.
+    // Renderiza todas as ocorrências retornadas pelo backend para a
+    // janela do calendário (passado, presente e futuro). O filtro
+    // anterior escondia ocorrências passadas, o que fazia a tela
+    // aparecer vazia em meses com histórico (12/05/2026 — Flavio).
+    // A proteção contra editar/excluir ocorrência passada continua
+    // viva em `handleEventClick` na página de scheduling.
     return rows
       .map((row): ScheduleCalendarEvent | null => {
         const start = pickEventStart(row);
         if (!start) return null;
         const startMs = new Date(start).getTime();
         if (Number.isNaN(startMs)) return null;
-        // Mantém ocorrências EM ANDAMENTO: se houver fim conhecido
-        // (`end` direto ou `start.date + endHour`) e ele ainda for
-        // futuro, o evento permanece acionável mesmo que `start` já
-        // esteja no passado. Sem fim resolvido, cai no comportamento
-        // anterior (start >= now) para não exibir ocorrências
-        // definitivamente passadas.
-        const endMs = resolveOccurrenceEndMs(row, start);
-        if (endMs !== null) {
-          if (endMs < nowMs) return null;
-        } else if (startMs < nowMs) {
-          return null;
-        }
         const appointmentId = pickAppointmentId(row);
         const scheduleId = pickScheduleId(row);
         return {
@@ -292,7 +232,7 @@ export function useScheduleEvents(filter: ScheduleEventsFilter, enabled = true) 
         };
       })
       .filter((e): e is ScheduleCalendarEvent => e !== null);
-  }, [query.data, nowMs]);
+  }, [query.data]);
 
   return {
     ...query,

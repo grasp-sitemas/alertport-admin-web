@@ -602,7 +602,7 @@
         "status": "ステータス",
         "period": "期間",
         "timeWindow": "時間",
-        "location": "場所"
+        "location": "拠点"
       },
       "actions": {
         "editOccurrence": {

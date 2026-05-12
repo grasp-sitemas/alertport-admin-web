@@ -602,7 +602,7 @@
         "status": "Estado",
         "period": "Período",
         "timeWindow": "Horario",
-        "location": "Ubicación"
+        "location": "Puesto"
       },
       "actions": {
         "editOccurrence": {

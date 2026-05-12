@@ -602,7 +602,7 @@
         "status": "状态",
         "period": "时段",
         "timeWindow": "时间",
-        "location": "位置"
+        "location": "岗位"
       },
       "actions": {
         "editOccurrence": {
