@@ -202,18 +202,22 @@ export function useScheduleEvents(filter: ScheduleEventsFilter, enabled = true) 
 
   const events = useMemo<ScheduleCalendarEvent[]>(() => {
     const rows = query.data ?? [];
-    // Renderiza todas as ocorrências retornadas pelo backend para a
-    // janela do calendário (passado, presente e futuro). O filtro
-    // anterior escondia ocorrências passadas, o que fazia a tela
-    // aparecer vazia em meses com histórico (12/05/2026 — Flavio).
-    // A proteção contra editar/excluir ocorrência passada continua
-    // viva em `handleEventClick` na página de scheduling.
+    // Esconde ocorrências de dias anteriores a HOJE. O backend devolve
+    // todo o histórico do mês consultado pelo calendário, mas o
+    // operador só precisa ver agendamentos a partir do dia atual em
+    // diante (12/05/2026 — Flavio). Usamos o INÍCIO do dia local
+    // (00:00) como cutoff para que agendamentos de mais cedo no dia
+    // de hoje continuem aparecendo mesmo após o horário ter passado.
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const todayMs = startOfToday.getTime();
     return rows
       .map((row): ScheduleCalendarEvent | null => {
         const start = pickEventStart(row);
         if (!start) return null;
         const startMs = new Date(start).getTime();
         if (Number.isNaN(startMs)) return null;
+        if (startMs < todayMs) return null;
         const appointmentId = pickAppointmentId(row);
         const scheduleId = pickScheduleId(row);
         return {

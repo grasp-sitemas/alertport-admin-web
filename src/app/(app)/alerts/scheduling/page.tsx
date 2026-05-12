@@ -135,13 +135,15 @@ export default function AlertSchedulingPage() {
 
   const handleEventClick = useCallback(
     (event: ScheduleCalendarEvent) => {
-      // Safety net: even though `useScheduleEvents` already filters past
-      // occurrences out of the events list, a stale React Query cache or
-      // the user lingering on the page across the start instant can
-      // produce a click on an event that has already happened. Block it
-      // with a friendly toast instead of opening the edit dialog.
+      // Safety net: o `useScheduleEvents` esconde ocorrências de dias
+      // anteriores a hoje, mas se o cache estiver stale ou o operador
+      // ficar com a página aberta atravessando a meia-noite, ainda é
+      // possível clicar num evento já no passado. Usamos o início do
+      // dia (00:00) como cutoff — mesmo critério da listagem.
       const startMs = new Date(event.start).getTime();
-      if (!Number.isNaN(startMs) && startMs < Date.now()) {
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      if (!Number.isNaN(startMs) && startMs < startOfToday.getTime()) {
         toast.error(t('alerts.errors.scheduleAlreadyOccurred'));
         return;
       }
