@@ -85,10 +85,10 @@ export default function PlanPage() {
         <PageHeader title={t('plan.title')} description={t('plan.subtitle')} />
 
         {/* Header card: trial state */}
-        <section className="rounded-xl border border-white/[0.06] bg-bg-secondary/60 p-6">
+        <section className="bg-bg-secondary/60 rounded-xl border border-white/[0.06] p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-wide text-text-muted">
+              <p className="text-text-muted text-xs tracking-wide uppercase">
                 {t('plan.currentPlan')}
               </p>
               <h2 className="text-2xl font-semibold text-white">{planType}</h2>
@@ -108,7 +108,7 @@ export default function PlanPage() {
               )}
             </div>
             {context?.trialEndAt && (
-              <div className="text-right text-xs text-text-muted">
+              <div className="text-text-muted text-right text-xs">
                 <div>{t('plan.trialEnds')}</div>
                 <div className="mt-1 text-white">
                   {new Date(context.trialEndAt).toLocaleDateString()}
@@ -119,8 +119,8 @@ export default function PlanPage() {
         </section>
 
         {/* Limits + usage */}
-        <section className="rounded-xl border border-white/[0.06] bg-bg-secondary/60 p-6">
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-text-muted">
+        <section className="bg-bg-secondary/60 rounded-xl border border-white/[0.06] p-6">
+          <h3 className="text-text-muted mb-4 text-sm font-semibold tracking-wide uppercase">
             {t('plan.limitsAndUsage')}
           </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -157,16 +157,15 @@ export default function PlanPage() {
         </section>
 
         {/* Features checklist */}
-        <section className="rounded-xl border border-white/[0.06] bg-bg-secondary/60 p-6">
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-text-muted">
+        <section className="bg-bg-secondary/60 rounded-xl border border-white/[0.06] p-6">
+          <h3 className="text-text-muted mb-4 text-sm font-semibold tracking-wide uppercase">
             {t('plan.features')}
           </h3>
           <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {FEATURES_ORDER.filter((f) => !HIDDEN_FEATURE_KEYS.has(f.key)).map(
               ({ key, enabledFallback }) => {
                 const fromBackend = features[key];
-                const enabled =
-                  fromBackend === undefined ? enabledFallback : Boolean(fromBackend);
+                const enabled = fromBackend === undefined ? enabledFallback : Boolean(fromBackend);
                 // Backend emits keys like "users", "reports.export",
                 // "monitor.realtime". Map dots to underscores so they can
                 // live in the `plan.featuresList` namespace without

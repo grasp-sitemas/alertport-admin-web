@@ -31,16 +31,20 @@ test.describe('Alert Monitor (HML, SAM)', () => {
     await expect(card).toBeVisible();
 
     const countRows = async (): Promise<number> => {
-      const explicit = await card.getByRole('listitem').count().catch(() => 0);
+      const explicit = await card
+        .getByRole('listitem')
+        .count()
+        .catch(() => 0);
       if (explicit > 0) return explicit;
-      return card.locator('article, li').count().catch(() => 0);
+      return card
+        .locator('article, li')
+        .count()
+        .catch(() => 0);
     };
 
     const before = await countRows();
 
-    const searchBtn = page
-      .getByRole('button', { name: /^buscar$|^search$|^pesquisar$/i })
-      .first();
+    const searchBtn = page.getByRole('button', { name: /^buscar$|^search$|^pesquisar$/i }).first();
     if (await searchBtn.isVisible().catch(() => false)) {
       await searchBtn.click();
       await page.waitForLoadState('networkidle');

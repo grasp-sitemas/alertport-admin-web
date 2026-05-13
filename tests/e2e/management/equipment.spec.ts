@@ -34,7 +34,10 @@ test.describe.serial('Equipment CRUD', () => {
     await pickSelectByLabel(page, /^conta$/i, /.+/).catch(() => undefined);
     await pickSelectByLabel(page, /^cliente$/i, /.+/).catch(() => undefined);
     await pickSelectByLabel(page, /^posto$|^site$/i, /.+/).catch(() => undefined);
-    await dialog.getByLabel(/c[oó]digo|imei/i).first().fill(code);
+    await dialog
+      .getByLabel(/c[oó]digo|imei/i)
+      .first()
+      .fill(code);
     await clickSave(page);
     expect(await waitForToast(page)).toBe('success');
   });

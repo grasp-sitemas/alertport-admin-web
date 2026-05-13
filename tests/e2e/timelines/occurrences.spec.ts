@@ -138,7 +138,10 @@ test.describe('Alert Occurrences timeline', () => {
     test.skip(!sitePicked, 'No site options after client selection.');
 
     const filterPromise = captureNextPost(page, FILTER_URL_SUBSTRING);
-    await page.getByRole('button', { name: /buscar|search/i }).first().click();
+    await page
+      .getByRole('button', { name: /buscar|search/i })
+      .first()
+      .click();
     const body = await filterPromise;
     expect(body, 'Expected POST to occurrences filter endpoint').not.toBeNull();
     expect(body && (body.site || body.account)).toBeTruthy();
@@ -150,7 +153,10 @@ test.describe('Alert Occurrences timeline', () => {
     test.skip(!devicePicked, 'No device options for the selected site.');
 
     const filterPromise2 = captureNextPost(page, FILTER_URL_SUBSTRING);
-    await page.getByRole('button', { name: /buscar|search/i }).first().click();
+    await page
+      .getByRole('button', { name: /buscar|search/i })
+      .first()
+      .click();
     const body2 = await filterPromise2;
     expect(body2, 'Expected second POST after device pick').not.toBeNull();
     // Regression guard for the new "Equipamento" filter — must travel
@@ -164,7 +170,10 @@ test.describe('Alert Occurrences timeline', () => {
     test.skip(rowCount <= 2, 'Need at least 2 data rows to test sort inversion.');
 
     const beforeFirst = (await rows.nth(1).textContent())?.trim() ?? '';
-    await page.getByRole('button', { name: /agendado|scheduled/i }).first().click();
+    await page
+      .getByRole('button', { name: /agendado|scheduled/i })
+      .first()
+      .click();
     const afterFirst = (await rows.nth(1).textContent())?.trim() ?? '';
     expect(afterFirst).not.toBe(beforeFirst);
   });
@@ -176,7 +185,11 @@ test.describe('Alert Occurrences timeline', () => {
 
     // Column index 3 in tbody holds scheduledAt (after client/site/equipment).
     const firstCell = await rows.nth(1).locator('td').nth(3).textContent();
-    const lastCell = await rows.nth(count - 1).locator('td').nth(3).textContent();
+    const lastCell = await rows
+      .nth(count - 1)
+      .locator('td')
+      .nth(3)
+      .textContent();
     const first = Date.parse(firstCell ?? '');
     const last = Date.parse(lastCell ?? '');
     if (Number.isFinite(first) && Number.isFinite(last)) {

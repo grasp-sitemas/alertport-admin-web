@@ -62,7 +62,10 @@ test.describe('Dashboard (HML, SAM)', () => {
     const present = await scroll.isVisible().catch(() => false);
     expect(present).toBe(true);
 
-    const rowCount = await scroll.locator('> div').count().catch(() => 0);
+    const rowCount = await scroll
+      .locator('> div')
+      .count()
+      .catch(() => 0);
     const noDataText = await scroll
       .getByText(/Nenhum dado|No data|Sem dados/i)
       .isVisible()

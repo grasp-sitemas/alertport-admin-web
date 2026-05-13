@@ -116,7 +116,10 @@ test.describe('Report — Attendance', () => {
     await page.locator('#report-end-date').fill(today);
 
     const promise = captureNextPost(page, REPORT_URL_SUBSTRING);
-    await page.getByRole('button', { name: /buscar|search|aplicar|apply/i }).first().click();
+    await page
+      .getByRole('button', { name: /buscar|search|aplicar|apply/i })
+      .first()
+      .click();
     const body = await promise;
     expect(body, 'Expected POST to attendance report endpoint').not.toBeNull();
     if (!body) return;
@@ -135,7 +138,10 @@ test.describe('Report — Attendance', () => {
     test.skip(!d, 'No device options.');
 
     const promise = captureNextPost(page, REPORT_URL_SUBSTRING);
-    await page.getByRole('button', { name: /buscar|search|aplicar|apply/i }).first().click();
+    await page
+      .getByRole('button', { name: /buscar|search|aplicar|apply/i })
+      .first()
+      .click();
     const body = await promise;
     expect(body && body.equipment).toBeTruthy();
   });
@@ -148,7 +154,12 @@ test.describe('Report — Attendance', () => {
     const count = await rows.count();
     test.skip(count <= 2, 'Need at least 2 data rows.');
     const first = (await rows.nth(1).locator('td').nth(0).textContent()) ?? '';
-    const last = (await rows.nth(count - 1).locator('td').nth(0).textContent()) ?? '';
+    const last =
+      (await rows
+        .nth(count - 1)
+        .locator('td')
+        .nth(0)
+        .textContent()) ?? '';
     const a = Date.parse(first);
     const b = Date.parse(last);
     if (Number.isFinite(a) && Number.isFinite(b)) expect(a).toBeLessThanOrEqual(b);

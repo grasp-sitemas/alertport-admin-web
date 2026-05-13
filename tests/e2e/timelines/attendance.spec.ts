@@ -131,7 +131,10 @@ test.describe('Attendance / Time-entries timeline', () => {
     test.skip(!sitePicked, 'No site options after client selection.');
 
     const filterPromise = captureNextPost(page, FILTER_URL_SUBSTRING);
-    await page.getByRole('button', { name: /buscar|search/i }).first().click();
+    await page
+      .getByRole('button', { name: /buscar|search/i })
+      .first()
+      .click();
     const body = await filterPromise;
     expect(body, 'Expected POST to attendances filter endpoint').not.toBeNull();
     expect(body && (body.site || body.account)).toBeTruthy();
@@ -141,7 +144,10 @@ test.describe('Attendance / Time-entries timeline', () => {
     test.skip(!devicePicked, 'No device options for the selected site.');
 
     const filterPromise2 = captureNextPost(page, FILTER_URL_SUBSTRING);
-    await page.getByRole('button', { name: /buscar|search/i }).first().click();
+    await page
+      .getByRole('button', { name: /buscar|search/i })
+      .first()
+      .click();
     const body2 = await filterPromise2;
     expect(body2, 'Expected second POST after device pick').not.toBeNull();
     expect(body2 && body2.equipment).toBeTruthy();
@@ -153,7 +159,10 @@ test.describe('Attendance / Time-entries timeline', () => {
     test.skip(rowCount <= 2, 'Need at least 2 data rows to test sort inversion.');
 
     const beforeFirst = (await rows.nth(1).textContent())?.trim() ?? '';
-    await page.getByRole('button', { name: /timestamp|horário|hora/i }).first().click();
+    await page
+      .getByRole('button', { name: /timestamp|horário|hora/i })
+      .first()
+      .click();
     const afterFirst = (await rows.nth(1).textContent())?.trim() ?? '';
     expect(afterFirst).not.toBe(beforeFirst);
   });
@@ -164,7 +173,11 @@ test.describe('Attendance / Time-entries timeline', () => {
     test.skip(count <= 2, 'Need at least 2 data rows to test ascending order.');
 
     const firstCell = await rows.nth(1).locator('td').nth(0).textContent();
-    const lastCell = await rows.nth(count - 1).locator('td').nth(0).textContent();
+    const lastCell = await rows
+      .nth(count - 1)
+      .locator('td')
+      .nth(0)
+      .textContent();
     const first = Date.parse(firstCell ?? '');
     const last = Date.parse(lastCell ?? '');
     if (Number.isFinite(first) && Number.isFinite(last)) {

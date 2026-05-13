@@ -30,12 +30,8 @@ export type MutatedKind = 'account' | 'client' | 'site' | 'equipment' | 'user';
  * queries refetch immediately; unmounted ones are marked stale and refetch
  * next time they mount.
  */
-export function invalidateHierarchyAfter(
-  queryClient: QueryClient,
-  kind: MutatedKind,
-): void {
-  const invalidate = (queryKey: readonly unknown[]) =>
-    queryClient.invalidateQueries({ queryKey });
+export function invalidateHierarchyAfter(queryClient: QueryClient, kind: MutatedKind): void {
+  const invalidate = (queryKey: readonly unknown[]) => queryClient.invalidateQueries({ queryKey });
 
   switch (kind) {
     case 'account':

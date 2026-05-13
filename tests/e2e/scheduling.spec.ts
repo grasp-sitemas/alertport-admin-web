@@ -185,7 +185,13 @@ async function expectDialogClosedOrToast(page: Page, successMessage: RegExp) {
     .poll(
       async () => {
         if ((await dialog.count()) === 0) return 'closed';
-        if (!(await dialog.first().isVisible().catch(() => false))) return 'closed';
+        if (
+          !(await dialog
+            .first()
+            .isVisible()
+            .catch(() => false))
+        )
+          return 'closed';
         if (await success.isVisible().catch(() => false)) return 'toast-success';
         if (await error.isVisible().catch(() => false)) return 'toast-error';
         return 'pending';

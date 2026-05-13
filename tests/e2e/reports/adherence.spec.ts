@@ -115,9 +115,9 @@ test.describe('Report — Aderência de Alertas', () => {
   });
 
   test('Spec 1 — page renders with "Aderência de Alertas" label', async ({ page }) => {
-    await expect(
-      page.getByRole('heading', { name: /aderência de alertas/i }).first(),
-    ).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('heading', { name: /aderência de alertas/i }).first()).toBeVisible({
+      timeout: 30_000,
+    });
     const ronda = page.locator('h1, h2').filter({ hasText: /ronda/i });
     await expect(ronda).toHaveCount(0);
   });
@@ -128,7 +128,10 @@ test.describe('Report — Aderência de Alertas', () => {
     await page.locator('#report-end-date').fill(today);
 
     const filterPromise = captureNextPost(page, REPORT_URL_SUBSTRING);
-    await page.getByRole('button', { name: /buscar|search|aplicar|apply/i }).first().click();
+    await page
+      .getByRole('button', { name: /buscar|search|aplicar|apply/i })
+      .first()
+      .click();
     const body = await filterPromise;
     expect(body, 'Expected POST to adherence endpoint').not.toBeNull();
     if (!body) return;
@@ -158,7 +161,10 @@ test.describe('Report — Aderência de Alertas', () => {
     test.skip(!devicePicked, 'No device options for the selected site.');
 
     const filterPromise = captureNextPost(page, REPORT_URL_SUBSTRING);
-    await page.getByRole('button', { name: /buscar|search|aplicar|apply/i }).first().click();
+    await page
+      .getByRole('button', { name: /buscar|search|aplicar|apply/i })
+      .first()
+      .click();
     const body = await filterPromise;
     expect(body, 'Expected POST to adherence endpoint').not.toBeNull();
     expect(body && body.equipment).toBeTruthy();
@@ -174,7 +180,11 @@ test.describe('Report — Aderência de Alertas', () => {
     test.skip(count <= 2, 'Need at least 2 data rows for sort assertion.');
 
     const firstCell = await rows.nth(1).locator('td').nth(0).textContent();
-    const lastCell = await rows.nth(count - 1).locator('td').nth(0).textContent();
+    const lastCell = await rows
+      .nth(count - 1)
+      .locator('td')
+      .nth(0)
+      .textContent();
     const first = Date.parse(firstCell ?? '');
     const last = Date.parse(lastCell ?? '');
     if (Number.isFinite(first) && Number.isFinite(last)) {

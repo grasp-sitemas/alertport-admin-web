@@ -67,9 +67,7 @@ test.describe('Call Recordings (HML, SAM)', () => {
     const audio = page.locator('audio').first();
     await expect(audio).toBeVisible({ timeout: 10_000 });
 
-    const closeBtn = page
-      .getByRole('button', { name: /fechar|close|cerrar|閉じる|关闭/i })
-      .first();
+    const closeBtn = page.getByRole('button', { name: /fechar|close|cerrar|閉じる|关闭/i }).first();
     await closeBtn.click();
     await expect(page.locator('audio')).toHaveCount(0, { timeout: 5_000 });
   });

@@ -20,10 +20,7 @@ interface ToastOptions {
   readonly message?: RegExp;
 }
 
-export async function expectSuccessToast(
-  page: Page,
-  options: ToastOptions = {},
-): Promise<void> {
+export async function expectSuccessToast(page: Page, options: ToastOptions = {}): Promise<void> {
   const { timeout = DEFAULT_TIMEOUT, message } = options;
   const toast = page.locator(TOAST_SELECTORS.toastSuccess).first();
   await expect(toast).toBeVisible({ timeout });
@@ -32,10 +29,7 @@ export async function expectSuccessToast(
   }
 }
 
-export async function expectErrorToast(
-  page: Page,
-  options: ToastOptions = {},
-): Promise<void> {
+export async function expectErrorToast(page: Page, options: ToastOptions = {}): Promise<void> {
   const { timeout = DEFAULT_TIMEOUT, message } = options;
   const toast = page.locator(TOAST_SELECTORS.toastError).first();
   await expect(toast).toBeVisible({ timeout });

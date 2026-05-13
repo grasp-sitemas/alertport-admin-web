@@ -302,7 +302,9 @@ test.describe('Audit smoke', () => {
     expect(out).toContain('OK');
   });
 
-  test('/plan reflects AlertPort scope (no Incidentes/Integrações/Chat; new rows visible)', async ({ page }) => {
+  test('/plan reflects AlertPort scope (no Incidentes/Integrações/Chat; new rows visible)', async ({
+    page,
+  }) => {
     await page.goto('/plan');
     await page.waitForLoadState('networkidle').catch(() => {});
     await page.waitForTimeout(1500);

@@ -21,9 +21,7 @@ export async function loginAsSuperAdmin(page: Page): Promise<void> {
   const email = process.env.PLAYWRIGHT_TEST_EMAIL;
   const password = process.env.PLAYWRIGHT_TEST_PASSWORD;
   if (!email || !password) {
-    throw new Error(
-      'PLAYWRIGHT_TEST_EMAIL / PLAYWRIGHT_TEST_PASSWORD must be set in .env.test',
-    );
+    throw new Error('PLAYWRIGHT_TEST_EMAIL / PLAYWRIGHT_TEST_PASSWORD must be set in .env.test');
   }
 
   await page.goto('/login');
@@ -31,9 +29,12 @@ export async function loginAsSuperAdmin(page: Page): Promise<void> {
   await page.getByLabel(/senha|password/i).fill(password);
   await page.getByRole('button', { name: /^entrar$|sign in|ingresar/i }).click();
 
-  await page.waitForURL(/\/(dashboard|alerts|users|clients|sites|equipment|collaborators|company)/, {
-    timeout: 30_000,
-  });
+  await page.waitForURL(
+    /\/(dashboard|alerts|users|clients|sites|equipment|collaborators|company)/,
+    {
+      timeout: 30_000,
+    },
+  );
 }
 
 export async function gotoManagementPage(page: Page, path: string): Promise<void> {

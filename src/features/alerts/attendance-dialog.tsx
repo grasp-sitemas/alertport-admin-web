@@ -61,12 +61,7 @@ interface AttendanceDialogProps {
  * The backend endpoints used are the same ones shieldgo-admin-web calls, so no
  * backend changes are required.
  */
-export function AttendanceDialog({
-  open,
-  onOpenChange,
-  event,
-  onChanged,
-}: AttendanceDialogProps) {
+export function AttendanceDialog({ open, onOpenChange, event, onChanged }: AttendanceDialogProps) {
   const t = useTranslations();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -303,37 +298,34 @@ export function AttendanceDialog({
   }, [open, eventId, isOperator, state]);
 
   const canClose =
-    records.length > 0 &&
-    state === 'IN_PROGRESS_BY_ME' &&
-    isOperator &&
-    !closeMutation.isPending;
+    records.length > 0 && state === 'IN_PROGRESS_BY_ME' && isOperator && !closeMutation.isPending;
   const canAddRecord = state === 'IN_PROGRESS_BY_ME' && isOperator;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-2xl p-0 overflow-hidden border border-white/10 bg-gradient-to-b from-bg-secondary to-bg-primary sm:rounded-2xl"
+        className="from-bg-secondary to-bg-primary max-w-2xl overflow-hidden border border-white/10 bg-gradient-to-b p-0 sm:rounded-2xl"
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader className="px-6 pt-6 pb-4 sm:px-8">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-brand-500/10 ring-1 ring-brand-500/20">
-              <ShieldCheck className="h-5 w-5 text-brand-400" />
+            <div className="bg-brand-500/10 ring-brand-500/20 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ring-1">
+              <ShieldCheck className="text-brand-400 h-5 w-5" />
             </div>
             <div>
               <DialogTitle className="text-lg font-semibold text-white">
                 {t('alerts.attendance.dialogTitle')}
               </DialogTitle>
-              <DialogDescription className="text-sm text-text-secondary">
+              <DialogDescription className="text-text-secondary text-sm">
                 {t('alerts.attendance.dialogSubtitle')}
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="px-6 pb-6 sm:px-8 space-y-5">
+        <div className="space-y-5 px-6 pb-6 sm:px-8">
           {/* Status pill */}
-          <div className="flex items-center gap-2 text-xs flex-wrap">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
             {state === 'AVAILABLE' && (
               <Badge variant="brand">
                 {openMutation.isPending
@@ -342,9 +334,7 @@ export function AttendanceDialog({
               </Badge>
             )}
             {state === 'IN_PROGRESS_BY_ME' && (
-              <Badge variant="warning">
-                {t('alerts.attendance.statusInProgressByYou')}
-              </Badge>
+              <Badge variant="warning">{t('alerts.attendance.statusInProgressByYou')}</Badge>
             )}
             {state === 'IN_PROGRESS_BY_OTHER' && (
               <Badge variant="warning">
@@ -366,15 +356,15 @@ export function AttendanceDialog({
               the takeover that the backend's blind $set would allow. */}
           {isLocked && (
             <div className="flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200">
-              <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
               <span>{t('alerts.attendance.lockedDescription', { name: ownerName })}</span>
             </div>
           )}
 
           {/* Form: add a new record */}
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
+          <div className="space-y-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-white">
-              <Plus className="h-4 w-4 text-brand-400" />
+              <Plus className="text-brand-400 h-4 w-4" />
               {t('alerts.attendance.addRecord')}
             </div>
 
@@ -417,7 +407,7 @@ export function AttendanceDialog({
             <div className="space-y-2">
               <Label>{t('alerts.attendance.recordNotes')}</Label>
               <textarea
-                className="w-full rounded-md border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white placeholder:text-text-muted focus:border-brand-500/60 focus:outline-none"
+                className="placeholder:text-text-muted focus:border-brand-500/60 w-full rounded-md border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white focus:outline-none"
                 rows={3}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -431,11 +421,7 @@ export function AttendanceDialog({
                 size="sm"
                 onClick={() => addRecordMutation.mutate()}
                 disabled={!type || addRecordMutation.isPending || !canAddRecord}
-                title={
-                  isLocked
-                    ? t('alerts.attendance.lockedBy', { name: ownerName })
-                    : undefined
-                }
+                title={isLocked ? t('alerts.attendance.lockedBy', { name: ownerName }) : undefined}
               >
                 {addRecordMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -450,19 +436,17 @@ export function AttendanceDialog({
           {/* List: existing records */}
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm font-semibold text-white">
-              <ClipboardList className="h-4 w-4 text-text-secondary" />
+              <ClipboardList className="text-text-secondary h-4 w-4" />
               {t('alerts.attendance.recordsTitle')}
-              <span className="ml-auto text-xs font-normal text-text-muted">
-                {records.length}
-              </span>
+              <span className="text-text-muted ml-auto text-xs font-normal">{records.length}</span>
             </div>
 
             {recordsQuery.isLoading ? (
-              <div className="py-4 flex justify-center">
+              <div className="flex justify-center py-4">
                 <Spinner />
               </div>
             ) : records.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-4 py-6 text-center text-xs text-text-muted">
+              <div className="text-text-muted rounded-xl border border-dashed border-white/10 bg-white/[0.01] px-4 py-6 text-center text-xs">
                 {t('alerts.attendance.noRecordsHint')}
               </div>
             ) : (
@@ -487,14 +471,12 @@ export function AttendanceDialog({
                     >
                       <div className="flex items-center justify-between gap-2">
                         <Badge variant="info">{typeName}</Badge>
-                        <span className="text-xs text-text-muted">
-                          {r.createDate
-                            ? new Date(r.createDate).toLocaleString()
-                            : ''}
+                        <span className="text-text-muted text-xs">
+                          {r.createDate ? new Date(r.createDate).toLocaleString() : ''}
                         </span>
                       </div>
                       {r.notes && (
-                        <p className="mt-1.5 text-xs text-text-secondary whitespace-pre-wrap">
+                        <p className="text-text-secondary mt-1.5 text-xs whitespace-pre-wrap">
                           {r.notes}
                         </p>
                       )}
@@ -508,14 +490,14 @@ export function AttendanceDialog({
           {/* Role gate notice - only OPERATORs can open/close attendance. */}
           {!isOperator && (
             <div className="flex items-start gap-2 rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-xs text-sky-200">
-              <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
               <span>{t('alerts.attendance.operatorOnly')}</span>
             </div>
           )}
           {/* Close attendance hint - only meaningful for the owner. */}
           {state === 'IN_PROGRESS_BY_ME' && isOperator && records.length === 0 && (
             <div className="flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200">
-              <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
               <span>{t('alerts.attendance.mustAddRecord')}</span>
             </div>
           )}
@@ -530,7 +512,9 @@ export function AttendanceDialog({
             type="button"
             onClick={() => closeMutation.mutate()}
             disabled={!canClose}
-            title={!canClose && records.length === 0 ? t('alerts.attendance.mustAddRecord') : undefined}
+            title={
+              !canClose && records.length === 0 ? t('alerts.attendance.mustAddRecord') : undefined
+            }
           >
             {closeMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />

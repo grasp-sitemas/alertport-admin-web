@@ -1,10 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-  loginAsSuperAdmin,
-  gotoManagementPage,
-  clickSave,
-  waitForToast,
-} from './helpers';
+import { loginAsSuperAdmin, gotoManagementPage, clickSave, waitForToast } from './helpers';
 
 /**
  * Management → Company (single account). No create/delete affordance —

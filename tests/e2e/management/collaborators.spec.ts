@@ -40,7 +40,10 @@ test.describe.serial('Collaborators CRUD', () => {
     await pickSelectByLabel(page, /^posto$|^site$/i, /.+/);
     await dialog.getByLabel(/^nome$/i).fill(firstName);
     await dialog.getByLabel(/sobrenome/i).fill('Auto');
-    await dialog.getByLabel(/e-?mail/i).first().fill(email);
+    await dialog
+      .getByLabel(/e-?mail/i)
+      .first()
+      .fill(email);
     await dialog.getByLabel(/usu[aá]rio|username/i).fill(username);
     const pwd = dialog.getByLabel(/^senha$/i).first();
     if (await pwd.isVisible().catch(() => false)) await pwd.fill(password);
