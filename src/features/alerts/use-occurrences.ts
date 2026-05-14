@@ -36,6 +36,19 @@ export function usePatrolActions(params: FilterParams, enabled = true) {
   });
 }
 
+/**
+ * AlertPort /monitor — alta-volumetria. Usa endpoint dedicado
+ * (`/filter/alertport/monitor/v1/`) com pipeline DB otimizado. Mesma
+ * shape de FilterParams.
+ */
+export function usePatrolActionsForMonitor(params: FilterParams, enabled = true) {
+  return useQuery({
+    queryKey: ['patrol-actions-monitor', params],
+    queryFn: () => alertsService.filterPatrolActionsForMonitor(params),
+    enabled,
+  });
+}
+
 export function useAttendanceTypes() {
   return useQuery({
     queryKey: ['attendance-types'],

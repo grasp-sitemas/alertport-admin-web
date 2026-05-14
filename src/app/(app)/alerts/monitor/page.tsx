@@ -23,7 +23,7 @@ import {
 } from '@/components/shared/hierarchy-filters';
 import { KpiCard } from '@/features/dashboard/kpi-card';
 import {
-  usePatrolActions,
+  usePatrolActionsForMonitor,
   useTimeEntries,
   useAttendanceTypes,
 } from '@/features/alerts/use-occurrences';
@@ -170,7 +170,7 @@ function AlertMonitor() {
   // scan a large queue without triggering round-trips.
   const [searchText, setSearchText] = useState('');
 
-  const patrolQuery = usePatrolActions({
+  const patrolQuery = usePatrolActionsForMonitor({
     ...applyUserScope(
       {
         skip: patrolPagination.paginationParams.skip,

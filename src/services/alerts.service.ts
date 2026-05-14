@@ -183,6 +183,21 @@ export const alertsService = {
     return normalizePage(data);
   },
 
+  /**
+   * AlertPort /monitor — caminho dedicado de alta volumetria.
+   * Mesmo body do `filterPatrolActions`. Backend hard-locka source=ALERTPORT
+   * e usa pipeline otimizado (lookups só no slice paginado, sem
+   * patrolPoint/patrol/event/incidents). Usar este em vez de
+   * `filterPatrolActions` na tela /alerts/monitor.
+   */
+  async filterPatrolActionsForMonitor(params: FilterParams): Promise<NormalizedPage<PatrolAction>> {
+    const { data } = await apiClient.post<ApiPaginatedResponse<PatrolAction>>(
+      endpoints.patrolActionsFilterAlertportMonitor,
+      params,
+    );
+    return normalizePage(data);
+  },
+
   // ─── Patrol-Action Attendance flag (open / close) ─────────
   //
   // Mirrors shieldgo-admin-web: `POST /api/users/patrol/actions/attendance/v1/`
