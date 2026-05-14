@@ -232,6 +232,9 @@ export interface Equipment {
   serialNumber?: string;
   createdDate?: string;
   updatedDate?: string;
+  // GWRonda devices use uniqueId as the IMEI/SN identifier. Used by
+  // formatDeviceLabel when equipment.code is absent.
+  uniqueId?: string;
 }
 
 export interface EquipmentFormData {

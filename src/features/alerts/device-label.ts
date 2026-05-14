@@ -9,17 +9,18 @@ function lastFourOfDevice(deviceId: string | undefined | null): string {
   return cleaned.slice(-4);
 }
 
-function siteName(site: PatrolAction['site']): string {
-  if (!site) return '';
-  if (typeof site === 'string') return '';
-  return (site as Company).name || '';
+function companyName(value: string | Company | undefined | null): string {
+  if (!value) return '';
+  if (typeof value === 'string') return '';
+  return (value as Company).name || '';
 }
 
 /**
  * Device identifier fallback chain. Para tipos como OCCURRENCE_MISSED,
  * o device nunca reportou (não atendeu o alerta), então `deviceInfo.deviceId`
- * costuma vir vazio. Cai pra `equipment.code` (humano-amigável, vem do QR
- * do site), depois `serialNumber`, depois `_id` como último recurso.
+ * costuma vir vazio. Cai pra `equipment.uniqueId` (IMEI/SN — populado em
+ * devices AlertPort e em GWRonda legacy importados), depois `equipment.code`,
+ * `serialNumber` e `_id` como último recurso.
  */
 function resolveDeviceIdString(event: Pick<PatrolAction, 'deviceInfo' | 'equipment'>): string {
   const direct = event.deviceInfo?.deviceId;
@@ -27,7 +28,8 @@ function resolveDeviceIdString(event: Pick<PatrolAction, 'deviceInfo' | 'equipme
 
   const eq = event.equipment;
   if (eq && typeof eq === 'object') {
-    const obj = eq as { code?: string; serialNumber?: string; _id?: string };
+    const obj = eq as { uniqueId?: string; code?: string; serialNumber?: string; _id?: string };
+    if (obj.uniqueId) return String(obj.uniqueId);
     if (obj.code) return String(obj.code);
     if (obj.serialNumber) return String(obj.serialNumber);
     if (obj._id) return String(obj._id);
@@ -38,18 +40,23 @@ function resolveDeviceIdString(event: Pick<PatrolAction, 'deviceInfo' | 'equipme
 /**
  * Human-readable label for a device associated with a patrol-action event.
  *
- * Format: `${siteName} - ${last4 of deviceId}`.
+ * Format: `${siteOrClientName} - ${last4 of deviceId}`.
  *   - "Hospital Brasil - 02b2"
  *
- * Fallbacks (in order):
- *   - site present but device missing  → just the site name
- *   - site missing but device present  → "Dispositivo …02b2"
- *   - both missing                      → "Dispositivo AlertPort"
+ * Fallback chain for the "name" segment:
+ *   - site populated  → `site.name` (fluxo AlertPort nativo)
+ *   - site ausente    → `client.name` (GWRonda legacy: equipments
+ *                       importados sem site, só client populado — evita
+ *                       o operador ver apenas "Dispositivo …xxxx")
+ *
+ * Fallbacks finais quando o nome ainda for vazio:
+ *   - device presente → "Dispositivo …02b2"
+ *   - tudo ausente    → "Dispositivo AlertPort"
  */
 export function formatDeviceLabel(
-  event: Pick<PatrolAction, 'site' | 'deviceInfo' | 'equipment'>,
+  event: Pick<PatrolAction, 'site' | 'client' | 'deviceInfo' | 'equipment'>,
 ): string {
-  const name = siteName(event.site);
+  const name = companyName(event.site) || companyName(event.client);
   const last4 = lastFourOfDevice(resolveDeviceIdString(event));
 
   if (name && last4) return `${name} - ${last4}`;
