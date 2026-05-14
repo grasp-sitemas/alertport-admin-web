@@ -399,6 +399,8 @@ export interface PatrolAction {
   _id: string;
   type: EventType;
   status: string;
+  source?: string;
+  eventCategory?: string;
   account?: string | Company;
   client?: string | Company;
   site?: string | Company;
@@ -413,6 +415,12 @@ export interface PatrolAction {
   attendance?: EventAttendance;
   createdDate?: string;
   date?: string;
+  // GWRonda legacy markers. When present the action originated from the
+  // SQL bridge (read-only devices). UI hides call buttons because legacy
+  // hardware has no audio capability.
+  legacyEventId?: string;
+  legacyEventType?: number;
+  legacyReaderCode?: string;
 }
 
 /**

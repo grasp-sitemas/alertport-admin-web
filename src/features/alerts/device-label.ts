@@ -68,3 +68,18 @@ export function resolveCallTargetId(event: Pick<PatrolAction, 'deviceInfo'>): st
   const id = event.deviceInfo?.deviceId;
   return id ? String(id) : null;
 }
+
+/**
+ * GWRonda legacy actions originate from read-only AlertPort devices via the
+ * SQL bridge (see ms-worker-events). The hardware has no audio capability
+ * so call buttons must stay hidden on the monitor card. Attendance flow
+ * remains available.
+ *
+ * Heuristic: presence of any legacy marker. The worker always sets at least
+ * `legacyEventId` on GWRonda-sourced actions.
+ */
+export function isLegacyGwrondaAction(
+  event: Pick<PatrolAction, 'legacyEventId' | 'legacyEventType' | 'legacyReaderCode'>,
+): boolean {
+  return Boolean(event.legacyEventId || event.legacyEventType || event.legacyReaderCode);
+}

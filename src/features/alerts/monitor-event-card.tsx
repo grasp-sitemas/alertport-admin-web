@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import type { EventType, PatrolAction } from '@/types/api';
-import { formatDeviceLabel, resolveCallTargetId } from './device-label';
+import { formatDeviceLabel, isLegacyGwrondaAction, resolveCallTargetId } from './device-label';
 import {
   classifyAttendance,
   extractAttendanceOwner,
@@ -95,8 +95,13 @@ function MonitorEventCardImpl({
 }: Props) {
   const t = useTranslations();
   const meta = EVENT_META[event.type] ?? { labelKey: 'common.info', accent: 'info' as const };
+  // GWRonda legacy events come from read-only devices without audio. Hide
+  // both call buttons — only the attendance flow remains visible.
+  const isLegacyDevice = isLegacyGwrondaAction(event);
+  const callNormalAllowed = callNormalEnabled && !isLegacyDevice;
+  const callSilentAllowed = callSilentEnabled && !isLegacyDevice;
   const hasCallTarget = !!resolveCallTargetId(event);
-  const canCall = !callInProgress && socketConnected && hasCallTarget;
+  const canCall = !callInProgress && socketConnected && hasCallTarget && !isLegacyDevice;
   const state = classifyAttendance(event, currentUserId);
   const owner = extractAttendanceOwner(event.attendance);
   const ownerName = owner.name || t('alerts.attendance.anotherOperator');
@@ -259,7 +264,7 @@ function MonitorEventCardImpl({
             onClick={() => onAttend(event)}
           />
 
-          {callNormalEnabled && (
+          {callNormalAllowed && (
             <Button
               size="sm"
               variant="secondary"
@@ -277,7 +282,7 @@ function MonitorEventCardImpl({
               {t('calls.callNormal')}
             </Button>
           )}
-          {callSilentEnabled && event.type === 'SOS_ALERT' && (
+          {callSilentAllowed && event.type === 'SOS_ALERT' && (
             <Button
               size="sm"
               variant="secondary"
