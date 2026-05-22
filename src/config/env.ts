@@ -37,7 +37,7 @@ export const env = {
   apiUrl: required(
     'NEXT_PUBLIC_API_URL',
     process.env.NEXT_PUBLIC_API_URL,
-    'https://api-hml.shieldgo.com.br',
+    'https://api-gateway-shield.herokuapp.com',
   ),
 
   // ── Socket / Chat (ms-chat) ─────────────────────────────────────
@@ -46,7 +46,7 @@ export const env = {
     process.env.NEXT_PUBLIC_MS_CHAT_URL
       ? normalizeUrl(process.env.NEXT_PUBLIC_MS_CHAT_URL)
       : undefined,
-    'https://api-chat-hml.shieldgo.com.br',
+    'https://ms-chat-shield.herokuapp.com',
   ),
 
   // ── WebRTC ICE configuration ────────────────────────────────────
