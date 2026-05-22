@@ -216,9 +216,10 @@ export const alertsService = {
       operator,
       status: 'IN_PROGRESS',
     };
-    const { data } = await apiClient.post<
-      ApiSingleResponse<{ attendance: EventAttendance }>
-    >(endpoints.attendanceEvent, { patrolActionId, attendance, siteGroup });
+    const { data } = await apiClient.post<ApiSingleResponse<{ attendance: EventAttendance }>>(
+      endpoints.attendanceEvent,
+      { patrolActionId, attendance, siteGroup },
+    );
     return data;
   },
 
@@ -236,9 +237,10 @@ export const alertsService = {
       operator,
       status: 'CLOSED',
     };
-    const { data } = await apiClient.post<
-      ApiSingleResponse<{ attendance: EventAttendance }>
-    >(endpoints.attendanceEvent, { patrolActionId, attendance, siteGroup });
+    const { data } = await apiClient.post<ApiSingleResponse<{ attendance: EventAttendance }>>(
+      endpoints.attendanceEvent,
+      { patrolActionId, attendance, siteGroup },
+    );
     return data;
   },
 
@@ -252,9 +254,10 @@ export const alertsService = {
     attendance: Partial<EventAttendance>,
     siteGroup?: string,
   ): Promise<ApiSingleResponse<{ attendance: EventAttendance }>> {
-    const { data } = await apiClient.post<
-      ApiSingleResponse<{ attendance: EventAttendance }>
-    >(endpoints.attendanceEvent, { patrolActionId, attendance, siteGroup });
+    const { data } = await apiClient.post<ApiSingleResponse<{ attendance: EventAttendance }>>(
+      endpoints.attendanceEvent,
+      { patrolActionId, attendance, siteGroup },
+    );
     return data;
   },
 

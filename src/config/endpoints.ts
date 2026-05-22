@@ -123,7 +123,9 @@ export const endpoints = {
   patrolActionsFilter: url('/api/users/patrol/actions/filter/v1/'),
   // AlertPort /monitor — caminho dedicado de alta volumetria.
   // Mesmo body do `patrolActionsFilter`. Backend força source='ALERTPORT'.
-  patrolActionsFilterAlertportMonitor: url('/api/users/patrol/actions/filter/alertport/monitor/v1/'),
+  patrolActionsFilterAlertportMonitor: url(
+    '/api/users/patrol/actions/filter/alertport/monitor/v1/',
+  ),
   attendanceEvent: url('/api/users/patrol/actions/attendance/v1/'),
 
   // ─── Attendances ─────────────────────────────────────────
