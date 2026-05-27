@@ -92,6 +92,18 @@ function getCorrelationId(): string | null {
   }
 }
 
+function getSessionProduct(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem('alertport_session');
+    if (!raw) return null;
+    const session = JSON.parse(raw);
+    return session?.product ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function isRetryable(error: AxiosError): boolean {
   if (!error.response) return true; // network error
   return RETRYABLE_STATUS.includes(error.response.status);
@@ -191,6 +203,14 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const correlationId = getCorrelationId();
   if (correlationId) {
     config.headers['x-correlation-id'] = correlationId;
+  }
+  // Multi-product isolation: mirror the JWT `product` claim back to the
+  // gateway so it can cross-check against the hostname and route the
+  // request scope correctly. Header is opaque to the backend when the
+  // session predates the rollout (product undefined → header omitted).
+  const product = getSessionProduct();
+  if (product) {
+    config.headers['X-Product'] = product;
   }
   // Don't override Content-Type for FormData - let the browser/Axios set it
   // with the correct boundary. Only set it if it's not already FormData.

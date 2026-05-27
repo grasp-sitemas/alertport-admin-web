@@ -33,6 +33,10 @@ export function useLogin() {
         token: data.token,
         user: data.result,
         language: data.result.language || 'pt',
+        // Default to 'ALERTPORT' on this app so the X-Product header is
+        // always sent — backend cross-checks against hostname and rejects
+        // mismatches. Falls back gracefully if backend predates the rollout.
+        product: data.product ?? 'ALERTPORT',
       });
 
       toast.success(t('auth.welcomeBack'));

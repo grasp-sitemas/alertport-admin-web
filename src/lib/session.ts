@@ -76,6 +76,10 @@ export function getSessionToken(): string | null {
   return getSession()?.token ?? null;
 }
 
+export function getSessionProduct(): ProductScope | null {
+  return getSession()?.product ?? null;
+}
+
 export function isSessionValid(): boolean {
   const session = getSession();
   return !!(session?.token && session?.user);

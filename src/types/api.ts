@@ -17,6 +17,13 @@ export interface ApiLoginResponse {
   status: number;
   result: User;
   token: string;
+  /**
+   * Product scope echoed by the backend when the JWT was issued.
+   * Mirrors the `product` claim baked into the token (ALERTPORT |
+   * SHIELDGO | ALL). Optional for back-compat with backends that did
+   * not yet ship the multi-product rollout.
+   */
+  product?: 'ALERTPORT' | 'SHIELDGO' | 'ALL';
 }
 
 export interface ApiErrorResponse {
