@@ -3,6 +3,8 @@ import type { User } from '@/types/api';
 const SESSION_KEY = 'alertport_session';
 const CHANGE_EVENT = 'alertport:session-changed';
 
+export type ProductScope = 'ALERTPORT' | 'SHIELDGO' | 'ALL';
+
 export interface SessionData {
   token: string;
   user: User;
@@ -15,6 +17,14 @@ export interface SessionData {
    * keep deserializing fine.
    */
   lastActivity?: number;
+  /**
+   * Product scope from JWT claim. The api-client request interceptor
+   * injects this as `X-Product` header on every outbound request so
+   * the gateway can cross-check the JWT claim against the host.
+   * Optional for back-compat with sessions issued before the claim
+   * rollout.
+   */
+  product?: ProductScope;
 }
 
 /**
