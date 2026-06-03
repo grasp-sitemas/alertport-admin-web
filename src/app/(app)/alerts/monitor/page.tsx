@@ -342,6 +342,7 @@ function AlertMonitor() {
   // consumption so a refresh doesn't re-trigger the flow.
   const router = useRouter();
   const searchParams = useSearchParams();
+  const deepLinkSosId = searchParams?.get('sosId') ?? null;
   const deepLinkPatrolActionId = searchParams?.get('patrolAction') ?? null;
   const deepLinkAutoClaim = searchParams?.get('autoClaim') === '1';
   const consumedDeepLinkRef = useRef<string | null>(null);
@@ -349,7 +350,15 @@ function AlertMonitor() {
   useEffect(() => {
     if (!deepLinkPatrolActionId && !deepLinkAutoClaim) return;
     if (patrolQuery.isLoading) return;
-    if (consumedDeepLinkRef.current === deepLinkPatrolActionId) return;
+    // Consumption key. We MUST NOT key this off `deepLinkPatrolActionId`
+    // alone: when the SOS banner couldn't correlate a patrol-action id
+    // (autoClaim-only link), that value is null and the ref also starts
+    // as null, so `null === null` short-circuited the effect and the
+    // attendance dialog never opened (operator saw "nothing happens
+    // until Shift+Ctrl+R"). `sosId` is always present on a banner claim,
+    // so it's the stable per-notification consumption key.
+    const consumeKey = deepLinkSosId ?? deepLinkPatrolActionId ?? 'autoClaim';
+    if (consumedDeepLinkRef.current === consumeKey) return;
 
     let target: PatrolAction | null = null;
     if (deepLinkPatrolActionId) {
@@ -366,7 +375,7 @@ function AlertMonitor() {
     }
 
     if (target) {
-      consumedDeepLinkRef.current = deepLinkPatrolActionId ?? target._id;
+      consumedDeepLinkRef.current = consumeKey;
       const claimedTarget = target;
       // Defer state updates to a microtask so we're updating "from
       // outside" the effect body (callback-style), matching what
@@ -377,6 +386,7 @@ function AlertMonitor() {
       });
     }
   }, [
+    deepLinkSosId,
     deepLinkPatrolActionId,
     deepLinkAutoClaim,
     events,

@@ -357,6 +357,12 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
               return;
             }
             queryClient.invalidateQueries({ queryKey: ['patrol-actions'] });
+            // The /monitor page reads from the dedicated high-volume
+            // endpoint keyed `patrol-actions-monitor` - a DIFFERENT cache
+            // from the generic `patrol-actions`. Without invalidating it
+            // here the monitor list stayed stale until a manual reload,
+            // so a fresh SOS only appeared after Shift+Ctrl+R.
+            queryClient.invalidateQueries({ queryKey: ['patrol-actions-monitor'] });
             queryClient.invalidateQueries({ queryKey: ['occurrences'] });
 
             if (type === 'SOS_ALERT') {
@@ -387,9 +393,18 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
               doc?.attendance,
             );
             if (patrolActionId && attendance) {
+              // Patch BOTH the generic `patrol-actions` caches and the
+              // monitor-only `patrol-actions-monitor` cache so another
+              // operator's claim/close locks the card live on the monitor
+              // page too (it reads from the dedicated endpoint).
               const caches = queryClient.getQueriesData<{
                 results?: PatrolAction[];
-              }>({ queryKey: ['patrol-actions'] });
+              }>({
+                predicate: (query) => {
+                  const root = query.queryKey[0];
+                  return root === 'patrol-actions' || root === 'patrol-actions-monitor';
+                },
+              });
               for (const [key, value] of caches) {
                 if (!value?.results) continue;
                 let changed = false;
@@ -404,6 +419,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
               }
             }
             queryClient.invalidateQueries({ queryKey: ['patrol-actions'] });
+            queryClient.invalidateQueries({ queryKey: ['patrol-actions-monitor'] });
             if (evt.kind === 'attendance:update') {
               toast.message(t('alerts.realtime.attendanceStarted'), {
                 description: t('alerts.realtime.attendanceStartedDescription'),
@@ -418,6 +434,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
           case 'attendance:report':
           case 'media':
             queryClient.invalidateQueries({ queryKey: ['patrol-actions'] });
+            queryClient.invalidateQueries({ queryKey: ['patrol-actions-monitor'] });
             return;
         }
       },
