@@ -29,9 +29,7 @@ import type { AlertportRealtimeEvent } from '@/features/alerts/realtime';
 let capturedOnEvent: ((evt: AlertportRealtimeEvent) => void) | null = null;
 
 vi.mock('@/features/alerts/realtime', () => ({
-  subscribeToAlertportRealtime: (opts: {
-    onEvent: (evt: AlertportRealtimeEvent) => void;
-  }) => {
+  subscribeToAlertportRealtime: (opts: { onEvent: (evt: AlertportRealtimeEvent) => void }) => {
     capturedOnEvent = opts.onEvent;
     return () => {
       capturedOnEvent = null;
@@ -77,9 +75,7 @@ vi.mock('sonner', () => ({
 }));
 
 async function mountProvider() {
-  const { SosNotificationProvider } = await import(
-    '@/features/alerts/sos-notification-context'
-  );
+  const { SosNotificationProvider } = await import('@/features/alerts/sos-notification-context');
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   function Wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;

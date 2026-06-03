@@ -119,6 +119,30 @@ describe('reportsService', () => {
       const body = postSpy.mock.calls[0][1] as Record<string, unknown>;
       expect(body.slaThresholdSec).toBe(30);
     });
+
+    it('requests the full result set (limit) so exports are not capped at the 50-row default', async () => {
+      // ms-report defaults `limit` to 50 when absent (clamped to 10000).
+      // The report pages paginate the result set CLIENT-side, so a missing
+      // limit silently truncates both the table (pages beyond 50) and the
+      // CSV/XLSX/PDF exports. The service must request the full set.
+      await reportsService.adherence({
+        startDate: '2026-04-01',
+        endDate: '2026-04-30',
+      });
+      const body = postSpy.mock.calls[0][1] as Record<string, unknown>;
+      expect(typeof body.limit).toBe('number');
+      expect(body.limit as number).toBeGreaterThanOrEqual(10000);
+    });
+
+    it('respects an explicit caller-provided limit', async () => {
+      await reportsService.adherence({
+        startDate: '2026-04-01',
+        endDate: '2026-04-30',
+        limit: 25,
+      });
+      const body = postSpy.mock.calls[0][1] as Record<string, unknown>;
+      expect(body.limit).toBe(25);
+    });
   });
 
   describe('contract: response shape', () => {

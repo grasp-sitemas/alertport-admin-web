@@ -39,6 +39,7 @@ import { AttendanceDialog } from '@/features/alerts/attendance-dialog';
 import { MonitorTimeEntryRow } from '@/features/alerts/monitor-time-entry-row';
 import { VirtualizedEventList } from '@/features/alerts/virtualized-event-list';
 import { classifyAttendance, type AttendanceState } from '@/features/alerts/attendance-state';
+import { resolveDeepLinkTarget } from '@/features/alerts/monitor-deep-link';
 import {
   MONITOR_CATEGORIES,
   MONITOR_EVENT_TYPES,
@@ -55,6 +56,17 @@ import {
  * actually new.
  */
 const FLASH_WINDOW_MS = 15_000;
+
+/**
+ * Deep-link claim resilience. When the operator clicks "Atender" on the
+ * SOS banner, the just-fired patrol-action is frequently NOT queryable
+ * yet (the Firestore push beats the Mongo write/read-consistency window),
+ * so the monitor list doesn't contain it on the first resolve attempt.
+ * Rather than dead-ending the claim, we re-fetch the list a bounded
+ * number of times across this window until the SOS row appears.
+ */
+const DEEP_LINK_MAX_REFETCH = 6;
+const DEEP_LINK_REFETCH_MS = 1_500;
 
 /**
  * Maximum IDs we remember as "seen" between realtime pushes. Bounded to
@@ -346,6 +358,13 @@ function AlertMonitor() {
   const deepLinkPatrolActionId = searchParams?.get('patrolAction') ?? null;
   const deepLinkAutoClaim = searchParams?.get('autoClaim') === '1';
   const consumedDeepLinkRef = useRef<string | null>(null);
+  // Bounded poll bookkeeping, keyed by the notification being claimed so a
+  // brand-new SOS resets the attempt counter.
+  const deepLinkRetryRef = useRef<{ key: string; attempts: number }>({
+    key: '',
+    attempts: 0,
+  });
+  const patrolRefetch = patrolQuery.refetch;
 
   useEffect(() => {
     if (!deepLinkPatrolActionId && !deepLinkAutoClaim) return;
@@ -354,28 +373,21 @@ function AlertMonitor() {
     // alone: when the SOS banner couldn't correlate a patrol-action id
     // (autoClaim-only link), that value is null and the ref also starts
     // as null, so `null === null` short-circuited the effect and the
-    // attendance dialog never opened (operator saw "nothing happens
-    // until Shift+Ctrl+R"). `sosId` is always present on a banner claim,
-    // so it's the stable per-notification consumption key.
+    // attendance dialog never opened. `sosId` is always present on a
+    // banner claim, so it's the stable per-notification consumption key.
     const consumeKey = deepLinkSosId ?? deepLinkPatrolActionId ?? 'autoClaim';
     if (consumedDeepLinkRef.current === consumeKey) return;
 
-    let target: PatrolAction | null = null;
-    if (deepLinkPatrolActionId) {
-      target = events.find((e) => e._id === deepLinkPatrolActionId) ?? null;
-    }
-    // Fallback: no hint or hint missed - grab the newest SOS that's
-    // still available for attendance. Better than dead-ending the
-    // operator on an empty monitor.
-    if (!target && deepLinkAutoClaim) {
-      target =
-        events.find(
-          (e) => e.type === 'SOS_ALERT' && classifyAttendance(e, currentUserId) === 'AVAILABLE',
-        ) ?? null;
-    }
+    const target = resolveDeepLinkTarget(
+      events,
+      deepLinkPatrolActionId,
+      deepLinkAutoClaim,
+      currentUserId,
+    );
 
     if (target) {
       consumedDeepLinkRef.current = consumeKey;
+      deepLinkRetryRef.current = { key: consumeKey, attempts: 0 };
       const claimedTarget = target;
       // Defer state updates to a microtask so we're updating "from
       // outside" the effect body (callback-style), matching what
@@ -384,13 +396,31 @@ function AlertMonitor() {
         setAttendanceEvent(claimedTarget);
         router.replace('/alerts/monitor');
       });
+      return;
     }
+
+    // No target yet. The just-fired SOS row may not be queryable yet
+    // (Firestore push beats the Mongo write/read-consistency window) and
+    // the realtime invalidation that would refetch the list already fired
+    // before we navigated here. Poll a bounded number of times so the
+    // claim doesn't silently dead-end - the effect re-runs when `events`
+    // updates and opens the real row as soon as it lands.
+    if (deepLinkRetryRef.current.key !== consumeKey) {
+      deepLinkRetryRef.current = { key: consumeKey, attempts: 0 };
+    }
+    if (deepLinkRetryRef.current.attempts >= DEEP_LINK_MAX_REFETCH) return;
+    deepLinkRetryRef.current.attempts += 1;
+    const timer = setTimeout(() => {
+      void patrolRefetch();
+    }, DEEP_LINK_REFETCH_MS);
+    return () => clearTimeout(timer);
   }, [
     deepLinkSosId,
     deepLinkPatrolActionId,
     deepLinkAutoClaim,
     events,
     patrolQuery.isLoading,
+    patrolRefetch,
     currentUserId,
     router,
   ]);

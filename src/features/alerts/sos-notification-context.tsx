@@ -100,11 +100,10 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const scope = useUserScope();
   const [notifications, setNotifications] = useState<SosNotification[]>([]);
-  const [browserPermission, setBrowserPermission] = useState<NotificationPermission>(
-    () =>
-      typeof Notification !== 'undefined'
-        ? Notification.permission
-        : ('default' as NotificationPermission),
+  const [browserPermission, setBrowserPermission] = useState<NotificationPermission>(() =>
+    typeof Notification !== 'undefined'
+      ? Notification.permission
+      : ('default' as NotificationPermission),
   );
   const recentDedupRef = useRef<Map<string, number>>(new Map());
   const alarmAudioRef = useRef<{
@@ -133,8 +132,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
     try {
       const AudioContextCtor =
         window.AudioContext ||
-        (window as unknown as { webkitAudioContext?: typeof AudioContext })
-          .webkitAudioContext;
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!AudioContextCtor) return;
 
       if (alarmAudioRef.current?.ctx) {
@@ -189,12 +187,15 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
       alarmAudioRef.current = { ctx, stopAt };
       // Hard stop at 2 s: close the AudioContext so any scheduled
       // nodes are cancelled and resources released.
-      setTimeout(() => {
-        ctx.close().catch(() => {});
-        if (alarmAudioRef.current?.ctx === ctx) {
-          alarmAudioRef.current = null;
-        }
-      }, DURATION_SEC * 1000 + 50);
+      setTimeout(
+        () => {
+          ctx.close().catch(() => {});
+          if (alarmAudioRef.current?.ctx === ctx) {
+            alarmAudioRef.current = null;
+          }
+        },
+        DURATION_SEC * 1000 + 50,
+      );
     } catch {
       /* ignore - audio is a courtesy, never a requirement */
     }
@@ -235,10 +236,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
       const result = await Notification.requestPermission();
       setBrowserPermission(result);
       try {
-        window.localStorage.setItem(
-          BROWSER_PERMISSION_STORAGE_KEY,
-          String(Date.now()),
-        );
+        window.localStorage.setItem(BROWSER_PERMISSION_STORAGE_KEY, String(Date.now()));
       } catch {
         /* ignore - quota, private mode, etc. */
       }
@@ -261,9 +259,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
         });
         if (!match) return;
         setNotifications((prev) =>
-          prev.map((n) =>
-            n.id === notif.id ? { ...n, patrolActionId: match._id } : n,
-          ),
+          prev.map((n) => (n.id === notif.id ? { ...n, patrolActionId: match._id } : n)),
         );
       } catch {
         // Correlation failure is non-fatal; claim() falls back to
@@ -280,11 +276,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
       let date: Date;
       if (dateRaw instanceof Date) date = dateRaw;
       else if (typeof dateRaw === 'string') date = new Date(dateRaw);
-      else if (
-        dateRaw &&
-        typeof dateRaw === 'object' &&
-        'seconds' in (dateRaw as object)
-      ) {
+      else if (dateRaw && typeof dateRaw === 'object' && 'seconds' in (dateRaw as object)) {
         const seconds = (dateRaw as { seconds: number }).seconds;
         date = new Date(seconds * 1000);
       } else date = new Date();
@@ -336,8 +328,8 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
     if (!scope.accountId && !scope.clientId && !scope.siteId && !scope.siteGroupId) {
       return;
     }
-    const siteIds = [scope.accountId, scope.clientId, scope.siteId].filter(
-      (v): v is string => Boolean(v),
+    const siteIds = [scope.accountId, scope.clientId, scope.siteId].filter((v): v is string =>
+      Boolean(v),
     );
     const siteGroupIds = scope.siteGroupId ? [scope.siteGroupId] : [];
 
@@ -389,9 +381,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
               patrolActionId?: string;
             };
             const patrolActionId = doc?.patrolActionId;
-            const attendance = tryParse<NonNullable<PatrolAction['attendance']>>(
-              doc?.attendance,
-            );
+            const attendance = tryParse<NonNullable<PatrolAction['attendance']>>(doc?.attendance);
             if (patrolActionId && attendance) {
               // Patch BOTH the generic `patrol-actions` caches and the
               // monitor-only `patrol-actions-monitor` cache so another
@@ -482,9 +472,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
     if (notifications.length === 0) return;
     const id = setInterval(() => {
       const now = Date.now();
-      setNotifications((prev) =>
-        prev.filter((n) => now - n.createdAt < 10 * 60 * 1000),
-      );
+      setNotifications((prev) => prev.filter((n) => now - n.createdAt < 10 * 60 * 1000));
     }, 60_000);
     return () => clearInterval(id);
   }, [notifications.length]);
@@ -533,9 +521,7 @@ function AuthenticatedProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <SosNotificationContext.Provider value={value}>
-      {children}
-    </SosNotificationContext.Provider>
+    <SosNotificationContext.Provider value={value}>{children}</SosNotificationContext.Provider>
   );
 }
 

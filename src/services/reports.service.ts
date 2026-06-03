@@ -21,6 +21,22 @@ import type {
  * so the UI never POSTs a guaranteed-failure request.
  */
 
+/**
+ * ms-report defaults `limit` to 50 when the field is absent (and clamps
+ * it to [1, 10000] - see ms-report/helpers/alertport-report-helpers.js).
+ * These report pages paginate the result set CLIENT-side
+ * (see use-client-pagination), so a missing limit silently truncates BOTH
+ * the table (pages beyond 50) AND the CSV/XLSX/PDF exports to the first 50
+ * rows. The date range is already capped at 30 days, so pulling the full
+ * set in one call is the intended design. We default to the backend max
+ * but honor an explicit caller-provided limit.
+ */
+const REPORT_RESULT_LIMIT = 10000;
+
+function withFullResultSet<T extends ReportFilterParams>(params: T): T {
+  return params.limit ? params : { ...params, limit: REPORT_RESULT_LIMIT };
+}
+
 function unwrap<T>(data: unknown): T {
   // The backend wraps with `instantiateMessage` so `data` has
   // `{ status, messageId, summary, results, totalCount, generatedAt,
@@ -34,7 +50,7 @@ export const reportsService = {
   async adherence(params: ReportFilterParams): Promise<AdherenceReport> {
     const { data } = await apiClient.post<AdherenceReport>(
       endpoints.reportsAdherence,
-      params,
+      withFullResultSet(params),
     );
     return unwrap<AdherenceReport>(data);
   },
@@ -42,7 +58,7 @@ export const reportsService = {
   async attendance(params: ReportFilterParams): Promise<AttendanceReport> {
     const { data } = await apiClient.post<AttendanceReport>(
       endpoints.reportsAttendance,
-      params,
+      withFullResultSet(params),
     );
     return unwrap<AttendanceReport>(data);
   },
@@ -50,7 +66,7 @@ export const reportsService = {
   async sos(params: ReportFilterParams): Promise<SosReport> {
     const { data } = await apiClient.post<SosReport>(
       endpoints.reportsSos,
-      params,
+      withFullResultSet(params),
     );
     return unwrap<SosReport>(data);
   },
@@ -58,7 +74,7 @@ export const reportsService = {
   async sla(params: ReportFilterParams & { slaThresholdSec?: number }): Promise<SlaReport> {
     const { data } = await apiClient.post<SlaReport>(
       endpoints.reportsSla,
-      params,
+      withFullResultSet(params),
     );
     return unwrap<SlaReport>(data);
   },
@@ -66,7 +82,7 @@ export const reportsService = {
   async powerEvents(params: ReportFilterParams): Promise<DeviceEventReport> {
     const { data } = await apiClient.post<DeviceEventReport>(
       endpoints.reportsPowerEvents,
-      params,
+      withFullResultSet(params),
     );
     return unwrap<DeviceEventReport>(data);
   },
@@ -74,7 +90,7 @@ export const reportsService = {
   async batteryLow(params: ReportFilterParams): Promise<DeviceEventReport> {
     const { data } = await apiClient.post<DeviceEventReport>(
       endpoints.reportsBatteryLow,
-      params,
+      withFullResultSet(params),
     );
     return unwrap<DeviceEventReport>(data);
   },
@@ -82,7 +98,7 @@ export const reportsService = {
   async equipmentStatus(params: ReportFilterParams): Promise<DeviceEventReport> {
     const { data } = await apiClient.post<DeviceEventReport>(
       endpoints.reportsEquipmentStatus,
-      params,
+      withFullResultSet(params),
     );
     return unwrap<DeviceEventReport>(data);
   },
@@ -90,7 +106,7 @@ export const reportsService = {
   async violation(params: ReportFilterParams): Promise<DeviceEventReport> {
     const { data } = await apiClient.post<DeviceEventReport>(
       endpoints.reportsViolation,
-      params,
+      withFullResultSet(params),
     );
     return unwrap<DeviceEventReport>(data);
   },
@@ -98,7 +114,7 @@ export const reportsService = {
   async remoteRestart(params: ReportFilterParams): Promise<DeviceEventReport> {
     const { data } = await apiClient.post<DeviceEventReport>(
       endpoints.reportsRemoteRestart,
-      params,
+      withFullResultSet(params),
     );
     return unwrap<DeviceEventReport>(data);
   },
