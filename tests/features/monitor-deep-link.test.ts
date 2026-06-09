@@ -47,9 +47,7 @@ describe('resolveDeepLinkTarget', () => {
   });
 
   it('returns null when autoClaim is set but no SOS is available', () => {
-    const events = [
-      sos({ _id: 'closed', attendance: { isAttendance: true, status: 'CLOSED' } }),
-    ];
+    const events = [sos({ _id: 'closed', attendance: { isAttendance: true, status: 'CLOSED' } })];
     expect(resolveDeepLinkTarget(events, null, true, 'u1')).toBeNull();
   });
 

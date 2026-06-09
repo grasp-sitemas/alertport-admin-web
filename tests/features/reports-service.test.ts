@@ -39,18 +39,16 @@ describe('reportsService', () => {
   });
 
   beforeEach(() => {
-    postSpy = vi
-      .spyOn(apiClient, 'post')
-      .mockImplementation(((url: string) => {
-        const summary = url.includes('adherence')
-          ? { total: 10, adherenceRate: 87.5 }
-          : url.includes('attendance')
-            ? { total: 20, uniqueUsers: 3 }
-            : url.includes('sos')
-              ? { total: 5, attendedRate: 100 }
-              : { total: 3, slaCompliance: 80 };
-        return Promise.resolve({ data: makeEnvelope(summary) });
-      }) as never) as PostSpy;
+    postSpy = vi.spyOn(apiClient, 'post').mockImplementation(((url: string) => {
+      const summary = url.includes('adherence')
+        ? { total: 10, adherenceRate: 87.5 }
+        : url.includes('attendance')
+          ? { total: 20, uniqueUsers: 3 }
+          : url.includes('sos')
+            ? { total: 5, attendedRate: 100 }
+            : { total: 3, slaCompliance: 80 };
+      return Promise.resolve({ data: makeEnvelope(summary) });
+    }) as never) as PostSpy;
   });
 
   describe('contract: endpoint URLs', () => {
