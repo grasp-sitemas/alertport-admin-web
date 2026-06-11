@@ -219,6 +219,7 @@
     "reportSos": "SOS告警",
     "reportSla": "处置 SLA",
     "reportOperatorAttendance": "操作员处置",
+    "reportVigilantAlerts": "警卫处置",
     "reportPowerEvents": "电源中断与恢复",
     "reportBatteryLow": "电量过低",
     "reportEquipmentStatus": "设备开机/关机",
@@ -380,6 +381,38 @@
         "totalActions": "处置动作总数",
         "totalActionsHint": "已登记 {count} 个处置动作",
         "attendanceRate": "处置率"
+      }
+    },
+    "vigilantAlerts": {
+      "title": "警卫处置",
+      "description": "时段内现场警卫已处置或未处置的告警。",
+      "tableTitle": "时段内的告警",
+      "date": "日期",
+      "equipment": "设备",
+      "status": "状态",
+      "responseTime": "响应时间",
+      "modeLabel": "筛选",
+      "modeHint": "按已处置、未处置或待处理的告警筛选",
+      "mode": {
+        "all": "全部",
+        "responded": "已处置",
+        "not_attended": "未处置",
+        "pending": "待处理"
+      },
+      "statusValue": {
+        "PENDING": "待处理",
+        "RESPONDED": "已处置",
+        "MISSED": "未处置",
+        "EXPIRED": "已过期"
+      },
+      "kpi": {
+        "total": "告警总数",
+        "attended": "已处置",
+        "notAttended": "未处置",
+        "notAttendedHint": "{missed} 个漏接 · {expired} 个过期",
+        "attendanceRate": "处置率",
+        "avgResponse": "平均响应时间",
+        "avgResponseHint": "平均：{avg}"
       }
     },
     "actionType": {

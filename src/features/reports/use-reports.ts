@@ -2,7 +2,11 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { reportsService } from '@/services/reports.service';
-import type { OperatorAttendanceMode, ReportFilterParams } from '@/types/reports';
+import type {
+  OperatorAttendanceMode,
+  ReportFilterParams,
+  VigilantAlertsMode,
+} from '@/types/reports';
 import { validateReportFilter } from './report-filter-validator';
 
 /**
@@ -87,6 +91,21 @@ export function useOperatorAttendanceReport(
     queryFn: () => {
       if (!filter) throw new Error('filter.required');
       return reportsService.operatorAttendance(filter);
+    },
+    enabled: canRun(filter),
+    staleTime: STALE_MS,
+    retry: 1,
+  });
+}
+
+export function useVigilantAlertsReport(
+  filter: (ReportFilterParams & { mode?: VigilantAlertsMode }) | null,
+) {
+  return useQuery({
+    queryKey: ['reports', 'vigilant-alerts', filter],
+    queryFn: () => {
+      if (!filter) throw new Error('filter.required');
+      return reportsService.vigilantAlerts(filter);
     },
     enabled: canRun(filter),
     staleTime: STALE_MS,

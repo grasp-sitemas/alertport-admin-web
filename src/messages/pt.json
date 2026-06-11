@@ -219,6 +219,7 @@
     "reportSos": "Alertas de SOS",
     "reportSla": "SLA de Atendimento",
     "reportOperatorAttendance": "Atendimento do Operador",
+    "reportVigilantAlerts": "Atendimento do Vigilante",
     "reportPowerEvents": "Perda e Restauração de Energia",
     "reportBatteryLow": "Bateria Baixa",
     "reportEquipmentStatus": "Equipamento Ligado/Desligado",
@@ -380,6 +381,38 @@
         "totalActions": "Total de ações",
         "totalActionsHint": "{count} ações registradas",
         "attendanceRate": "Taxa de atendimento"
+      }
+    },
+    "vigilantAlerts": {
+      "title": "Atendimento do Vigilante",
+      "description": "Alertas atendidos ou não atendidos pelo vigilante no campo, no período.",
+      "tableTitle": "Alertas no período",
+      "date": "Data",
+      "equipment": "Equipamento",
+      "status": "Status",
+      "responseTime": "Tempo de resposta",
+      "modeLabel": "Filtro",
+      "modeHint": "Filtrar por alertas atendidos, não atendidos ou pendentes",
+      "mode": {
+        "all": "Todos",
+        "responded": "Atendidos",
+        "not_attended": "Não atendidos",
+        "pending": "Pendentes"
+      },
+      "statusValue": {
+        "PENDING": "Pendente",
+        "RESPONDED": "Atendido",
+        "MISSED": "Não atendido",
+        "EXPIRED": "Expirado"
+      },
+      "kpi": {
+        "total": "Total de alertas",
+        "attended": "Atendidos",
+        "notAttended": "Não atendidos",
+        "notAttendedHint": "{missed} perdidos · {expired} expirados",
+        "attendanceRate": "Taxa de atendimento",
+        "avgResponse": "Tempo médio de resposta",
+        "avgResponseHint": "Média: {avg}"
       }
     },
     "actionType": {

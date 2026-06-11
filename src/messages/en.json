@@ -219,6 +219,7 @@
     "reportSos": "SOS Alerts",
     "reportSla": "Attendance SLA",
     "reportOperatorAttendance": "Operator Attendance",
+    "reportVigilantAlerts": "Guard Attendance",
     "reportPowerEvents": "Power Loss & Restore",
     "reportBatteryLow": "Low Battery",
     "reportEquipmentStatus": "Equipment On/Off",
@@ -380,6 +381,38 @@
         "totalActions": "Total actions",
         "totalActionsHint": "{count} actions registered",
         "attendanceRate": "Attendance rate"
+      }
+    },
+    "vigilantAlerts": {
+      "title": "Guard Attendance",
+      "description": "Alerts attended or missed by the field guard in the period.",
+      "tableTitle": "Alerts in the period",
+      "date": "Date",
+      "equipment": "Equipment",
+      "status": "Status",
+      "responseTime": "Response time",
+      "modeLabel": "Filter",
+      "modeHint": "Filter by attended, not attended or pending alerts",
+      "mode": {
+        "all": "All",
+        "responded": "Attended",
+        "not_attended": "Not attended",
+        "pending": "Pending"
+      },
+      "statusValue": {
+        "PENDING": "Pending",
+        "RESPONDED": "Attended",
+        "MISSED": "Not attended",
+        "EXPIRED": "Expired"
+      },
+      "kpi": {
+        "total": "Total alerts",
+        "attended": "Attended",
+        "notAttended": "Not attended",
+        "notAttendedHint": "{missed} missed · {expired} expired",
+        "attendanceRate": "Attendance rate",
+        "avgResponse": "Avg response time",
+        "avgResponseHint": "Average: {avg}"
       }
     },
     "actionType": {

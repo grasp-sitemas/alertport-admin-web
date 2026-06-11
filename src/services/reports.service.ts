@@ -9,6 +9,8 @@ import type {
   ReportFilterParams,
   SlaReport,
   SosReport,
+  VigilantAlertsMode,
+  VigilantAlertsReport,
 } from '@/types/reports';
 
 /**
@@ -89,6 +91,16 @@ export const reportsService = {
       withFullResultSet(params),
     );
     return unwrap<OperatorAttendanceReport>(data);
+  },
+
+  async vigilantAlerts(
+    params: ReportFilterParams & { mode?: VigilantAlertsMode },
+  ): Promise<VigilantAlertsReport> {
+    const { data } = await apiClient.post<VigilantAlertsReport>(
+      endpoints.reportsVigilantAlerts,
+      withFullResultSet(params),
+    );
+    return unwrap<VigilantAlertsReport>(data);
   },
 
   async powerEvents(params: ReportFilterParams): Promise<DeviceEventReport> {

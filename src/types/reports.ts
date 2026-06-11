@@ -194,6 +194,40 @@ export type OperatorAttendanceReport = ReportEnvelope<
   OperatorAttendanceRow
 >;
 
+// ── 4c. Atendimento do Vigilante (alertas) ─────────────────────
+// O que o vigia atendeu (RESPONDED) ou deixou de atender
+// (MISSED/EXPIRED) no campo. Fonte: alert-occurrences. Relatório
+// separado do de Aderência.
+export interface VigilantAlertsSummary {
+  total: number;
+  attended: number;
+  missed: number;
+  expired: number;
+  pending: number;
+  notAttended: number;
+  attendanceRate: number;
+  avgResponseTimeSec: number;
+}
+
+export interface VigilantAlertsRow {
+  _id: string;
+  status: 'PENDING' | 'RESPONDED' | 'MISSED' | 'EXPIRED';
+  deviceStatus?: string | null;
+  scheduledAt: string;
+  triggeredAt?: string | null;
+  respondedAt?: string | null;
+  expireAt?: string | null;
+  account?: Pick<Company, '_id' | 'name'>;
+  client?: Pick<Company, '_id' | 'name'>;
+  site?: Pick<Company, '_id' | 'name'>;
+  equipment?: { _id: string; name?: string; uniqueId?: string };
+  responseTimeSec?: number | null;
+}
+
+export type VigilantAlertsMode = 'all' | 'responded' | 'not_attended' | 'pending';
+
+export type VigilantAlertsReport = ReportEnvelope<VigilantAlertsSummary, VigilantAlertsRow>;
+
 // ── 5. AlertPort device-event reports (power, battery, on/off, ──
 //        violation, remote-restart). All five share a single envelope
 //        shape because they're filtered slices of the same
@@ -237,6 +271,7 @@ export type ReportKind =
   | 'sos'
   | 'sla'
   | 'operator-attendance'
+  | 'vigilant-alerts'
   | 'power-events'
   | 'battery-low'
   | 'equipment-status'

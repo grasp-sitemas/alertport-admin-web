@@ -219,6 +219,7 @@
     "reportSos": "SOSアラート",
     "reportSla": "対応SLA",
     "reportOperatorAttendance": "オペレーター対応",
+    "reportVigilantAlerts": "警備員対応",
     "reportPowerEvents": "電源喪失と復旧",
     "reportBatteryLow": "バッテリー残量低下",
     "reportEquipmentStatus": "機器の電源 ON/OFF",
@@ -380,6 +381,38 @@
         "totalActions": "対応総数",
         "totalActionsHint": "{count}件の対応を登録",
         "attendanceRate": "対応率"
+      }
+    },
+    "vigilantAlerts": {
+      "title": "警備員対応",
+      "description": "期間内に現場の警備員が対応した・未対応のアラート。",
+      "tableTitle": "期間内のアラート",
+      "date": "日時",
+      "equipment": "機器",
+      "status": "状態",
+      "responseTime": "応答時間",
+      "modeLabel": "フィルター",
+      "modeHint": "対応済み・未対応・保留のアラートで絞り込み",
+      "mode": {
+        "all": "すべて",
+        "responded": "対応済み",
+        "not_attended": "未対応",
+        "pending": "保留"
+      },
+      "statusValue": {
+        "PENDING": "保留",
+        "RESPONDED": "対応済み",
+        "MISSED": "未対応",
+        "EXPIRED": "期限切れ"
+      },
+      "kpi": {
+        "total": "アラート総数",
+        "attended": "対応済み",
+        "notAttended": "未対応",
+        "notAttendedHint": "{missed}件未達 · {expired}件期限切れ",
+        "attendanceRate": "対応率",
+        "avgResponse": "平均応答時間",
+        "avgResponseHint": "平均：{avg}"
       }
     },
     "actionType": {
