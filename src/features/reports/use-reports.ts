@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { reportsService } from '@/services/reports.service';
-import type { ReportFilterParams } from '@/types/reports';
+import type { OperatorAttendanceMode, ReportFilterParams } from '@/types/reports';
 import { validateReportFilter } from './report-filter-validator';
 
 /**
@@ -72,6 +72,21 @@ export function useSlaReport(
     queryFn: () => {
       if (!filter) throw new Error('filter.required');
       return reportsService.sla(filter);
+    },
+    enabled: canRun(filter),
+    staleTime: STALE_MS,
+    retry: 1,
+  });
+}
+
+export function useOperatorAttendanceReport(
+  filter: (ReportFilterParams & { mode?: OperatorAttendanceMode }) | null,
+) {
+  return useQuery({
+    queryKey: ['reports', 'operator-attendance', filter],
+    queryFn: () => {
+      if (!filter) throw new Error('filter.required');
+      return reportsService.operatorAttendance(filter);
     },
     enabled: canRun(filter),
     staleTime: STALE_MS,

@@ -152,6 +152,48 @@ export interface SlaRow {
   resolutionTimeSec?: number | null;
 }
 
+// ── 4b. Atendimento do Operador ────────────────────────────────
+// Notificações de alerta tratadas (ou não) pelo operador no web,
+// expandidas em 1 linha por AÇÃO registrada (coleção `attendances`).
+// Notificação sem ações = 1 linha não-atendida (action/operator null).
+export interface OperatorAttendanceSummary {
+  totalNotifications: number;
+  attendedNotifications: number;
+  notAttendedNotifications: number;
+  totalActions: number;
+  attendanceRate: number;
+}
+
+export interface OperatorAttendanceRow {
+  /** Notification id - repeats across this notification's action rows. */
+  _id: string;
+  /** Unique per action row; null when the notification has no actions. */
+  actionId?: string | null;
+  /** Notification date (Data). */
+  date: string;
+  /** Timestamp of the registered action; null when not attended. */
+  actionDate?: string | null;
+  /** Event type (OCCURRENCE_MISSED | SOS_ALERT). */
+  type: string;
+  account?: Pick<Company, '_id' | 'name'>;
+  client?: Pick<Company, '_id' | 'name'>;
+  site?: Pick<Company, '_id' | 'name'>;
+  operator?: Pick<User, '_id' | 'firstName' | 'lastName'>;
+  /** Action code (one of the 11 pre-built attendance types). */
+  action?: string | null;
+  /** Operator observation free-text. */
+  notes?: string | null;
+  attended: boolean;
+  attendanceStatus?: 'IN_PROGRESS' | 'CLOSED' | null;
+}
+
+export type OperatorAttendanceMode = 'all' | 'attended' | 'not_attended';
+
+export type OperatorAttendanceReport = ReportEnvelope<
+  OperatorAttendanceSummary,
+  OperatorAttendanceRow
+>;
+
 // ── 5. AlertPort device-event reports (power, battery, on/off, ──
 //        violation, remote-restart). All five share a single envelope
 //        shape because they're filtered slices of the same
@@ -194,6 +236,7 @@ export type ReportKind =
   | 'attendance'
   | 'sos'
   | 'sla'
+  | 'operator-attendance'
   | 'power-events'
   | 'battery-low'
   | 'equipment-status'

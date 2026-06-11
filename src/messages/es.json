@@ -218,6 +218,7 @@
     "reportAttendance": "Registro de Presencia",
     "reportSos": "Alertas SOS",
     "reportSla": "SLA de Atención",
+    "reportOperatorAttendance": "Atención del Operador",
     "reportPowerEvents": "Pérdida y Restauración de Energía",
     "reportBatteryLow": "Batería Baja",
     "reportEquipmentStatus": "Equipo Encendido/Apagado",
@@ -345,6 +346,54 @@
         "withinSla": "Dentro del SLA",
         "total": "Total atendido"
       }
+    },
+    "operatorAttendance": {
+      "title": "Atención del Operador",
+      "description": "Notificaciones de alerta tratadas (o no) por el operador en la web, con las acciones y observaciones registradas.",
+      "tableTitle": "Notificaciones en el período",
+      "date": "Fecha",
+      "event": "Evento",
+      "operator": "Operador",
+      "action": "Acción",
+      "notes": "Observación",
+      "status": "Atención",
+      "noAction": "—",
+      "modeLabel": "Filtro",
+      "modeHint": "Filtrar por notificaciones atendidas o no atendidas por el operador",
+      "mode": {
+        "all": "Todas",
+        "attended": "Atendidas",
+        "not_attended": "No atendidas"
+      },
+      "eventType": {
+        "OCCURRENCE_MISSED": "Alerta no atendida",
+        "SOS_ALERT": "SOS"
+      },
+      "statusValue": {
+        "attended": "Atendido",
+        "not_attended": "No atendido"
+      },
+      "kpi": {
+        "total": "Total de notificaciones",
+        "attended": "Atendidas",
+        "notAttended": "No atendidas",
+        "totalActions": "Total de acciones",
+        "totalActionsHint": "{count} acciones registradas",
+        "attendanceRate": "Tasa de atención"
+      }
+    },
+    "actionType": {
+      "CALL_CLIENT": "Llamó al cliente",
+      "CALL_VIGILANT": "Llamó al vigilante",
+      "CALL_SUPERVISOR": "Llamó al supervisor",
+      "CALL_POLICE": "Llamó a la policía",
+      "CALL_FIREMEN": "Llamó a los bomberos",
+      "REPORT_ACCIDENTAL_SOS": "SOS accidental",
+      "REPORT_UNDUE_SOS": "SOS indebido",
+      "REPORT_TEST_BY_CUSTOMER": "Prueba por el cliente",
+      "REPORT_TEST_BY_THIRD_PARTIES": "Prueba por terceros",
+      "REPORT_FAILURE_TO_CONTACT_PRIORITY_PHONES": "Fallo al contactar teléfonos prioritarios",
+      "OTHERS": "Otros"
     },
     "deviceEvent": {
       "eventType": "Tipo de Evento",

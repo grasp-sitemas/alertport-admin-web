@@ -218,6 +218,7 @@
     "reportAttendance": "Attendance Log",
     "reportSos": "SOS Alerts",
     "reportSla": "Attendance SLA",
+    "reportOperatorAttendance": "Operator Attendance",
     "reportPowerEvents": "Power Loss & Restore",
     "reportBatteryLow": "Low Battery",
     "reportEquipmentStatus": "Equipment On/Off",
@@ -345,6 +346,54 @@
         "withinSla": "Within SLA",
         "total": "Attended total"
       }
+    },
+    "operatorAttendance": {
+      "title": "Operator Attendance",
+      "description": "Alert notifications handled (or not) by the operator on the web, with the registered actions and observations.",
+      "tableTitle": "Notifications in the period",
+      "date": "Date",
+      "event": "Event",
+      "operator": "Operator",
+      "action": "Action",
+      "notes": "Observation",
+      "status": "Attendance",
+      "noAction": "—",
+      "modeLabel": "Filter",
+      "modeHint": "Filter by notifications attended or not attended by the operator",
+      "mode": {
+        "all": "All",
+        "attended": "Attended",
+        "not_attended": "Not attended"
+      },
+      "eventType": {
+        "OCCURRENCE_MISSED": "Missed alert",
+        "SOS_ALERT": "SOS"
+      },
+      "statusValue": {
+        "attended": "Attended",
+        "not_attended": "Not attended"
+      },
+      "kpi": {
+        "total": "Total notifications",
+        "attended": "Attended",
+        "notAttended": "Not attended",
+        "totalActions": "Total actions",
+        "totalActionsHint": "{count} actions registered",
+        "attendanceRate": "Attendance rate"
+      }
+    },
+    "actionType": {
+      "CALL_CLIENT": "Called the client",
+      "CALL_VIGILANT": "Called the guard",
+      "CALL_SUPERVISOR": "Called the supervisor",
+      "CALL_POLICE": "Called the police",
+      "CALL_FIREMEN": "Called the fire department",
+      "REPORT_ACCIDENTAL_SOS": "Accidental SOS",
+      "REPORT_UNDUE_SOS": "Undue SOS",
+      "REPORT_TEST_BY_CUSTOMER": "Test by the customer",
+      "REPORT_TEST_BY_THIRD_PARTIES": "Test by third parties",
+      "REPORT_FAILURE_TO_CONTACT_PRIORITY_PHONES": "Failure to contact priority phones",
+      "OTHERS": "Others"
     },
     "deviceEvent": {
       "eventType": "Event Type",

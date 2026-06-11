@@ -218,6 +218,7 @@
     "reportAttendance": "勤怠記録",
     "reportSos": "SOSアラート",
     "reportSla": "対応SLA",
+    "reportOperatorAttendance": "オペレーター対応",
     "reportPowerEvents": "電源喪失と復旧",
     "reportBatteryLow": "バッテリー残量低下",
     "reportEquipmentStatus": "機器の電源 ON/OFF",
@@ -345,6 +346,54 @@
         "withinSla": "SLA以内",
         "total": "対応合計"
       }
+    },
+    "operatorAttendance": {
+      "title": "オペレーター対応",
+      "description": "Web上でオペレーターが対応（または未対応）したアラート通知。登録された対応内容と備考を含みます。",
+      "tableTitle": "期間内の通知",
+      "date": "日時",
+      "event": "イベント",
+      "operator": "オペレーター",
+      "action": "対応内容",
+      "notes": "備考",
+      "status": "対応状況",
+      "noAction": "—",
+      "modeLabel": "フィルター",
+      "modeHint": "オペレーターが対応した通知・未対応の通知で絞り込み",
+      "mode": {
+        "all": "すべて",
+        "attended": "対応済み",
+        "not_attended": "未対応"
+      },
+      "eventType": {
+        "OCCURRENCE_MISSED": "未対応アラート",
+        "SOS_ALERT": "SOS"
+      },
+      "statusValue": {
+        "attended": "対応済み",
+        "not_attended": "未対応"
+      },
+      "kpi": {
+        "total": "通知件数",
+        "attended": "対応済み",
+        "notAttended": "未対応",
+        "totalActions": "対応総数",
+        "totalActionsHint": "{count}件の対応を登録",
+        "attendanceRate": "対応率"
+      }
+    },
+    "actionType": {
+      "CALL_CLIENT": "顧客に連絡",
+      "CALL_VIGILANT": "警備員に連絡",
+      "CALL_SUPERVISOR": "監督者に連絡",
+      "CALL_POLICE": "警察に通報",
+      "CALL_FIREMEN": "消防に通報",
+      "REPORT_ACCIDENTAL_SOS": "誤操作のSOS",
+      "REPORT_UNDUE_SOS": "不当なSOS",
+      "REPORT_TEST_BY_CUSTOMER": "顧客によるテスト",
+      "REPORT_TEST_BY_THIRD_PARTIES": "第三者によるテスト",
+      "REPORT_FAILURE_TO_CONTACT_PRIORITY_PHONES": "優先連絡先への連絡失敗",
+      "OTHERS": "その他"
     },
     "deviceEvent": {
       "eventType": "イベント種別",

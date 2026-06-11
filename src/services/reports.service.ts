@@ -4,6 +4,8 @@ import type {
   AdherenceReport,
   AttendanceReport,
   DeviceEventReport,
+  OperatorAttendanceMode,
+  OperatorAttendanceReport,
   ReportFilterParams,
   SlaReport,
   SosReport,
@@ -77,6 +79,16 @@ export const reportsService = {
       withFullResultSet(params),
     );
     return unwrap<SlaReport>(data);
+  },
+
+  async operatorAttendance(
+    params: ReportFilterParams & { mode?: OperatorAttendanceMode },
+  ): Promise<OperatorAttendanceReport> {
+    const { data } = await apiClient.post<OperatorAttendanceReport>(
+      endpoints.reportsOperatorAttendance,
+      withFullResultSet(params),
+    );
+    return unwrap<OperatorAttendanceReport>(data);
   },
 
   async powerEvents(params: ReportFilterParams): Promise<DeviceEventReport> {

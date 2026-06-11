@@ -218,6 +218,7 @@
     "reportAttendance": "考勤记录",
     "reportSos": "SOS告警",
     "reportSla": "处置 SLA",
+    "reportOperatorAttendance": "操作员处置",
     "reportPowerEvents": "电源中断与恢复",
     "reportBatteryLow": "电量过低",
     "reportEquipmentStatus": "设备开机/关机",
@@ -345,6 +346,54 @@
         "withinSla": "SLA 内",
         "total": "处置合计"
       }
+    },
+    "operatorAttendance": {
+      "title": "操作员处置",
+      "description": "操作员在网页端处置（或未处置）的告警通知，包含已登记的处置动作与备注。",
+      "tableTitle": "时段内的通知",
+      "date": "日期",
+      "event": "事件",
+      "operator": "操作员",
+      "action": "处置动作",
+      "notes": "备注",
+      "status": "处置情况",
+      "noAction": "—",
+      "modeLabel": "筛选",
+      "modeHint": "按操作员已处置或未处置的通知筛选",
+      "mode": {
+        "all": "全部",
+        "attended": "已处置",
+        "not_attended": "未处置"
+      },
+      "eventType": {
+        "OCCURRENCE_MISSED": "未处置告警",
+        "SOS_ALERT": "SOS"
+      },
+      "statusValue": {
+        "attended": "已处置",
+        "not_attended": "未处置"
+      },
+      "kpi": {
+        "total": "通知总数",
+        "attended": "已处置",
+        "notAttended": "未处置",
+        "totalActions": "处置动作总数",
+        "totalActionsHint": "已登记 {count} 个处置动作",
+        "attendanceRate": "处置率"
+      }
+    },
+    "actionType": {
+      "CALL_CLIENT": "致电客户",
+      "CALL_VIGILANT": "致电警卫",
+      "CALL_SUPERVISOR": "致电主管",
+      "CALL_POLICE": "报警",
+      "CALL_FIREMEN": "通知消防",
+      "REPORT_ACCIDENTAL_SOS": "误触 SOS",
+      "REPORT_UNDUE_SOS": "无效 SOS",
+      "REPORT_TEST_BY_CUSTOMER": "客户测试",
+      "REPORT_TEST_BY_THIRD_PARTIES": "第三方测试",
+      "REPORT_FAILURE_TO_CONTACT_PRIORITY_PHONES": "联系优先电话失败",
+      "OTHERS": "其他"
     },
     "deviceEvent": {
       "eventType": "事件类型",
