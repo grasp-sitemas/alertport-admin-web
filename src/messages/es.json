@@ -599,11 +599,15 @@
     "cancelPatrol": "Patrulla Cancelada",
     "failurePatrol": "Fallo de Patrulla",
     "occurrenceMissed": "Alerta de Ocurrencia No Atendida",
+    "deviceAcLost": "Pérdida de Energía",
+    "deviceAcRestored": "Energía Restaurada",
+    "deviceBatteryLow": "Batería Baja",
     "type": "Tipo",
     "category": "Categoría",
     "categories": {
       "sos": "SOS",
       "occurrenceMissed": "Alerta no atendida",
+      "powerEvent": "Energía",
       "timeTracking": "Control de presencia"
     },
     "maxDateRange": "El rango máximo de fechas es de 30 días",

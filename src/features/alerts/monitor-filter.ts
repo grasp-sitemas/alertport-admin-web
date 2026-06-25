@@ -14,6 +14,9 @@ export const MONITOR_EVENT_TYPES: EventType[] = [
   'CANCEL_PATROL',
   'FAILURE_PATROL',
   'OCCURRENCE_MISSED',
+  'DEVICE_AC_LOST',
+  'DEVICE_AC_RESTORED',
+  'DEVICE_BATTERY_LOW',
 ];
 
 export const MONITOR_STATUS_VALUES: AttendanceState[] = [
@@ -25,17 +28,20 @@ export const MONITOR_STATUS_VALUES: AttendanceState[] = [
 
 /**
  * Categoria de alto nível do monitor — agrupa tipos detalhados em
- * 3 buckets que o operador entende:
+ * buckets que o operador entende:
  *   - SOS: panic alerts (SOS_ALERT)
  *   - OCCURRENCE_MISSED: alertas de ocorrência não atendidos no device
+ *   - POWER_EVENT: eventos de energia/bateria do device (perda/retorno de
+ *     energia AC e bateria baixa)
  *   - TIME_TRACKING: registros de ponto (não são PatrolAction; gated
  *     pelo módulo TIME_ENTRIES)
  */
-export type MonitorCategory = 'SOS' | 'OCCURRENCE_MISSED' | 'TIME_TRACKING';
+export type MonitorCategory = 'SOS' | 'OCCURRENCE_MISSED' | 'POWER_EVENT' | 'TIME_TRACKING';
 
 export const MONITOR_CATEGORIES: MonitorCategory[] = [
   'SOS',
   'OCCURRENCE_MISSED',
+  'POWER_EVENT',
   'TIME_TRACKING',
 ];
 
@@ -47,6 +53,7 @@ export const MONITOR_CATEGORIES: MonitorCategory[] = [
 const CATEGORY_TO_EVENT_TYPES: Record<MonitorCategory, EventType[]> = {
   SOS: ['SOS_ALERT'],
   OCCURRENCE_MISSED: ['OCCURRENCE_MISSED'],
+  POWER_EVENT: ['DEVICE_AC_LOST', 'DEVICE_AC_RESTORED', 'DEVICE_BATTERY_LOW'],
   TIME_TRACKING: [],
 };
 

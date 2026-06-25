@@ -599,11 +599,15 @@
     "cancelPatrol": "パトロールキャンセル",
     "failurePatrol": "パトロール失敗",
     "occurrenceMissed": "未対応の発生アラート",
+    "deviceAcLost": "電源喪失",
+    "deviceAcRestored": "電源復旧",
+    "deviceBatteryLow": "バッテリー残量低下",
     "type": "種別",
     "category": "カテゴリ",
     "categories": {
       "sos": "SOS",
       "occurrenceMissed": "未対応アラート",
+      "powerEvent": "電源",
       "timeTracking": "勤怠管理"
     },
     "maxDateRange": "最大日付範囲は30日間です",

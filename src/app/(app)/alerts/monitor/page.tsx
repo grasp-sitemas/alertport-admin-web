@@ -93,6 +93,7 @@ const EMPTY_DRAFT_FILTERS: DraftFilters = {
 const CATEGORY_LABEL_KEYS: Record<MonitorCategory, string> = {
   SOS: 'alerts.categories.sos',
   OCCURRENCE_MISSED: 'alerts.categories.occurrenceMissed',
+  POWER_EVENT: 'alerts.categories.powerEvent',
   TIME_TRACKING: 'alerts.categories.timeTracking',
 };
 
@@ -109,6 +110,9 @@ const EVENT_TYPE_LABEL_KEYS: Record<EventType, string> = {
   CANCEL_PATROL: 'alerts.cancelPatrol',
   FAILURE_PATROL: 'alerts.failurePatrol',
   OCCURRENCE_MISSED: 'alerts.occurrenceMissed',
+  DEVICE_AC_LOST: 'alerts.deviceAcLost',
+  DEVICE_AC_RESTORED: 'alerts.deviceAcRestored',
+  DEVICE_BATTERY_LOW: 'alerts.deviceBatteryLow',
 };
 
 const ATTENDANCE_STATUS_LABEL_KEYS: Record<AttendanceState, string> = {

@@ -599,11 +599,15 @@
     "cancelPatrol": "Cancelled Patrol",
     "failurePatrol": "Patrol Failure",
     "occurrenceMissed": "Missed Occurrence Alert",
+    "deviceAcLost": "Power Loss",
+    "deviceAcRestored": "Power Restored",
+    "deviceBatteryLow": "Low Battery",
     "type": "Type",
     "category": "Category",
     "categories": {
       "sos": "SOS",
       "occurrenceMissed": "Missed alert",
+      "powerEvent": "Power",
       "timeTracking": "Time tracking"
     },
     "maxDateRange": "Maximum date range is 30 days",
