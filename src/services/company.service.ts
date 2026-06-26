@@ -7,6 +7,7 @@ import type {
   ApiSingleResponse,
   Company,
   CompanyFormData,
+  CompanySettings,
   FilterParams,
   User,
 } from '@/types/api';
@@ -79,13 +80,21 @@ export const companyService = {
     return data;
   },
 
-  async getSettings() {
-    const { data } = await apiClient.get(endpoints.companySettingsMe);
+  async getSettings(): Promise<ApiSingleResponse<CompanySettings>> {
+    const { data } = await apiClient.get<ApiSingleResponse<CompanySettings>>(
+      endpoints.companySettingsMe,
+    );
     return data;
   },
 
-  async updateSettings(id: string, settings: Record<string, unknown>) {
-    const { data } = await apiClient.put(endpoints.companySettingsById(id), settings);
+  async updateSettings(
+    id: string,
+    settings: Record<string, unknown>,
+  ): Promise<ApiSingleResponse<CompanySettings>> {
+    const { data } = await apiClient.put<ApiSingleResponse<CompanySettings>>(
+      endpoints.companySettingsById(id),
+      settings,
+    );
     return data;
   },
 

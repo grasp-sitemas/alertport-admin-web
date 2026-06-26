@@ -48,12 +48,7 @@ export const companyListFormSchema = z.object({
   fantasyName: z.string().trim().optional().or(z.literal('')),
   personType: z.enum(['PHYSICAL', 'LEGAL']).optional(),
   document: z.string().trim().optional().or(z.literal('')),
-  email: z
-    .string()
-    .trim()
-    .email({ message: 'validation.email' })
-    .optional()
-    .or(z.literal('')),
+  email: z.string().trim().email({ message: 'validation.email' }).optional().or(z.literal('')),
   primaryPhone: z
     .string()
     .trim()
@@ -76,3 +71,34 @@ export const DEFAULT_COMPANY_LIST_VALUES: CompanyListFormValues = {
   type: 'ACCOUNT',
   status: 'ACTIVE',
 };
+
+/** UI bounds for the monitor event time-window (in hours). */
+export const MONITOR_TIME_WINDOW_MIN_HOURS = 1;
+export const MONITOR_TIME_WINDOW_MAX_HOURS = 24;
+
+/**
+ * Account monitor settings form. The single editable field is the event
+ * time-window in hours. It is kept as a string so the native number input
+ * can be cleared — an empty string means "system default" (the backend
+ * stores `null`, eventos não filtrados por idade). When filled, it must be
+ * an integer within [1, 24].
+ */
+export const monitorSettingsSchema = z.object({
+  eventTimeWindowHours: z
+    .string()
+    .trim()
+    .refine(
+      (value) => {
+        if (value === '') return true;
+        const parsed = Number(value);
+        return (
+          Number.isInteger(parsed) &&
+          parsed >= MONITOR_TIME_WINDOW_MIN_HOURS &&
+          parsed <= MONITOR_TIME_WINDOW_MAX_HOURS
+        );
+      },
+      { message: 'company.eventTimeWindowInvalid' },
+    ),
+});
+
+export type MonitorSettingsFormValues = z.infer<typeof monitorSettingsSchema>;

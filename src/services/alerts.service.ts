@@ -79,13 +79,24 @@ export const alertsService = {
    * Required payload fields: `schedule` (the schedule _id - NOT `_id`),
    * beginDate (first day of the new series), and every other field the
    * backend needs to rebuild the schedule.
+   *
+   * IMPORTANT: the payload must NOT carry `_id`. The backend
+   * (ctr-schedule.alertCheckUpdateSchedule) archives the OLD schedule and
+   * then CREATES a brand-new one via `crud.generic.saveOrUpdate(false, ...)`.
+   * That create path looks the doc up by primary key `_id`; if a stale `_id`
+   * leaks through it finds the just-archived doc and aborts with
+   * `500 response.already.exists`, so the new series is never persisted (and
+   * the old one was already deleted) — surfacing as "editing all recurrences
+   * does not save". The schedule's id travels on `schedule`, never on `_id`.
    */
   async updateScheduleSeries(
     payload: AlertScheduleFormData & { schedule: string; alertOccurrence?: boolean },
   ): Promise<ApiSingleResponse<AlertSchedule>> {
+    const { _id, ...rest } = payload;
+    void _id;
     const { data } = await apiClient.post<ApiSingleResponse<AlertSchedule>>(
       endpoints.alertportScheduleUpdate,
-      { alertOccurrence: true, ...payload },
+      { alertOccurrence: true, ...rest },
     );
     return data;
   },

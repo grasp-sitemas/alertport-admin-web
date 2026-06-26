@@ -187,6 +187,33 @@ export interface Company {
   siteCode?: string;
 }
 
+/**
+ * Per-account monitor configuration. Mirrors the legacy
+ * `company-settings` document (ms-company `ctr-company-settings` →
+ * hp-shield-crud `dao-company-settings`). The wire shape is the settings
+ * object itself, wrapped in the standard `{ status, result }` envelope.
+ *
+ * `eventTimeWindowHours` is `null` when the account uses the system
+ * default (eventos não são filtrados por idade); a positive integer means
+ * events older than that many hours are hidden from the monitor.
+ */
+export interface MonitorEventFilter {
+  type: string;
+  enabled: boolean;
+}
+
+export interface CompanySettings {
+  _id?: string;
+  account?: string;
+  status?: 'ACTIVE' | 'ARCHIVED';
+  monitor?: {
+    eventFilters?: MonitorEventFilter[];
+    eventTimeWindowHours?: number | null;
+    callRecordingEnabled?: boolean;
+  };
+  isDefault?: boolean;
+}
+
 export interface CompanyFormData {
   _id?: string;
   name: string;

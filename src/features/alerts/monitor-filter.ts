@@ -6,13 +6,13 @@ import {
   type AttendanceState,
 } from './attendance-state';
 
+// AlertPort não rastreia rondas JWM (INCIDENT, CRASH, CANCEL_PATROL,
+// FAILURE_PATROL), então esses tipos saem do dropdown de filtro. Eles
+// permanecem na union EventType (backend ainda pode enviá-los) e nos
+// metadados do card para renderização caso cheguem.
 export const MONITOR_EVENT_TYPES: EventType[] = [
   'SOS_ALERT',
-  'INCIDENT',
-  'CRASH',
   'LOWVOLTAGE',
-  'CANCEL_PATROL',
-  'FAILURE_PATROL',
   'OCCURRENCE_MISSED',
   'DEVICE_AC_LOST',
   'DEVICE_AC_RESTORED',
@@ -57,15 +57,59 @@ const CATEGORY_TO_EVENT_TYPES: Record<MonitorCategory, EventType[]> = {
   TIME_TRACKING: [],
 };
 
+/**
+ * "In progress (either operator)" — a status group selectable from the
+ * tag row that matches both IN_PROGRESS_BY_ME and IN_PROGRESS_BY_OTHER.
+ * Kept separate from the single AttendanceState values so the existing
+ * status dropdown (which selects one concrete state) is unaffected.
+ */
+export const IN_PROGRESS_GROUP = 'IN_PROGRESS' as const;
+export type MonitorStatusFilter = AttendanceState | typeof IN_PROGRESS_GROUP | '';
+
 export interface MonitorClientFilters {
   /** Free-text search, case-insensitive. Empty string matches everything. */
   q: string;
   /** Single event type or empty string for all. */
   type: EventType | '';
-  /** Attendance state or empty string for all. */
-  status: AttendanceState | '';
+  /**
+   * Attendance state, the IN_PROGRESS group (either operator) or empty
+   * string for all.
+   */
+  status: MonitorStatusFilter;
   /** High-level category or empty string for all. */
   category: MonitorCategory | '';
+}
+
+/**
+ * Quick-filter tags shown above the monitor list (replacing the old
+ * Categoria dropdown). Single-select; clicking the active tag clears it.
+ *   - SOS         → category 'SOS'
+ *   - AVAILABLE   → attendance status AVAILABLE (disponível p/ atendimento)
+ *   - IN_PROGRESS → either IN_PROGRESS_BY_ME or IN_PROGRESS_BY_OTHER
+ */
+export type MonitorTag = 'SOS' | 'AVAILABLE' | 'IN_PROGRESS';
+
+export const MONITOR_TAGS: MonitorTag[] = ['SOS', 'AVAILABLE', 'IN_PROGRESS'];
+
+/**
+ * Translate a quick-filter tag into the `category` / `status` slice of
+ * {@link MonitorClientFilters}. Reuses the existing filter primitives so
+ * {@link filterMonitorEvents} keeps a single code path.
+ */
+export function tagToFilters(tag: MonitorTag | ''): {
+  category: MonitorCategory | '';
+  status: MonitorStatusFilter;
+} {
+  switch (tag) {
+    case 'SOS':
+      return { category: 'SOS', status: '' };
+    case 'AVAILABLE':
+      return { category: '', status: 'AVAILABLE' };
+    case 'IN_PROGRESS':
+      return { category: '', status: IN_PROGRESS_GROUP };
+    default:
+      return { category: '', status: '' };
+  }
 }
 
 function asName(obj: unknown): string {
@@ -125,7 +169,12 @@ export function filterMonitorEvents(
     if (filters.type && event.type !== filters.type) continue;
     if (filters.status) {
       const state = classifyAttendance(event, currentUserId);
-      if (state !== filters.status) continue;
+      if (filters.status === IN_PROGRESS_GROUP) {
+        // "Em atendimento" tag — match either operator's claim.
+        if (state !== 'IN_PROGRESS_BY_ME' && state !== 'IN_PROGRESS_BY_OTHER') continue;
+      } else if (state !== filters.status) {
+        continue;
+      }
     }
     if (q) {
       const haystack = buildHaystack(event, typeLabelFor(event.type));

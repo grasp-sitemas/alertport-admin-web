@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Save, Building2, Search } from 'lucide-react';
+import { Save, Building2, Search, SlidersHorizontal, Clock } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,8 @@ import {
 import { RoleGuard } from '@/components/shared/role-guard';
 import { ModuleGuard } from '@/components/shared/module-guard';
 import { companyService } from '@/services/company.service';
+import { CompanySettingsDialog } from '@/features/company/company-settings-dialog';
+import { useAuth } from '@/hooks/use-auth';
 import { companyFormSchema, type CompanyFormValues } from '@/features/company/schemas';
 import { useCepLookup } from '@/hooks/use-cep-lookup';
 import type { Company, User } from '@/types/api';
@@ -65,6 +67,15 @@ function pickOwnEntity(me: User | undefined | null): Company | null {
 export default function CompanyPage() {
   const t = useTranslations();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  // Only account admins (and masters administering them) can edit the
+  // monitor settings — the backend `saveOrUpdate` is ADMIN-gated, so we
+  // hide the trigger for roles that would only get a 403.
+  const canEditMonitorSettings =
+    user?.companyUser?.subtype === 'SUPER_ADMIN_MASTER' ||
+    user?.companyUser?.subtype === 'ADMIN_MASTER' ||
+    user?.companyUser?.subtype === 'ADMIN';
 
   const meQuery = useQuery({
     queryKey: ['me'],
@@ -181,225 +192,244 @@ export default function CompanyPage() {
   }
 
   if (!company) {
-    return <div className="text-text-secondary text-center py-20">{t('common.noData')}</div>;
+    return <div className="text-text-secondary py-20 text-center">{t('common.noData')}</div>;
   }
 
   return (
-    <RoleGuard
-      roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}
-    >
+    <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}>
       <ModuleGuard moduleKey="COMPANY_SETTINGS">
-      <div className="space-y-6">
-        <PageHeader title={t('company.title')} description={t('company.companyInfo')} />
+        <div className="space-y-6">
+          <PageHeader title={t('company.title')} description={t('company.companyInfo')} />
 
-        <form
-          onSubmit={handleSubmit((data) => mutation.mutate(data))}
-          className="space-y-6"
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-brand-500" />
-                {t('company.companyInfo')}
-              </CardTitle>
-              <CardDescription>{t('company.editCompany')}</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="sm:col-span-2">
-                <PhotoUpload
-                  value={logoFile}
-                  previewUrl={watch('logoURL')}
-                  onChange={(file) => {
-                    setLogoFile(file);
-                    if (!file) setValue('logoURL', '');
-                  }}
-                  label={t('common.logo')}
-                  shape="rect"
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label>{t('company.companyName')}</Label>
-                <Input {...register('name')} />
-                {errors.name && (
-                  <p className="text-xs text-red-400">{t(errors.name.message as string)}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label>{t('company.fantasyName')}</Label>
-                <Input {...register('fantasyName')} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('company.personType')}</Label>
-                <Controller
-                  control={control}
-                  name="personType"
-                  render={({ field }) => (
-                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="LEGAL">{t('company.legal')}</SelectItem>
-                        <SelectItem value="PHYSICAL">{t('company.physical')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('company.document')}</Label>
-                <Input {...register('document')} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('common.email')}</Label>
-                <Input type="email" {...register('email')} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('common.phone')}</Label>
-                <Input
-                  inputMode="tel"
-                  autoComplete="tel"
-                  placeholder="(11) 99999-9999"
-                  maxLength={16}
-                  value={maskPhoneBR(watch('primaryPhone') ?? '')}
-                  onChange={(e) =>
-                    setValue('primaryPhone', e.target.value.replace(/\D/g, ''), {
-                      shouldValidate: false,
-                    })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('company.secondaryPhone')}</Label>
-                <Input
-                  inputMode="tel"
-                  autoComplete="tel"
-                  placeholder="(11) 99999-9999"
-                  maxLength={16}
-                  value={maskPhoneBR(watch('secondaryPhone') ?? '')}
-                  onChange={(e) =>
-                    setValue('secondaryPhone', e.target.value.replace(/\D/g, ''), {
-                      shouldValidate: false,
-                    })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('common.status')}</Label>
-                <Controller
-                  control={control}
-                  name="status"
-                  render={({ field }) => (
-                    <Select value={field.value ?? 'ACTIVE'} onValueChange={field.onChange}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ACTIVE">{t('common.active')}</SelectItem>
-                        <SelectItem value="ARCHIVED">{t('common.archived')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label>{t('company.timezone')}</Label>
-                <Controller
-                  control={control}
-                  name="timezone"
-                  render={({ field }) => (
-                    <TimezoneSelect
-                      value={field.value ?? ''}
-                      onChange={field.onChange}
-                      datalistId="company-own-tz"
-                      name={field.name}
-                    />
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
+          {canEditMonitorSettings && (
+            <Card>
+              <CardHeader>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <SlidersHorizontal className="text-brand-500 h-4 w-4" />
+                      {t('company.monitorSettings')}
+                    </CardTitle>
+                    <CardDescription>{t('company.eventTimeWindowHint')}</CardDescription>
+                  </div>
+                  <Button type="button" variant="secondary" onClick={() => setSettingsOpen(true)}>
+                    <Clock className="h-4 w-4" />
+                    {t('company.monitorSettings')}
+                  </Button>
+                </div>
+              </CardHeader>
+            </Card>
+          )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('common.address')}</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>{t('sites.cep')}</Label>
-                <div className="flex gap-2">
-                  <Controller
-                    control={control}
-                    name="address.cep"
-                    render={({ field }) => (
-                      <Input
-                        value={field.value ?? ''}
-                        placeholder="00000-000"
-                        onChange={(e) => {
-                          field.onChange(e.target.value);
-                          cep.lookupIfComplete(e.target.value);
-                        }}
-                        onBlur={(e) => cep.lookupIfComplete(e.target.value)}
-                      />
-                    )}
+          <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="text-brand-500 h-4 w-4" />
+                  {t('company.companyInfo')}
+                </CardTitle>
+                <CardDescription>{t('company.editCompany')}</CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <PhotoUpload
+                    value={logoFile}
+                    previewUrl={watch('logoURL')}
+                    onChange={(file) => {
+                      setLogoFile(file);
+                      if (!file) setValue('logoURL', '');
+                    }}
+                    label={t('common.logo')}
+                    shape="rect"
                   />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>{t('company.companyName')}</Label>
+                  <Input {...register('name')} />
+                  {errors.name && (
+                    <p className="text-xs text-red-400">{t(errors.name.message as string)}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('company.fantasyName')}</Label>
+                  <Input {...register('fantasyName')} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('company.personType')}</Label>
                   <Controller
                     control={control}
-                    name="address.cep"
+                    name="personType"
                     render={({ field }) => (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        onClick={() => field.value && cep.lookup(field.value)}
-                        disabled={!field.value || cep.isLoading}
-                        aria-label={t('common.search')}
-                      >
-                        <Search className="h-4 w-4" />
-                      </Button>
+                      <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="LEGAL">{t('company.legal')}</SelectItem>
+                          <SelectItem value="PHYSICAL">{t('company.physical')}</SelectItem>
+                        </SelectContent>
+                      </Select>
                     )}
                   />
                 </div>
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label>{t('sites.street')}</Label>
-                <Input {...register('address.address')} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('sites.number')}</Label>
-                <Input {...register('address.number')} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('sites.complement')}</Label>
-                <Input {...register('address.complement')} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('sites.neighborhood')}</Label>
-                <Input {...register('address.neighborhood')} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('sites.city')}</Label>
-                <Input {...register('address.city')} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('sites.state')}</Label>
-                <Input {...register('address.state')} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('sites.country')}</Label>
-                <Input {...register('address.country')} />
-              </div>
-            </CardContent>
-          </Card>
+                <div className="space-y-2">
+                  <Label>{t('company.document')}</Label>
+                  <Input {...register('document')} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('common.email')}</Label>
+                  <Input type="email" {...register('email')} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('common.phone')}</Label>
+                  <Input
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="(11) 99999-9999"
+                    maxLength={16}
+                    value={maskPhoneBR(watch('primaryPhone') ?? '')}
+                    onChange={(e) =>
+                      setValue('primaryPhone', e.target.value.replace(/\D/g, ''), {
+                        shouldValidate: false,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('company.secondaryPhone')}</Label>
+                  <Input
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="(11) 99999-9999"
+                    maxLength={16}
+                    value={maskPhoneBR(watch('secondaryPhone') ?? '')}
+                    onChange={(e) =>
+                      setValue('secondaryPhone', e.target.value.replace(/\D/g, ''), {
+                        shouldValidate: false,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('common.status')}</Label>
+                  <Controller
+                    control={control}
+                    name="status"
+                    render={({ field }) => (
+                      <Select value={field.value ?? 'ACTIVE'} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ACTIVE">{t('common.active')}</SelectItem>
+                          <SelectItem value="ARCHIVED">{t('common.archived')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>{t('company.timezone')}</Label>
+                  <Controller
+                    control={control}
+                    name="timezone"
+                    render={({ field }) => (
+                      <TimezoneSelect
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        datalistId="company-own-tz"
+                        name={field.name}
+                      />
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-          <div className="flex justify-end">
-            <Button type="submit" disabled={isSubmitting || mutation.isPending}>
-              <Save className="h-4 w-4" />
-              {isSubmitting || mutation.isPending ? t('common.loading') : t('common.save')}
-            </Button>
-          </div>
-        </form>
-      </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('common.address')}</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <Label>{t('sites.cep')}</Label>
+                  <div className="flex gap-2">
+                    <Controller
+                      control={control}
+                      name="address.cep"
+                      render={({ field }) => (
+                        <Input
+                          value={field.value ?? ''}
+                          placeholder="00000-000"
+                          onChange={(e) => {
+                            field.onChange(e.target.value);
+                            cep.lookupIfComplete(e.target.value);
+                          }}
+                          onBlur={(e) => cep.lookupIfComplete(e.target.value)}
+                        />
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="address.cep"
+                      render={({ field }) => (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          onClick={() => field.value && cep.lookup(field.value)}
+                          disabled={!field.value || cep.isLoading}
+                          aria-label={t('common.search')}
+                        >
+                          <Search className="h-4 w-4" />
+                        </Button>
+                      )}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>{t('sites.street')}</Label>
+                  <Input {...register('address.address')} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('sites.number')}</Label>
+                  <Input {...register('address.number')} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('sites.complement')}</Label>
+                  <Input {...register('address.complement')} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('sites.neighborhood')}</Label>
+                  <Input {...register('address.neighborhood')} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('sites.city')}</Label>
+                  <Input {...register('address.city')} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('sites.state')}</Label>
+                  <Input {...register('address.state')} />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('sites.country')}</Label>
+                  <Input {...register('address.country')} />
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-end">
+              <Button type="submit" disabled={isSubmitting || mutation.isPending}>
+                <Save className="h-4 w-4" />
+                {isSubmitting || mutation.isPending ? t('common.loading') : t('common.save')}
+              </Button>
+            </div>
+          </form>
+
+          {canEditMonitorSettings && (
+            <CompanySettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+          )}
+        </div>
       </ModuleGuard>
     </RoleGuard>
   );
