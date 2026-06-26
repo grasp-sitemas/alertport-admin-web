@@ -51,6 +51,9 @@ const EVENT_META: Record<
   CANCEL_PATROL: { labelKey: 'alerts.cancelPatrol', accent: 'info' },
   FAILURE_PATROL: { labelKey: 'alerts.failurePatrol', accent: 'warning' },
   OCCURRENCE_MISSED: { labelKey: 'alerts.occurrenceMissed', accent: 'warning' },
+  DEVICE_AC_LOST: { labelKey: 'alerts.deviceAcLost', accent: 'warning' },
+  DEVICE_AC_RESTORED: { labelKey: 'alerts.deviceAcRestored', accent: 'info' },
+  DEVICE_BATTERY_LOW: { labelKey: 'alerts.deviceBatteryLow', accent: 'warning' },
 };
 
 interface Props {

@@ -369,7 +369,13 @@ export type EventType =
   // AlertPort: criado pelo backend (ms-patrolhub) quando uma AlertOccurrence
   // expira sem ser atendida no device. Aparece no monitor e segue o mesmo
   // fluxo de attendance do SOS.
-  | 'OCCURRENCE_MISSED';
+  | 'OCCURRENCE_MISSED'
+  // AlertPort: eventos de energia/bateria emitidos pelo backend (PatrolAction.type).
+  // DEVICE_AC_LOST = perda de energia AC · DEVICE_AC_RESTORED = energia restaurada ·
+  // DEVICE_BATTERY_LOW = bateria baixa.
+  | 'DEVICE_AC_LOST'
+  | 'DEVICE_AC_RESTORED'
+  | 'DEVICE_BATTERY_LOW';
 
 // Attendance flag lifecycle as stored on the patrol-action itself (legacy contract).
 export type AttendanceFlagStatus = 'IN_PROGRESS' | 'CLOSED';

@@ -599,11 +599,15 @@
     "cancelPatrol": "取消巡逻",
     "failurePatrol": "巡逻失败",
     "occurrenceMissed": "未处理的发生警报",
+    "deviceAcLost": "断电",
+    "deviceAcRestored": "电源恢复",
+    "deviceBatteryLow": "电量低",
     "type": "类型",
     "category": "类别",
     "categories": {
       "sos": "SOS",
       "occurrenceMissed": "未处理警报",
+      "powerEvent": "电源",
       "timeTracking": "考勤管理"
     },
     "maxDateRange": "最大日期范围为30天",
