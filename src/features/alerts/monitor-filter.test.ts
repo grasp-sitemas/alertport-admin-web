@@ -34,6 +34,35 @@ describe('MONITOR_EVENT_TYPES', () => {
     // Assert
     expect(present).toBe(true);
   });
+
+  test('excludes the JWM patrol types AlertPort does not track', () => {
+    // Arrange
+    const jwmPatrolTypes: EventType[] = ['INCIDENT', 'CRASH', 'CANCEL_PATROL', 'FAILURE_PATROL'];
+
+    // Act
+    const anyPresent = jwmPatrolTypes.some((type) => MONITOR_EVENT_TYPES.includes(type));
+
+    // Assert
+    expect(anyPresent).toBe(false);
+  });
+
+  test('keeps the supported AlertPort event types', () => {
+    // Arrange
+    const supported: EventType[] = [
+      'SOS_ALERT',
+      'LOWVOLTAGE',
+      'OCCURRENCE_MISSED',
+      'DEVICE_AC_LOST',
+      'DEVICE_AC_RESTORED',
+      'DEVICE_BATTERY_LOW',
+    ];
+
+    // Act
+    const allPresent = supported.every((type) => MONITOR_EVENT_TYPES.includes(type));
+
+    // Assert
+    expect(allPresent).toBe(true);
+  });
 });
 
 describe('MONITOR_CATEGORIES', () => {

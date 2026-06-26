@@ -275,8 +275,8 @@
       },
       "statusValue": {
         "PENDING": "待处理",
-        "RESPONDED": "已响应",
-        "MISSED": "漏失",
+        "RESPONDED": "已处置",
+        "MISSED": "未处置",
         "EXPIRED": "已过期"
       }
     },
@@ -310,7 +310,7 @@
         "avgResponseTime": "平均响应时长"
       },
       "statusValue": {
-        "IN_PROGRESS": "处理中",
+        "IN_PROGRESS": "处置中",
         "CLOSED": "已结束",
         "UNATTENDED": "未处置"
       }
@@ -604,6 +604,11 @@
     "deviceBatteryLow": "电量低",
     "type": "类型",
     "category": "类别",
+    "tagSos": "SOS 警报",
+    "tagAvailable": "可处置",
+    "tagInProgress": "处置中",
+    "offlineDevices": "离线设备",
+    "offlineDevicesEmpty": "当前没有离线设备",
     "categories": {
       "sos": "SOS",
       "occurrenceMissed": "未处理警报",
@@ -803,6 +808,10 @@
   },
   "company": {
     "title": "公司",
+    "monitorSettings": "监控设置",
+    "eventTimeWindowHours": "事件时间窗口（小时）",
+    "eventTimeWindowHint": "早于此时间的事件不会显示在监控中",
+    "eventTimeWindowInvalid": "请输入 1 到 24 之间的整数",
     "editCompany": "编辑公司",
     "companyInfo": "公司信息",
     "companyName": "公司名称",

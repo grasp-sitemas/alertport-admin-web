@@ -275,8 +275,8 @@
       },
       "statusValue": {
         "PENDING": "Pending",
-        "RESPONDED": "Responded",
-        "MISSED": "Missed",
+        "RESPONDED": "Processed",
+        "MISSED": "Not Processed",
         "EXPIRED": "Expired"
       }
     },
@@ -312,7 +312,7 @@
       "statusValue": {
         "IN_PROGRESS": "In progress",
         "CLOSED": "Closed",
-        "UNATTENDED": "Unattended"
+        "UNATTENDED": "Not Processed"
       }
     },
     "sla": {
@@ -332,7 +332,7 @@
       "statusValue": {
         "IN_PROGRESS": "In progress",
         "CLOSED": "Closed",
-        "UNATTENDED": "Unattended"
+        "UNATTENDED": "Not Processed"
       },
       "kpi": {
         "compliance": "SLA Compliance",
@@ -371,8 +371,8 @@
         "SOS_ALERT": "SOS"
       },
       "statusValue": {
-        "attended": "Attended",
-        "not_attended": "Not attended"
+        "attended": "Processed",
+        "not_attended": "Not Processed"
       },
       "kpi": {
         "total": "Total notifications",
@@ -401,8 +401,8 @@
       },
       "statusValue": {
         "PENDING": "Pending",
-        "RESPONDED": "Attended",
-        "MISSED": "Not attended",
+        "RESPONDED": "Processed",
+        "MISSED": "Not Processed",
         "EXPIRED": "Expired"
       },
       "kpi": {
@@ -604,6 +604,11 @@
     "deviceBatteryLow": "Low Battery",
     "type": "Type",
     "category": "Category",
+    "tagSos": "SOS Alerts",
+    "tagAvailable": "Available for Attendance",
+    "tagInProgress": "In Attendance",
+    "offlineDevices": "Offline devices",
+    "offlineDevicesEmpty": "No offline devices at the moment",
     "categories": {
       "sos": "SOS",
       "occurrenceMissed": "Missed alert",
@@ -803,6 +808,10 @@
   },
   "company": {
     "title": "Company",
+    "monitorSettings": "Monitor Settings",
+    "eventTimeWindowHours": "Event time window (hours)",
+    "eventTimeWindowHint": "Events older than this do not appear in the monitor",
+    "eventTimeWindowInvalid": "Enter a whole number between 1 and 24",
     "editCompany": "Edit Company",
     "companyInfo": "Company Information",
     "companyName": "Company Name",

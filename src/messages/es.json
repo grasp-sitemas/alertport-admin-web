@@ -276,7 +276,7 @@
       "statusValue": {
         "PENDING": "Pendiente",
         "RESPONDED": "Atendido",
-        "MISSED": "Perdido",
+        "MISSED": "No atendido",
         "EXPIRED": "Expirado"
       }
     },
@@ -332,7 +332,7 @@
       "statusValue": {
         "IN_PROGRESS": "En curso",
         "CLOSED": "Cerrado",
-        "UNATTENDED": "Sin atender"
+        "UNATTENDED": "No atendido"
       },
       "kpi": {
         "compliance": "SLA Compliance",
@@ -401,9 +401,9 @@
       },
       "statusValue": {
         "PENDING": "Pendiente",
-        "RESPONDED": "Atendida",
-        "MISSED": "No atendida",
-        "EXPIRED": "Expirada"
+        "RESPONDED": "Atendido",
+        "MISSED": "No atendido",
+        "EXPIRED": "Expirado"
       },
       "kpi": {
         "total": "Total de alertas",
@@ -604,6 +604,11 @@
     "deviceBatteryLow": "Batería Baja",
     "type": "Tipo",
     "category": "Categoría",
+    "tagSos": "Alertas SOS",
+    "tagAvailable": "Disponible para Atención",
+    "tagInProgress": "En Atención",
+    "offlineDevices": "Dispositivos sin conexión",
+    "offlineDevicesEmpty": "No hay dispositivos sin conexión en este momento",
     "categories": {
       "sos": "SOS",
       "occurrenceMissed": "Alerta no atendida",
@@ -803,6 +808,10 @@
   },
   "company": {
     "title": "Empresa",
+    "monitorSettings": "Configuración del Monitor",
+    "eventTimeWindowHours": "Ventana de tiempo de eventos (horas)",
+    "eventTimeWindowHint": "Los eventos más antiguos que esto no aparecen en el monitor",
+    "eventTimeWindowInvalid": "Ingrese un número entero entre 1 y 24",
     "editCompany": "Editar Empresa",
     "companyInfo": "Información de la Empresa",
     "companyName": "Razón Social",

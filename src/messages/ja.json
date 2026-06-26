@@ -275,7 +275,7 @@
       },
       "statusValue": {
         "PENDING": "保留中",
-        "RESPONDED": "対応済",
+        "RESPONDED": "対応済み",
         "MISSED": "未対応",
         "EXPIRED": "期限切れ"
       }
@@ -310,7 +310,7 @@
         "avgResponseTime": "平均応答時間"
       },
       "statusValue": {
-        "IN_PROGRESS": "進行中",
+        "IN_PROGRESS": "対応中",
         "CLOSED": "終了",
         "UNATTENDED": "未対応"
       }
@@ -400,7 +400,7 @@
         "pending": "保留"
       },
       "statusValue": {
-        "PENDING": "保留",
+        "PENDING": "保留中",
         "RESPONDED": "対応済み",
         "MISSED": "未対応",
         "EXPIRED": "期限切れ"
@@ -604,6 +604,11 @@
     "deviceBatteryLow": "バッテリー残量低下",
     "type": "種別",
     "category": "カテゴリ",
+    "tagSos": "SOSアラート",
+    "tagAvailable": "対応可能",
+    "tagInProgress": "対応中",
+    "offlineDevices": "オフラインのデバイス",
+    "offlineDevicesEmpty": "現在オフラインのデバイスはありません",
     "categories": {
       "sos": "SOS",
       "occurrenceMissed": "未対応アラート",
@@ -803,6 +808,10 @@
   },
   "company": {
     "title": "会社",
+    "monitorSettings": "モニター設定",
+    "eventTimeWindowHours": "イベント表示期間（時間）",
+    "eventTimeWindowHint": "これより古いイベントはモニターに表示されません",
+    "eventTimeWindowInvalid": "1〜24の整数を入力してください",
     "editCompany": "会社編集",
     "companyInfo": "会社情報",
     "companyName": "会社名",

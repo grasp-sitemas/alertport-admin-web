@@ -276,7 +276,7 @@
       "statusValue": {
         "PENDING": "Pendente",
         "RESPONDED": "Atendido",
-        "MISSED": "Perdido",
+        "MISSED": "Não atendido",
         "EXPIRED": "Expirado"
       }
     },
@@ -604,6 +604,11 @@
     "deviceBatteryLow": "Bateria Baixa",
     "type": "Tipo",
     "category": "Categoria",
+    "tagSos": "Alertas SOS",
+    "tagAvailable": "Disponível para Atendimento",
+    "tagInProgress": "Em Atendimento",
+    "offlineDevices": "Dispositivos offline",
+    "offlineDevicesEmpty": "Nenhum dispositivo offline no momento",
     "categories": {
       "sos": "SOS",
       "occurrenceMissed": "Alerta não atendido",
@@ -803,6 +808,10 @@
   },
   "company": {
     "title": "Empresa",
+    "monitorSettings": "Configurações do Monitor",
+    "eventTimeWindowHours": "Janela de tempo dos eventos (horas)",
+    "eventTimeWindowHint": "Eventos mais antigos que isto não aparecem no monitor",
+    "eventTimeWindowInvalid": "Informe um número inteiro entre 1 e 24",
     "editCompany": "Editar Empresa",
     "companyInfo": "Informações da Empresa",
     "companyName": "Razão Social",

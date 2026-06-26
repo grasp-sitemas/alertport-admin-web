@@ -41,13 +41,15 @@ import { VirtualizedEventList } from '@/features/alerts/virtualized-event-list';
 import { classifyAttendance, type AttendanceState } from '@/features/alerts/attendance-state';
 import { resolveDeepLinkTarget } from '@/features/alerts/monitor-deep-link';
 import {
-  MONITOR_CATEGORIES,
   MONITOR_EVENT_TYPES,
   MONITOR_STATUS_VALUES,
   filterMonitorEvents,
-  type MonitorCategory,
+  tagToFilters,
   type MonitorClientFilters,
+  type MonitorTag,
 } from '@/features/alerts/monitor-filter';
+import { MonitorFilterTags } from '@/features/alerts/monitor-filter-tags';
+import { OfflineDevicesPanel } from '@/features/alerts/offline-devices-panel';
 
 /**
  * Window the card-level highlight ("flash") stays on after a new event
@@ -79,7 +81,6 @@ interface DraftFilters {
   endDate: string;
   type: EventType | '';
   status: AttendanceState | '';
-  category: MonitorCategory | '';
 }
 
 const EMPTY_DRAFT_FILTERS: DraftFilters = {
@@ -87,28 +88,22 @@ const EMPTY_DRAFT_FILTERS: DraftFilters = {
   endDate: '',
   type: '',
   status: '',
-  category: '',
-};
-
-const CATEGORY_LABEL_KEYS: Record<MonitorCategory, string> = {
-  SOS: 'alerts.categories.sos',
-  OCCURRENCE_MISSED: 'alerts.categories.occurrenceMissed',
-  POWER_EVENT: 'alerts.categories.powerEvent',
-  TIME_TRACKING: 'alerts.categories.timeTracking',
 };
 
 /**
  * i18n keys mirrored from {@link MonitorEventCard}'s EVENT_META so the
  * filter Select options and the card labels stay in sync without
  * exporting internal state between the two modules.
+ *
+ * JWM patrol types (INCIDENT, CRASH, CANCEL_PATROL, FAILURE_PATROL) are
+ * intentionally absent — AlertPort não os rastreia, então saíram do
+ * dropdown de filtro. O card ({@link MonitorEventCard}) ainda os
+ * renderiza caso o backend os envie. Partial porque a union EventType
+ * mantém esses tipos.
  */
-const EVENT_TYPE_LABEL_KEYS: Record<EventType, string> = {
+const EVENT_TYPE_LABEL_KEYS: Partial<Record<EventType, string>> = {
   SOS_ALERT: 'alerts.sosAlert',
-  INCIDENT: 'alerts.incident',
-  CRASH: 'alerts.crash',
   LOWVOLTAGE: 'alerts.lowVoltage',
-  CANCEL_PATROL: 'alerts.cancelPatrol',
-  FAILURE_PATROL: 'alerts.failurePatrol',
   OCCURRENCE_MISSED: 'alerts.occurrenceMissed',
   DEVICE_AC_LOST: 'alerts.deviceAcLost',
   DEVICE_AC_RESTORED: 'alerts.deviceAcRestored',
@@ -186,6 +181,13 @@ function AlertMonitor() {
   // scan a large queue without triggering round-trips.
   const [searchText, setSearchText] = useState('');
 
+  // Quick-filter tag (Alertas SOS / Disponível para Atendimento / Em
+  // Atendimento). Replaces the legacy Categoria dropdown. Single-select and
+  // instant (like the search box) - it live-filters the loaded events
+  // without a refetch. The tag maps onto the existing category/status
+  // filter primitives via `tagToFilters`.
+  const [activeTag, setActiveTag] = useState<MonitorTag | ''>('');
+
   const patrolQuery = usePatrolActionsForMonitor({
     ...applyUserScope(
       {
@@ -236,15 +238,18 @@ function AlertMonitor() {
     [t],
   );
 
-  const clientFilters = useMemo<MonitorClientFilters>(
-    () => ({
+  const clientFilters = useMemo<MonitorClientFilters>(() => {
+    // The quick-filter tag drives category + status. When a tag is active
+    // it takes precedence over the status dropdown so the two controls
+    // never fight over `status`. With no tag, fall back to the dropdown.
+    const tagFilters = tagToFilters(activeTag);
+    return {
       q: searchText,
       type: activeFilters.type,
-      status: activeFilters.status,
-      category: activeFilters.category,
-    }),
-    [searchText, activeFilters.type, activeFilters.status, activeFilters.category],
-  );
+      status: activeTag ? tagFilters.status : activeFilters.status,
+      category: tagFilters.category,
+    };
+  }, [searchText, activeFilters.type, activeFilters.status, activeTag]);
 
   const filteredEvents = useMemo(
     () => filterMonitorEvents(events, clientFilters, currentUserId, typeLabelFor),
@@ -258,18 +263,6 @@ function AlertMonitor() {
     !!clientFilters.type ||
     !!clientFilters.status ||
     !!clientFilters.category;
-
-  // Categorias disponíveis no filtro respeitam módulos da empresa.
-  // - TIME_TRACKING só aparece se TIME_ENTRIES habilitado.
-  // - OCCURRENCE_MISSED depende do módulo MONITOR (já gateado pelo
-  //   ModuleGuard da página, mas mantemos coerência).
-  // SAM (super admin) vê tudo via isModuleEnabled().
-  const availableCategories = useMemo<MonitorCategory[]>(() => {
-    return MONITOR_CATEGORIES.filter((cat) => {
-      if (cat === 'TIME_TRACKING') return timeEntriesModuleEnabled;
-      return true;
-    });
-  }, [timeEntriesModuleEnabled]);
 
   // When another operator claims/closes the event this dialog is showing,
   // the `events` list refreshes but the `attendanceEvent` state still holds
@@ -330,6 +323,7 @@ function AlertMonitor() {
     setDraftFilters(EMPTY_DRAFT_FILTERS);
     setActiveFilters(EMPTY_DRAFT_FILTERS);
     setSearchText('');
+    setActiveTag('');
   }, []);
 
   const handleSearch = useCallback(() => {
@@ -463,21 +457,12 @@ function AlertMonitor() {
           { key: 'startDate', labelKey: 'common.startDate', type: 'date' },
           { key: 'endDate', labelKey: 'common.endDate', type: 'date' },
           {
-            key: 'category',
-            labelKey: 'alerts.category',
-            type: 'select',
-            options: availableCategories.map((value) => ({
-              value,
-              label: t(CATEGORY_LABEL_KEYS[value]),
-            })),
-          },
-          {
             key: 'type',
             labelKey: 'alerts.type',
             type: 'select',
             options: MONITOR_EVENT_TYPES.map((value) => ({
               value,
-              label: t(EVENT_TYPE_LABEL_KEYS[value]),
+              label: t(EVENT_TYPE_LABEL_KEYS[value] ?? 'common.info'),
             })),
           },
           {
@@ -495,6 +480,13 @@ function AlertMonitor() {
         onSearch={handleSearch}
         onClear={handleClearFilters}
       />
+
+      <MonitorFilterTags value={activeTag} onChange={setActiveTag} />
+
+      {/* Best-effort live presence. Renders only when the chat socket is
+          available (call modules enabled); otherwise `call` is null and the
+          panel hides itself. Not historical — ms-chat keeps no lastSeen. */}
+      <OfflineDevicesPanel onlineUserIds={call?.onlineUsers} />
 
       <MonitorKpiGrid
         eventsCount={events.length}
