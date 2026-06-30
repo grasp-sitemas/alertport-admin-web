@@ -6,7 +6,7 @@ Coleções assinadas em `src/features/alerts/realtime.ts`:
 
 | Coleção | Uso |
 |---|---|
-| `notifications/{siteId}` | SOS / INCIDENT / CRASH / LOWVOLTAGE / TIME_ENTRY — filtra `source === 'ALERTPORT'` |
+| `notifications/{siteId}` | SOS / INCIDENT / CRASH / LOWVOLTAGE / TIME_ENTRY / DEVICE_AC_LOST / DEVICE_AC_RESTORED / DEVICE_BATTERY_LOW — filtra `source === 'ALERTPORT'` |
 | `updatedMedias/{siteId}` | Foto/assinatura/áudio push |
 | `updateAttendanceEvent/{siteGroupId}` | Update de atendimento ao vivo |
 | `updateCloseAttendanceEvent/{siteGroupId}` | Atendimento encerrado |

@@ -31,8 +31,19 @@ const EQUIPMENT_PAGE_SIZE = 200;
  * (falling back to `_id`). Mirror that here so presence cross-references
  * correctly. See alertport-app `resolveDeviceIdentity`.
  */
-function devicePresenceId(equipment: Equipment): string | null {
+export function devicePresenceId(equipment: Equipment): string | null {
   return equipment.uniqueId || equipment._id || null;
+}
+
+/**
+ * Race-guard for the equipment presence query. Only fetch when the live
+ * presence list is meaningfully populated: `undefined` hides the panel
+ * entirely, and an empty array is indeterminate — on first socket connect
+ * `onlineUserIds` is briefly `[]` before the server broadcasts `user:list`,
+ * so querying then would flag every device as offline momentarily.
+ */
+export function shouldQueryPresence(onlineUserIds: readonly string[] | undefined): boolean {
+  return Array.isArray(onlineUserIds) && onlineUserIds.length > 0;
 }
 
 function deviceName(equipment: Equipment): string {
@@ -69,12 +80,10 @@ export function OfflineDevicesPanel({ onlineUserIds }: OfflineDevicesPanelProps)
   const equipmentQuery = useQuery({
     queryKey: ['equipment', 'presence', queryParams],
     queryFn: () => equipmentService.filter(queryParams),
-    // Only fetch when presence is meaningfully populated. An empty array is
-    // indeterminate: on first socket connect `onlineUserIds` is briefly `[]`
-    // before the server broadcasts `user:list`, so firing here would flag
-    // every device as offline momentarily. Gating on length avoids that race
-    // (and `undefined` still hides the panel — see the early return below).
-    enabled: Array.isArray(onlineUserIds) && onlineUserIds.length > 0,
+    // Gate on presence being meaningfully populated (see shouldQueryPresence):
+    // `undefined` still hides the panel via the early return below; an empty
+    // array is the first-connect race we must not query through.
+    enabled: shouldQueryPresence(onlineUserIds),
     staleTime: 60 * 1000,
   });
 

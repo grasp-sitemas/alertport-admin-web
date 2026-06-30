@@ -1,11 +1,14 @@
 import { describe, expect, test } from 'vitest';
 import {
+  IN_PROGRESS_GROUP,
   MONITOR_CATEGORIES,
   MONITOR_EVENT_TYPES,
   filterMonitorEvents,
+  tagToFilters,
   type MonitorCategory,
   type MonitorClientFilters,
 } from './monitor-filter';
+import type { AttendanceState } from './attendance-state';
 import type { EventType, PatrolAction } from '@/types/api';
 
 const POWER_EVENT_TYPES: EventType[] = [
@@ -16,6 +19,42 @@ const POWER_EVENT_TYPES: EventType[] = [
 
 const makeEvent = (type: EventType): PatrolAction =>
   ({ _id: type, type }) as unknown as PatrolAction;
+
+/**
+ * Build a PatrolAction whose attendance object classifies into the given
+ * {@link AttendanceState} for the supplied operator. Mirrors the shape
+ * consumed by `classifyAttendance` (isAttendance + status + operator._id).
+ */
+const makeAttendanceEvent = (
+  state: AttendanceState,
+  id: string,
+  currentUserId = 'me',
+): PatrolAction => {
+  const base = { _id: id, type: 'SOS_ALERT' as EventType };
+  switch (state) {
+    case 'AVAILABLE':
+      return base as unknown as PatrolAction;
+    case 'CLOSED':
+      return {
+        ...base,
+        attendance: { isAttendance: true, status: 'CLOSED' },
+      } as unknown as PatrolAction;
+    case 'IN_PROGRESS_BY_ME':
+      return {
+        ...base,
+        attendance: { isAttendance: true, status: 'IN_PROGRESS', operator: { _id: currentUserId } },
+      } as unknown as PatrolAction;
+    case 'IN_PROGRESS_BY_OTHER':
+      return {
+        ...base,
+        attendance: {
+          isAttendance: true,
+          status: 'IN_PROGRESS',
+          operator: { _id: 'someone-else' },
+        },
+      } as unknown as PatrolAction;
+  }
+};
 
 const noLabel = (): string | undefined => undefined;
 
@@ -122,5 +161,67 @@ describe('filterMonitorEvents — POWER_EVENT category mapping', () => {
 
     // Assert
     expect(result.map((event) => event.type)).toEqual(['DEVICE_BATTERY_LOW']);
+  });
+});
+
+describe('tagToFilters', () => {
+  test("SOS tag → category 'SOS', no status", () => {
+    expect(tagToFilters('SOS')).toEqual({ category: 'SOS', status: '' });
+  });
+
+  test("AVAILABLE tag → status 'AVAILABLE', no category", () => {
+    expect(tagToFilters('AVAILABLE')).toEqual({ category: '', status: 'AVAILABLE' });
+  });
+
+  test('IN_PROGRESS tag → status group IN_PROGRESS, no category', () => {
+    expect(tagToFilters('IN_PROGRESS')).toEqual({ category: '', status: IN_PROGRESS_GROUP });
+  });
+
+  test('empty tag clears both category and status', () => {
+    expect(tagToFilters('')).toEqual({ category: '', status: '' });
+  });
+});
+
+describe('filterMonitorEvents — IN_PROGRESS_GROUP status filter', () => {
+  const currentUserId = 'me';
+
+  test('keeps both IN_PROGRESS_BY_ME and IN_PROGRESS_BY_OTHER, drops AVAILABLE/CLOSED', () => {
+    // Arrange
+    const events = [
+      makeAttendanceEvent('AVAILABLE', 'a', currentUserId),
+      makeAttendanceEvent('IN_PROGRESS_BY_ME', 'mine', currentUserId),
+      makeAttendanceEvent('IN_PROGRESS_BY_OTHER', 'theirs', currentUserId),
+      makeAttendanceEvent('CLOSED', 'done', currentUserId),
+    ];
+
+    // Act
+    const result = filterMonitorEvents(
+      events,
+      { ...baseFilters, status: IN_PROGRESS_GROUP },
+      currentUserId,
+      noLabel,
+    );
+
+    // Assert
+    expect(result.map((event) => event._id).sort()).toEqual(['mine', 'theirs']);
+  });
+
+  test('a single concrete status (IN_PROGRESS_BY_ME) does not match the other operator', () => {
+    // Arrange — the status dropdown selects one concrete state, unaffected by the group.
+    const events = [
+      makeAttendanceEvent('IN_PROGRESS_BY_ME', 'mine', currentUserId),
+      makeAttendanceEvent('IN_PROGRESS_BY_OTHER', 'theirs', currentUserId),
+    ];
+
+    // Act
+    const result = filterMonitorEvents(
+      events,
+      { ...baseFilters, status: 'IN_PROGRESS_BY_ME' },
+      currentUserId,
+      noLabel,
+    );
+
+    // Assert
+    expect(result.map((event) => event._id)).toEqual(['mine']);
   });
 });

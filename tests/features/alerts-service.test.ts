@@ -136,3 +136,109 @@ describe('alertsService attendance mutations', () => {
     });
   });
 });
+
+/**
+ * Bug C2 — editing ALL recurrences of an alert schedule must persist.
+ *
+ * The series-update endpoint (ms-schedule ctr-schedule.alertCheckUpdateSchedule)
+ * archives the old schedule and then CREATES a brand-new one through
+ * `crud.generic.saveOrUpdate(false, ...)`. That create path looks the doc up by
+ * primary key `_id`; if the outgoing payload still carries the existing
+ * schedule's `_id`, the backend finds the just-archived doc and aborts with
+ * `500 response.already.exists`. The replacement series is never written and the
+ * operator sees "does not save". The schedule id therefore MUST travel on
+ * `schedule` and the payload MUST NOT carry `_id`.
+ *
+ * The single-occurrence path (updateAppointmentOccurrence) is scoped by
+ * `appointment` in a different controller and is unaffected by `_id` — these
+ * tests lock that it keeps working unchanged.
+ */
+describe('alertsService schedule series vs occurrence updates', () => {
+  let post: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    post = vi
+      .spyOn(apiClient, 'post')
+      .mockResolvedValue({ data: { status: 200, result: {} } } as never);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const seriesPayload = {
+    _id: 'sched-existing-id',
+    schedule: 'sched-existing-id',
+    name: 'Series A',
+    account: 'acc1',
+    client: 'cli1',
+    site: 'site1',
+    equipment: 'eq1',
+    frequency: 'DAILY' as const,
+    category: 'ALERT_CHECK' as const,
+    beginDate: '2026-06-01',
+    endDate: '2026-06-30',
+    beginHour: '08:00',
+    endHour: '18:00',
+    status: 'ACTIVE' as const,
+    alertConfig: {
+      alertType: 'FIXED' as const,
+      fixedInterval: 30,
+      durationMin: 2,
+      volumeLevel: 80,
+    },
+  };
+
+  describe('updateScheduleSeries (edit-series)', () => {
+    it('POSTs to the AlertPort schedule-update endpoint', async () => {
+      await alertsService.updateScheduleSeries(seriesPayload);
+      expect(post.mock.calls[0][0]).toBe(endpoints.alertportScheduleUpdate);
+    });
+
+    it('strips `_id` so the backend create path does not hit response.already.exists', async () => {
+      await alertsService.updateScheduleSeries(seriesPayload);
+      const body = post.mock.calls[0][1] as AnyBody;
+      // The whole bug: a stale `_id` makes saveOrUpdate(false) abort. It must
+      // never reach the wire on a series update.
+      expect('_id' in body).toBe(false);
+    });
+
+    it('keeps the schedule id on `schedule` (NOT `_id`)', async () => {
+      await alertsService.updateScheduleSeries(seriesPayload);
+      const body = post.mock.calls[0][1] as AnyBody;
+      expect(body.schedule).toBe('sched-existing-id');
+    });
+
+    it('preserves the rest of the series payload unchanged', async () => {
+      await alertsService.updateScheduleSeries(seriesPayload);
+      const body = post.mock.calls[0][1] as AnyBody;
+      expect(body.name).toBe('Series A');
+      expect(body.beginDate).toBe('2026-06-01');
+      expect(body.endDate).toBe('2026-06-30');
+      expect(body.frequency).toBe('DAILY');
+      expect(body.account).toBe('acc1');
+    });
+  });
+
+  describe('updateAppointmentOccurrence (edit-occurrence) is unaffected', () => {
+    it('POSTs to the AlertPort single-occurrence endpoint with appointment + schedule', async () => {
+      await alertsService.updateAppointmentOccurrence({
+        schedule: 'sched-existing-id',
+        appointment: 'appt-1',
+        name: 'Series A',
+        category: 'ALERT_CHECK',
+        beginDate: '2026-06-10',
+        endDate: '2026-06-10',
+        beginHour: '08:00',
+        endHour: '18:00',
+      });
+      expect(post.mock.calls[0][0]).toBe(endpoints.appointmentAlertportUpdateOccurrence);
+      const body = post.mock.calls[0][1] as AnyBody;
+      // The occurrence controller is scoped by `appointment` — both ids ride
+      // explicitly and there is no `_id` to strip here.
+      expect(body.appointment).toBe('appt-1');
+      expect(body.schedule).toBe('sched-existing-id');
+      expect('_id' in body).toBe(false);
+    });
+  });
+});

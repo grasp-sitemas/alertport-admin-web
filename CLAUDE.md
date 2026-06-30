@@ -69,6 +69,13 @@ Rodar `/pr-ready`: valida `npm run validate`, paridade de locales, imports proib
 - ❌ `git commit --amend`, `--force push`, `reset --hard`, `--no-verify`, `--no-gpg-sign` sem ordem explícita.
 - ❌ Inventar APIs do Next 16 de memória. Ler docs no `node_modules/next/dist/docs/` antes.
 
+## Recent Additions (épicos A–E)
+
+- **Monitor tags**: categoria substituída por tags (`SOS` / `Disponível` / `Em Atendimento`); tipos JWM removidos do filtro (`INCIDENT/CRASH/CANCEL_PATROL/FAILURE_PATROL`).
+- **Offline devices panel**: painel no monitor que reutiliza presença do socket de chat — best-effort/live, sem `lastSeen` persistido.
+- **Company monitor settings dialog**: edita `companySettings.monitor.eventTimeWindowHours` (janela de tempo dos eventos no monitor). Roles: `ADMIN` / `ADMIN_MASTER` / `SUPER_ADMIN_MASTER`.
+- **Report status i18n**: terminologia unificada nos 5 locales — PT `Atendido`/`Não atendido`, EN `Processed`/`Not Processed`. Se alterar labels de status em relatórios, propagar para os 5 arquivos de `src/messages/`.
+
 ## Known Failure Modes
 
 - **Silent form submit**: caller passou `form.handleSubmit(onValid)` com `useForm` cru; Zod rejeita e nada acontece. Fix: `useAppForm`.
