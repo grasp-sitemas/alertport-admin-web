@@ -26,6 +26,7 @@
 | Sites | ✓ | ✓ | ✓ | ✓ | — | — |
 | Equipment | ✓ | ✓ | ✓ | ✓ | — | — |
 | Company | ✓ | ✓ | ✓ | — | — | — |
+| Company / Monitor Settings (time window) | ✓ | ✓ | ✓ | — | — | — |
 | Companies (platform) | ✓ | — | — | — | — | — |
 | Reports / Adherence | ✓ | ✓ | ✓ | ✓ | ✓ | — |
 | Reports / Attendance | ✓ | ✓ | ✓ | ✓ | ✓ | — |

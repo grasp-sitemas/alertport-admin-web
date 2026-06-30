@@ -38,6 +38,9 @@ export function useDevicePresence(onlineUserIds: readonly string[] | undefined):
       onlineDeviceIds,
       isOffline: (id) => {
         if (!id) return false;
+        // Presença indisponível (undefined) ≠ ninguém online ([]). Quando
+        // indisponível não podemos afirmar que alguém está offline.
+        if (onlineUserIds === undefined) return false;
         return !onlineDeviceIds.has(id);
       },
     };

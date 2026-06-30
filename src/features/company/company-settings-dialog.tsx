@@ -20,13 +20,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { companyService } from '@/services/company.service';
-import type { CompanySettings } from '@/types/api';
 import {
   MONITOR_TIME_WINDOW_MAX_HOURS,
   MONITOR_TIME_WINDOW_MIN_HOURS,
   monitorSettingsSchema,
   type MonitorSettingsFormValues,
 } from './schemas';
+import { buildMonitorSettingsUpdate } from './monitor-settings-payload';
 
 interface CompanySettingsDialogProps {
   open: boolean;
@@ -72,20 +72,8 @@ export function CompanySettingsDialog({ open, onOpenChange }: CompanySettingsDia
 
   const mutation = useMutation({
     mutationFn: (values: MonitorSettingsFormValues) => {
-      const current: CompanySettings | undefined = settings;
-      // The backend derives account from the JWT and ignores the URL id; we
-      // still send a stable identifier, preferring the immutable account FK.
-      const targetId = current?.account ?? current?._id ?? '';
-      const trimmed = values.eventTimeWindowHours.trim();
-      const eventTimeWindowHours = trimmed === '' ? null : Number(trimmed);
-      return companyService.updateSettings(targetId, {
-        monitor: {
-          eventFilters: current?.monitor?.eventFilters ?? [],
-          callRecordingEnabled: current?.monitor?.callRecordingEnabled ?? false,
-          eventTimeWindowHours,
-        },
-        status: current?.status ?? 'ACTIVE',
-      });
+      const { targetId, body } = buildMonitorSettingsUpdate(settings, values.eventTimeWindowHours);
+      return companyService.updateSettings(targetId, body);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['company', 'settings', 'me'] });

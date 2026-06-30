@@ -39,6 +39,18 @@
 - Shape de request/response vive em `src/types/api.ts`.
 - Se mudar campo, documentar em `MIGRATION.md` e rodar contract test em `tests/contracts/`.
 
+## PatrolAction — novos tipos de evento de dispositivo
+
+`PatrolAction.type` agora inclui três valores para eventos de energia/bateria (épico B):
+
+| Tipo | Significado |
+|---|---|
+| `DEVICE_AC_LOST` | Dispositivo desconectado da alimentação AC |
+| `DEVICE_AC_RESTORED` | Dispositivo reconectado à alimentação AC |
+| `DEVICE_BATTERY_LOW` | Bateria do dispositivo abaixo do limiar crítico |
+
+Estes aparecem no monitor de alertas e são enviados via Firestore `notifications/{siteId}` com `source === 'ALERTPORT'`. O model também expõe um campo `deviceStatus`. Ver `.claude/rules/realtime.md`.
+
 ## Checklist antes de alterar qualquer um desses itens
 
 1. Confirmou com backend que a mudança saiu?
