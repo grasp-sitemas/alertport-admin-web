@@ -221,10 +221,17 @@ export default function AlertSchedulingPage() {
         alertOccurrence: true,
       });
     },
-    onSuccess: () => {
+    onSuccess: (response: unknown) => {
       queryClient.invalidateQueries({ queryKey: ['alert-schedules'] });
       queryClient.invalidateQueries({ queryKey: ['alert-schedule-events'] });
       toast.success(t('alerts.deleteSuccess'));
+      if (
+        response &&
+        typeof response === 'object' &&
+        (response as { syncPending?: unknown }).syncPending === true
+      ) {
+        toast.warning(t('alerts.errors.firestorePushFailed'));
+      }
       setFormState({ kind: 'closed' });
       // Close the preview dialog when the delete originated there. Cheap
       // and idempotent: collapsing also when triggered via legacy paths is

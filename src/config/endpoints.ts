@@ -109,12 +109,16 @@ export const endpoints = {
   appointmentAlertportUpdateOccurrence: url(
     '/api/schedules/appointments/alertport/update/occurrence/v1/',
   ),
-  // Cancel the series from a startDate forward (archives the schedule and
-  // deletes all appointments/alert-occurrences from that date on).
+  // Legacy ShieldGo cancellation contracts. Keep these keys and paths
+  // untouched: other consumers may still import them directly.
   appointmentCancelSeries: url('/api/schedules/appointments/cancel/series/v1/'),
-  // Cancel a single occurrence (deletes just that appointment + related
-  // alert-occurrences + firestore events).
   appointmentCancelOccurrence: url('/api/schedules/appointments/cancel/occurrence/v1/'),
+  // AlertPort cancellation contracts. These routes carry AlertPort-specific
+  // semantics without changing the shared ShieldGo endpoints above.
+  appointmentAlertportCancelSeries: url('/api/schedules/appointments/alertport/cancel/series/v1/'),
+  appointmentAlertportCancelOccurrence: url(
+    '/api/schedules/appointments/alertport/cancel/occurrence/v1/',
+  ),
 
   // ─── Events / Patrol Actions ─────────────────────────────
   eventsFilter: url('/api/schedules/events/filter/v1/'),

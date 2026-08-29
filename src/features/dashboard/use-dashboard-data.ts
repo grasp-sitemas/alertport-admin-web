@@ -149,7 +149,9 @@ export function useDashboardData(range: DashboardRange, override: DashboardHiera
   const allEquipments = equipmentList.data?.results ?? [];
   const registeredDevicesCount = allEquipments.length;
 
-  const cutoff = Date.now() - ACTIVE_DEVICE_WINDOW_HOURS * HOUR_MS;
+  // Evaluate freshness at the instant this equipment snapshot was fetched.
+  // This keeps render pure while ensuring cached rows share one stable cutoff.
+  const cutoff = equipmentList.dataUpdatedAt - ACTIVE_DEVICE_WINDOW_HOURS * HOUR_MS;
   const activeDevicesCount = allEquipments.filter((e) => {
     const t = getLatestTimestamp(e);
     return t !== null && t >= cutoff;

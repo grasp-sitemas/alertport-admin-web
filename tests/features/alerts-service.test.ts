@@ -218,6 +218,30 @@ describe('alertsService schedule series vs occurrence updates', () => {
       expect(body.frequency).toBe('DAILY');
       expect(body.account).toBe('acc1');
     });
+
+    it('disables transport retries because replaying this POST creates another series', async () => {
+      await alertsService.updateScheduleSeries(seriesPayload);
+      expect(post.mock.calls[0][2]).toEqual({ retry: false });
+    });
+  });
+
+  describe('schedule creation and legacy update', () => {
+    it('disables transport retries for every schedule write', async () => {
+      await alertsService.createSchedule(seriesPayload);
+      await alertsService.updateSchedule(seriesPayload);
+
+      expect(post.mock.calls[0][2]).toEqual({ retry: false });
+      expect(post.mock.calls[1][2]).toEqual({ retry: false });
+    });
+
+    it('forwards a stable idempotency key on schedule creation', async () => {
+      await alertsService.createSchedule(seriesPayload, 'stable-create-attempt');
+
+      expect(post.mock.calls[0][2]).toEqual({
+        retry: false,
+        headers: { 'x-idempotency-key': 'stable-create-attempt' },
+      });
+    });
   });
 
   describe('updateAppointmentOccurrence (edit-occurrence) is unaffected', () => {
@@ -239,6 +263,76 @@ describe('alertsService schedule series vs occurrence updates', () => {
       expect(body.appointment).toBe('appt-1');
       expect(body.schedule).toBe('sched-existing-id');
       expect('_id' in body).toBe(false);
+    });
+
+    it('disables transport retries for the occurrence mutation', async () => {
+      await alertsService.updateAppointmentOccurrence({
+        schedule: 'sched-existing-id',
+        appointment: 'appt-1',
+        category: 'ALERT_CHECK',
+        beginDate: '2026-06-10',
+        endDate: '2026-06-10',
+        beginHour: '08:00',
+        endHour: '18:00',
+      });
+      expect(post.mock.calls[0][2]).toEqual({ retry: false });
+    });
+  });
+
+  describe('schedule deletions', () => {
+    it('uses the dedicated AlertPort occurrence-cancel path and exact payload', async () => {
+      await alertsService.cancelAppointmentOccurrence({
+        appointment: 'appt-1',
+        schedule: 'sched-existing-id',
+      });
+
+      expect(new URL(String(post.mock.calls[0][0])).pathname).toBe(
+        '/api/schedules/appointments/alertport/cancel/occurrence/v1/',
+      );
+      expect(post.mock.calls[0][1]).toEqual({
+        alertOccurrence: true,
+        appointment: 'appt-1',
+        schedule: 'sched-existing-id',
+      });
+    });
+
+    it('uses the dedicated AlertPort series-cancel path and exact payload', async () => {
+      await alertsService.cancelAppointmentSeries({
+        schedule: 'sched-existing-id',
+        startDate: '2026-06-11',
+      });
+
+      expect(new URL(String(post.mock.calls[0][0])).pathname).toBe(
+        '/api/schedules/appointments/alertport/cancel/series/v1/',
+      );
+      expect(post.mock.calls[0][1]).toEqual({
+        alertOccurrence: true,
+        schedule: 'sched-existing-id',
+        startDate: '2026-06-11',
+      });
+    });
+
+    it('preserves the original ShieldGo cancellation endpoint keys', () => {
+      expect(new URL(endpoints.appointmentCancelOccurrence).pathname).toBe(
+        '/api/schedules/appointments/cancel/occurrence/v1/',
+      );
+      expect(new URL(endpoints.appointmentCancelSeries).pathname).toBe(
+        '/api/schedules/appointments/cancel/series/v1/',
+      );
+    });
+
+    it('disables transport retries for occurrence and series cancellation', async () => {
+      await alertsService.cancelAppointmentOccurrence({
+        appointment: 'appt-1',
+        schedule: 'sched-existing-id',
+      });
+      await alertsService.cancelAppointmentSeries({
+        schedule: 'sched-existing-id',
+        startDate: '2026-06-11',
+      });
+
+      expect(post.mock.calls[0][2]).toEqual({ retry: false });
+      expect(post.mock.calls[1][2]).toEqual({ retry: false });
     });
   });
 });

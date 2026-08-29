@@ -41,6 +41,7 @@ import {
 } from '@/features/shared/use-hierarchy-lookups';
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
+import { resolveScheduleEditBeginDate } from './schedule-date-scope';
 
 export type ScheduleFormMode = 'create' | 'edit-series' | 'edit-occurrence';
 
@@ -102,10 +103,10 @@ function extractDayPart(row: AlertSchedule | undefined): string {
     row?.appointment?.start ??
     row?.beginDate ??
     '';
-  if (!raw) return toLocalDayPart(new Date());
+  if (!raw) return '';
   if (raw.length === 10) return raw; // already YYYY-MM-DD
   const d = new Date(raw);
-  if (Number.isNaN(d.getTime())) return toLocalDayPart(new Date());
+  if (Number.isNaN(d.getTime())) return '';
   return toLocalDayPart(d);
 }
 
@@ -300,6 +301,7 @@ export function ScheduleFormDialog({
   const { userSubtype, user: sessionUser } = useAuth();
   const isCreate = mode === 'create';
   const isOccurrenceEdit = mode === 'edit-occurrence';
+  const createIdempotencyKeyRef = useRef<string | null>(null);
   const canSelectAccount = isSuperAdminMaster(userSubtype);
   const sessionAccountId =
     typeof sessionUser?.account === 'object' ? sessionUser.account?._id : undefined;
@@ -307,7 +309,11 @@ export function ScheduleFormDialog({
   // For an occurrence edit we pin the calendar date to the clicked day.
   // The date inputs become read-only (visual hint that "this day only"
   // is the scope) and frequency controls are hidden entirely.
-  const pinnedDay = schedule ? extractDayPart(schedule) : '';
+  const sourceDay = schedule ? extractDayPart(schedule) : '';
+  // Only creation may default to today. During edit, an absent/invalid
+  // appointment date must stay empty so the persisted series date wins; using
+  // today there silently changes the edit scope after async hydration.
+  const pinnedDay = isCreate ? sourceDay || toLocalDayPart(new Date()) : sourceDay;
 
   // Fetch the FULL schedule doc on edit. The calendar returns an
   // appointment-shape row that's great for painting events but misses
@@ -317,6 +323,11 @@ export function ScheduleFormDialog({
   // series open. Fires only for edit modes + once the dialog is open so
   // we don't prefetch a schedule the user never edits.
   const scheduleIdToFetch = !isCreate ? resolveScheduleId(schedule) : '';
+
+  useEffect(() => {
+    if (!open || !isCreate) createIdempotencyKeyRef.current = null;
+  }, [open, isCreate]);
+
   const scheduleQuery = useQuery({
     queryKey: ['schedule-full', scheduleIdToFetch],
     queryFn: () => alertsService.getScheduleById(scheduleIdToFetch),
@@ -360,7 +371,7 @@ export function ScheduleFormDialog({
         // automaticamente, mas isso fazia o campo abrir já preenchido.
         name: '',
         account: canSelectAccount ? '' : sessionAccountId || '',
-        beginDate: normalizeDatePart(mergedSource?.beginDate) || DEFAULT_ALERT_SCHEDULE.beginDate,
+        beginDate: normalizeDatePart(mergedSource?.beginDate) || pinnedDay,
         endDate: normalizeDatePart(mergedSource?.endDate) || '',
       }
     : mergedSource
@@ -373,7 +384,11 @@ export function ScheduleFormDialog({
           client: getIdOrEmpty(mergedSource.client),
           site: getIdOrEmpty(mergedSource.site),
           equipment: getIdOrEmpty(mergedSource.equipment),
-          beginDate: isOccurrenceEdit ? pinnedDay : seriesBeginDate || pinnedDay,
+          beginDate: resolveScheduleEditBeginDate({
+            mode: isOccurrenceEdit ? 'edit-occurrence' : 'edit-series',
+            clickedDay: pinnedDay,
+            persistedBeginDate: seriesBeginDate,
+          }),
           endDate: isOccurrenceEdit ? pinnedDay : seriesEndDate,
           beginHour: extractHourPart(mergedSource.beginHour || mergedSource.startHour, '08:00'),
           endHour: extractHourPart(mergedSource.endHour, '18:00'),
@@ -404,6 +419,7 @@ export function ScheduleFormDialog({
           // próprio operador definir.
           name: '',
           account: canSelectAccount ? '' : sessionAccountId || '',
+          beginDate: pinnedDay,
         };
 
   const {
@@ -486,7 +502,8 @@ export function ScheduleFormDialog({
         // ObjectId (CastError) for optional refs like `account` when the
         // operator is not SUPER_ADMIN_MASTER. Preserves shape otherwise.
         const cleaned = stripEmpty(normalized);
-        return alertsService.createSchedule(cleaned);
+        createIdempotencyKeyRef.current ??= globalThis.crypto.randomUUID();
+        return alertsService.createSchedule(cleaned, createIdempotencyKeyRef.current);
       }
 
       const scheduleId = resolveScheduleId(schedule);
@@ -554,12 +571,19 @@ export function ScheduleFormDialog({
         response && typeof response === 'object' && 'firestoreWarning' in response
           ? String((response as { firestoreWarning?: unknown }).firestoreWarning ?? '')
           : '';
-      if (firestoreWarning) {
+      const synchronization = response as {
+        syncPending?: unknown;
+        result?: { syncPending?: unknown };
+      } | null;
+      const syncPending =
+        synchronization?.syncPending === true || synchronization?.result?.syncPending === true;
+      if (firestoreWarning || syncPending) {
         toast.success(t('notifications.savedSuccessfully'));
         toast.warning(t('alerts.errors.firestorePushFailed'));
       } else {
         toast.success(t('notifications.savedSuccessfully'));
       }
+      createIdempotencyKeyRef.current = null;
       onOpenChange(false);
       reset(DEFAULT_ALERT_SCHEDULE);
       onSaved?.();
@@ -840,7 +864,12 @@ export function ScheduleFormDialog({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
             <div className="space-y-2">
               <Label>{t('alerts.beginDate')}</Label>
-              <Input type="date" {...register('beginDate')} disabled={isOccurrenceEdit} />
+              <Input
+                data-testid="schedule-begin-date"
+                type="date"
+                {...register('beginDate')}
+                disabled={isOccurrenceEdit}
+              />
               {errors.beginDate && (
                 <p className="text-xs text-red-400">
                   {getValidationText(errors.beginDate.message as string)}

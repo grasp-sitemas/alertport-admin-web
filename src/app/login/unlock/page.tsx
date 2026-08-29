@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
@@ -44,8 +44,7 @@ function LoginUnlockPageContent() {
 
   const token = (params.get('token') ?? '').trim();
 
-  const [status, setStatus] = useState<Status>('idle');
-  const initialized = useRef(false);
+  const [status, setStatus] = useState<Status>(() => (token ? 'idle' : 'error'));
 
   const confirm = useMutation({
     mutationFn: () => authService.confirmUnlock(token),
@@ -59,14 +58,6 @@ function LoginUnlockPageContent() {
     },
     onError: () => setStatus('error'),
   });
-
-  useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-    if (!token) {
-      setStatus('error');
-    }
-  }, [token]);
 
   return (
     <div className="bg-app-gradient relative flex min-h-screen flex-col overflow-hidden">

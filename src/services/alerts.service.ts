@@ -15,6 +15,10 @@ import type {
   TimeEntry,
 } from '@/types/api';
 
+// Schedule writes are not idempotent in ms-schedule. Replaying one after a
+// timeout can create a second series even if the first request succeeded.
+const noTransportRetry = { retry: false } as const;
+
 export const alertsService = {
   // ─── Alert Schedules ──────────────────────────────────────
 
@@ -52,10 +56,17 @@ export const alertsService = {
 
   async createSchedule(
     scheduleData: AlertScheduleFormData,
+    idempotencyKey?: string,
   ): Promise<ApiSingleResponse<AlertSchedule>> {
     const { data } = await apiClient.post<ApiSingleResponse<AlertSchedule>>(
       endpoints.alertportScheduleCreate,
       scheduleData,
+      idempotencyKey
+        ? {
+            ...noTransportRetry,
+            headers: { 'x-idempotency-key': idempotencyKey },
+          }
+        : noTransportRetry,
     );
     return data;
   },
@@ -66,6 +77,7 @@ export const alertsService = {
     const { data } = await apiClient.post<ApiSingleResponse<AlertSchedule>>(
       endpoints.alertportScheduleUpdate,
       scheduleData,
+      noTransportRetry,
     );
     return data;
   },
@@ -97,6 +109,7 @@ export const alertsService = {
     const { data } = await apiClient.post<ApiSingleResponse<AlertSchedule>>(
       endpoints.alertportScheduleUpdate,
       { alertOccurrence: true, ...rest },
+      noTransportRetry,
     );
     return data;
   },
@@ -127,6 +140,7 @@ export const alertsService = {
     const { data } = await apiClient.post<ApiSingleResponse<unknown>>(
       endpoints.appointmentAlertportUpdateOccurrence,
       { alertOccurrence: true, ...payload },
+      noTransportRetry,
     );
     return data;
   },
@@ -141,8 +155,9 @@ export const alertsService = {
     alertOccurrence?: boolean;
   }): Promise<ApiSingleResponse<unknown>> {
     const { data } = await apiClient.post<ApiSingleResponse<unknown>>(
-      endpoints.appointmentCancelSeries,
+      endpoints.appointmentAlertportCancelSeries,
       { alertOccurrence: true, ...payload },
+      noTransportRetry,
     );
     return data;
   },
@@ -158,8 +173,9 @@ export const alertsService = {
     alertOccurrence?: boolean;
   }): Promise<ApiSingleResponse<unknown>> {
     const { data } = await apiClient.post<ApiSingleResponse<unknown>>(
-      endpoints.appointmentCancelOccurrence,
+      endpoints.appointmentAlertportCancelOccurrence,
       { alertOccurrence: true, ...payload },
+      noTransportRetry,
     );
     return data;
   },

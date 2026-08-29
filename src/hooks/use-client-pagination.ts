@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 interface UseClientPaginationOptions {
   initialPageSize?: number;
@@ -33,12 +33,14 @@ export function useClientPagination<T>(
   const { initialPageSize = 20 } = options;
   const [page, setPage] = useState(1);
   const [pageSize, setPageSizeState] = useState(initialPageSize);
+  const [previousRows, setPreviousRows] = useState(rows);
 
   // Reset to page 1 when the underlying dataset changes - otherwise the
   // user could land on page 5 of an array that just shrunk to 2 rows.
-  useEffect(() => {
+  if (previousRows !== rows) {
+    setPreviousRows(rows);
     setPage(1);
-  }, [rows]);
+  }
 
   const totalCount = rows.length;
   const totalPages = useMemo(

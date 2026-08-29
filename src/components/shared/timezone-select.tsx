@@ -72,7 +72,7 @@ export function TimezoneSelect({
   const t = useTranslations();
   // Always call the hook unconditionally (rules of hooks) — the `detected`
   // prop takes precedence when present via the ternary below.
-  const autoDetected = useMemo(detectBrowserTimezone, []);
+  const autoDetected = useMemo(() => detectBrowserTimezone(), []);
   const detectedTz = detected ?? autoDetected;
   const allTimezones = useMemo(() => getAllTimezones(detectedTz), [detectedTz]);
 
@@ -107,10 +107,10 @@ export function TimezoneSelect({
             onClick={() => onChange(tz)}
             className={cn(
               'rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors',
-              'disabled:opacity-50 disabled:cursor-not-allowed',
+              'disabled:cursor-not-allowed disabled:opacity-50',
               value === tz
-                ? 'bg-brand-500/20 text-brand-200 ring-1 ring-brand-500/40'
-                : 'bg-white/5 text-text-secondary hover:bg-white/10',
+                ? 'bg-brand-500/20 text-brand-200 ring-brand-500/40 ring-1'
+                : 'text-text-secondary bg-white/5 hover:bg-white/10',
             )}
           >
             {tz === detectedTz ? `${tz} · ${t('signup.company.timezoneDetected')}` : tz}

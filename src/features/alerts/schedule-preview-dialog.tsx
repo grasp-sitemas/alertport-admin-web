@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, CalendarRange, Clock, MapPin, Pencil, Trash, Trash2, X } from 'lucide-react';
@@ -215,13 +215,19 @@ export function SchedulePreviewDialog({
 }: SchedulePreviewDialogProps) {
   const t = useTranslations();
   const locale = useLocale();
-  const [pendingConfirm, setPendingConfirm] = useState<'occurrence' | 'series' | null>(null);
+  const confirmationKey = open ? schedule?._id || resolveScheduleId(schedule) : '';
+  const [confirmation, setConfirmation] = useState<{
+    key: string;
+    pending: 'occurrence' | 'series' | null;
+  }>({ key: confirmationKey, pending: null });
 
-  // Reset the inline confirmation whenever the dialog reopens or the
-  // schedule changes — operators expect a fresh slate every click.
-  useEffect(() => {
-    if (!open) setPendingConfirm(null);
-  }, [open, schedule?._id]);
+  // React permits guarded state adjustment during render when state is
+  // derived from a changed prop. Keeping the schedule/open identity beside
+  // the confirmation preserves the fresh-slate behavior without an Effect.
+  if (confirmation.key !== confirmationKey) {
+    setConfirmation({ key: confirmationKey, pending: null });
+  }
+  const pendingConfirm = confirmation.key === confirmationKey ? confirmation.pending : null;
 
   // Fetch the FULL schedule doc by _id. O row vindo do calendário pode
   // estar em appointment-shape com refs site/equipment/client NÃO
@@ -280,14 +286,14 @@ export function SchedulePreviewDialog({
 
   const handleDeleteClick = (scope: 'occurrence' | 'series') => {
     if (pendingConfirm !== scope) {
-      setPendingConfirm(scope);
+      setConfirmation({ key: confirmationKey, pending: scope });
       return;
     }
     if (scope === 'occurrence') onDeleteOccurrence();
     else onDeleteSeries();
   };
 
-  const cancelConfirm = () => setPendingConfirm(null);
+  const cancelConfirm = () => setConfirmation({ key: confirmationKey, pending: null });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

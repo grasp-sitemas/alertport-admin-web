@@ -17,9 +17,9 @@ interface DataSeedFixtures {
 }
 
 export const test = base.extend<DataSeedFixtures>({
-  seedPrefix: async ({}, use) => {
+  seedPrefix: async ({}, provide) => {
     const prefix = `e2e-${Date.now()}-${Math.floor(Math.random() * 1_000)}`;
-    await use(prefix);
+    await provide(prefix);
   },
 });
 

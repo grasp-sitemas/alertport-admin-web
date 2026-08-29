@@ -1,5 +1,12 @@
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    /** Disable replay for non-idempotent requests such as schedule mutations. */
+    retry?: boolean;
+  }
+}
+
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000;
 const RETRY_AFTER_MAX_MS = 30_000;
@@ -221,7 +228,7 @@ apiClient.interceptors.response.use(
 
     // Retry logic
     config._retryCount = config._retryCount || 0;
-    if (config._retryCount < MAX_RETRIES && isRetryable(error)) {
+    if (config.retry !== false && config._retryCount < MAX_RETRIES && isRetryable(error)) {
       config._retryCount += 1;
       const delay = resolveRetryDelay(error);
       await new Promise((resolve) => setTimeout(resolve, delay));
