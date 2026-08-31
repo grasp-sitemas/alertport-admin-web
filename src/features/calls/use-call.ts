@@ -238,7 +238,7 @@ export interface CallActions {
   toggleRecording: () => void;
 }
 
-export function useCall(): CallState & CallActions {
+export function useCall(enabled = true): CallState & CallActions {
   const { user } = useAuth();
   const [status, setStatus] = useState<CallStatus>('idle');
   const [statusMessage, setStatusMessage] = useState('');
@@ -570,6 +570,20 @@ export function useCall(): CallState & CallActions {
   }, [finalizeRecording, startRecording]);
 
   const resetCallState = useCallback(() => {
+    if (recorderRef.current) {
+      try {
+        if (recorderRef.current.state !== 'inactive') recorderRef.current.stop();
+      } catch {
+        /* ignore */
+      }
+      recorderRef.current = null;
+    }
+    recordedChunksRef.current = [];
+    recordingStartedAtRef.current = null;
+    recordingModeRef.current = null;
+    recorderMimeRef.current = '';
+    callRecordingEnabledRef.current = false;
+
     try {
       pcRef.current?.close();
     } catch {
@@ -732,8 +746,9 @@ export function useCall(): CallState & CallActions {
   // Socket connection & listener lifecycle
   // ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!user || initializedRef.current) return;
+    if (!enabled || !user || initializedRef.current) return;
     initializedRef.current = true;
+    let active = true;
 
     const socket = getSocket();
 
@@ -921,10 +936,13 @@ export function useCall(): CallState & CallActions {
     // If the socket is already connected (e.g. reuse from a previous mount),
     // trigger registration asynchronously so the effect body stays side-effect-free.
     if (socket.connected) {
-      queueMicrotask(() => onConnect());
+      queueMicrotask(() => {
+        if (active) onConnect();
+      });
     }
 
     return () => {
+      active = false;
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
       socket.off('user:list', onUserList);
@@ -938,7 +956,21 @@ export function useCall(): CallState & CallActions {
       socket.off('webrtc:ice', onRemoteIce);
       initializedRef.current = false;
     };
-  }, [user, resetCallState, finalizeRecording]);
+  }, [enabled, user, resetCallState, finalizeRecording]);
+
+  // `useCall` remains mounted so CallProvider can keep the AppShell tree
+  // stable. Match the old unmount semantics whenever the module is disabled:
+  // release media/call resources and never expose stale socket readiness if
+  // the account is enabled again later.
+  useEffect(() => {
+    if (enabled) return;
+    resetCallState();
+    setStatus('idle');
+    setStatusMessage('');
+    setSocketConnected(false);
+    setSocketReady(false);
+    setOnlineUsers([]);
+  }, [enabled, resetCallState]);
 
   // ──────────────────────────────────────────────────────────────
   // Actions

@@ -79,6 +79,7 @@ describe('accountModulesService', () => {
     expect(get.mock.calls[0][0]).toBe(
       endpoints.accountModulesByAccount('64b9a1f1f1f1f1f1f1f1f1f1'),
     );
+    expect(get.mock.calls[0][1]).toEqual({ retry: false });
     expect(get.mock.calls[0][0]).toMatch(
       /\/api\/company\/modules\/by-account\/64b9a1f1f1f1f1f1f1f1f1f1\/v1\/$/,
     );

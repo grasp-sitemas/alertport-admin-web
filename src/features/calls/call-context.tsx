@@ -22,32 +22,17 @@ const CallContext = createContext<CallContextValue>(null);
 export function CallProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   const { isEnabled, isLoading } = useSessionAccountModules();
-
-  // Only instantiate the socket/call machinery while authenticated - otherwise
-  // we'd be trying to register with ms-chat without a userId.
-  if (!isAuthenticated) {
-    return <CallContext.Provider value={null}>{children}</CallContext.Provider>;
-  }
-
-  // Module gate: when both CALL_NORMAL and CALL_SILENT are disabled for
-  // this account, skip the socket entirely. "AP 2G replacement" tier
-  // doesn't need calls — alerts come via Firestore push, independent
-  // of ms-chat. Wait for module load to avoid false-negative gating.
-  if (!isLoading && !isEnabled('CALL_NORMAL') && !isEnabled('CALL_SILENT')) {
-    return <CallContext.Provider value={null}>{children}</CallContext.Provider>;
-  }
-
-  return <AuthenticatedCallProvider>{children}</AuthenticatedCallProvider>;
-}
-
-function AuthenticatedCallProvider({ children }: { children: React.ReactNode }) {
-  const call = useCall();
+  const callsEnabled =
+    isAuthenticated &&
+    !isLoading &&
+    (isEnabled('CALL_NORMAL') || isEnabled('CALL_SILENT'));
+  const call = useCall(callsEnabled);
 
   return (
-    <CallContext.Provider value={call}>
+    <CallContext.Provider value={callsEnabled ? call : null}>
       {children}
       {/* Global call dialog - shows on any page whenever a call is active */}
-      <CallDialog {...call} />
+      {callsEnabled ? <CallDialog {...call} /> : null}
     </CallContext.Provider>
   );
 }

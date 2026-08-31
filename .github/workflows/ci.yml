@@ -74,7 +74,9 @@ jobs:
           NEXT_PUBLIC_MS_CHAT_URL: https://api-chat-hml.shieldgo.com.br
 
       - name: Run Playwright
-        run: npx playwright test
+        # CI has no HML credentials. Keep this gate hermetic and reserve the
+        # credentialed management/monitor/report suites for explicit HML runs.
+        run: npm run test:e2e:smoke
         env:
           NEXT_PUBLIC_API_URL: https://api-hml.shieldgo.com.br
           NEXT_PUBLIC_MS_CHAT_URL: https://api-chat-hml.shieldgo.com.br

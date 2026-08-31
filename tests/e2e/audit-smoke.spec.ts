@@ -137,22 +137,42 @@ test.describe('Audit smoke', () => {
   });
 
   test('#1 ModuleGuard fail-closed when /account-modules errors', async ({ page }) => {
+    let shouldFail = true;
+    let requestCount = 0;
     await page.unroute('**/api/company/modules/by-account/**');
-    await page.route('**/api/company/modules/by-account/**', (route) =>
-      route.fulfill({
-        status: 500,
+    await page.route('**/api/company/modules/by-account/**', (route) => {
+      requestCount += 1;
+      return route.fulfill({
+        status: shouldFail ? 500 : 200,
         contentType: 'application/json',
-        body: JSON.stringify({ status: 500, message: 'simulated outage' }),
-      }),
-    );
+        body: JSON.stringify(
+          shouldFail
+            ? { status: 500, message: 'simulated outage' }
+            : { status: 200, result: { modules: { SCHEDULING: true } } },
+        ),
+      });
+    });
 
     await page.goto('/alerts/scheduling');
-    // TanStack retries 2x, settle first.
-    await page.waitForTimeout(5000);
     await expect(page.getByText(/Não foi possível verificar seu acesso/i)).toBeVisible({
       timeout: 10000,
     });
-    await expect(page.getByRole('button', { name: /Tentar novamente/i })).toBeVisible();
+    const retryButton = page.getByRole('button', { name: /Tentar novamente/i });
+    await expect(retryButton).toBeVisible();
+
+    // TanStack owns the initial request + 2 retries. Once the error UI is
+    // visible the count must remain stable; a remount loop used to restart
+    // the query forever and leave the operator staring at a spinner.
+    await expect.poll(() => requestCount).toBe(3);
+    await page.waitForTimeout(1500);
+    expect(requestCount).toBe(3);
+
+    shouldFail = false;
+    await retryButton.click();
+    await expect(
+      page.getByRole('heading', { name: /agendamento de alertas|alert scheduling/i }),
+    ).toBeVisible({ timeout: 10000 });
+    expect(requestCount).toBe(4);
     await page.screenshot({
       path: 'test-results/audit-1-module-guard-failclosed.png',
       fullPage: true,

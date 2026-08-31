@@ -58,9 +58,43 @@ export async function mockApi(page: Page, routes: Record<string, unknown>) {
         return;
       }
     }
-    await route.continue();
+
+    // Account modules are fetched by the global shell before most pages
+    // render. Keep the hermetic smoke user fully enabled; otherwise an
+    // unmocked request can escape to HML, return 401, and expire the
+    // synthetic session before the test reaches the behavior under test.
+    if (url.includes('/api/company/modules/by-account/')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(
+          single({
+            modules: {
+              MONITOR: true,
+              SCHEDULING: true,
+              REPORTS: true,
+              TIME_ENTRIES: true,
+            },
+          }),
+        ),
+      });
+      return;
+    }
+
+    // Background bootstrap calls (trial, plan, onboarding, etc.) are not
+    // relevant to CRUD smoke coverage. Return a valid empty envelope so the
+    // suite is genuinely offline and never authenticates against live HML.
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 200, results: [], totalCount: 0, result: {} }),
+    });
   };
-  await page.route(/api-hml\.shieldgo\.com\.br|api-chat/, handler);
+  await page.route('**/api/**', handler);
+  await page.route(/api-chat/, handler);
+  await page.route('**/filemanager/**', async (route) => {
+    await route.fulfill({ status: 204, body: '' });
+  });
 }
 
 /** Standard envelope used by the shieldgo API. */

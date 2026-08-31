@@ -1,30 +1,13 @@
 import { test, expect } from '@playwright/test';
-
-const session = {
-  token: 'test-token',
-  language: 'pt',
-  user: {
-    _id: 'user-1',
-    firstName: 'Test',
-    lastName: 'User',
-    email: 'test@example.com',
-    status: 'ACTIVE',
-    companyUser: {
-      subtype: 'ADMIN',
-      status: 'ACTIVE',
-    },
-    account: 'company-1',
-  },
-};
+import { mockApi, sampleAccount, seedSession, single } from './fixtures/session';
 
 test.describe('Critical admin routes', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript((value) => {
-      sessionStorage.setItem('alertport_session', JSON.stringify(value));
-    }, session);
+    await seedSession(page);
   });
 
   test('loads scheduling even with incomplete API data', async ({ page }) => {
+    const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const pageErrors: string[] = [];
     page.on('pageerror', (error) => pageErrors.push(error.message));
     page.on('console', (message) => {
@@ -33,35 +16,34 @@ test.describe('Critical admin routes', () => {
       }
     });
 
-    await page.route('**/api/schedules/appointments/filter/v2/', async (route) => {
-      await route.fulfill({
+    await mockApi(page, {
+      '/api/schedules/appointments/filter/v2/': {
         status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          status: 200,
-          results: [
-            {
-              _id: 'schedule-1',
-              name: 'Fallback schedule',
-              status: 'ACTIVE',
-              category: 'ALERT_CHECK',
-              beginDate: '2026-04-16',
-              beginHour: undefined,
-              endHour: undefined,
-              alertConfig: undefined,
-            },
-          ],
-          totalCount: 1,
-          page: 1,
-          limit: 20,
-        }),
-      });
+        results: [
+          {
+            _id: 'schedule-1',
+            name: 'Fallback schedule',
+            status: 'ACTIVE',
+            category: 'ALERT_CHECK',
+            beginDate: futureDate,
+            beginHour: undefined,
+            endHour: undefined,
+            alertConfig: undefined,
+          },
+        ],
+        totalCount: 1,
+        page: 1,
+        limit: 20,
+      },
     });
 
     await page.goto('/alerts/scheduling');
-    await expect(page.getByRole('heading', { name: /agendamento de alertas|alert scheduling/i })).toBeVisible();
-    await expect(page.getByText('Fallback schedule')).toBeVisible();
-    await expect(page.getByRole('cell', { name: '- – -' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /agendamento de alertas|alert scheduling/i }),
+    ).toBeVisible();
+    const event = page.locator('.fc-event').filter({ hasText: 'Fallback schedule' });
+    await expect(event).toBeVisible();
+    await expect(event).toContainText('00:00');
     expect(pageErrors).toEqual([]);
   });
 
@@ -74,37 +56,21 @@ test.describe('Critical admin routes', () => {
       }
     });
 
-    await page.route('**/api/company/v1/company-1', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          status: 200,
-          result: {
-            _id: 'company-1',
-            name: 'AlertPort Holdings',
-            fantasyName: 'AlertPort',
-            personType: 'LEGAL',
-            document: '00.000.000/0001-00',
-            email: 'company@example.com',
-            primaryPhone: '(11) 99999-0000',
-            status: 'ACTIVE',
-            address: {
-              cep: '01000-000',
-              address: 'Rua Central',
-              number: '100',
-              neighborhood: 'Centro',
-              city: 'São Paulo',
-              state: 'SP',
-              country: 'BR',
-            },
-          },
-        }),
-      });
+    await mockApi(page, {
+      '/api/users/system/companyuser/me/v1': single({
+        ...sampleAccount,
+        companyUser: { subtype: 'ADMIN', status: 'ACTIVE' },
+        account: sampleAccount,
+        company: sampleAccount,
+      }),
+      '/api/company/formdata/v1/': single(sampleAccount),
+      '/api/address/geo/v1/': { status: 200, results: [] },
     });
 
     await page.goto('/company');
-    await expect(page.getByRole('heading', { name: /informações da empresa|company info/i })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /informações da empresa|company info/i }),
+    ).toBeVisible();
     await expect(page.locator('input[name="name"]')).toBeVisible();
     expect(pageErrors).toEqual([]);
   });

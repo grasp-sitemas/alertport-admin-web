@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test tests/e2e/login.spec.ts tests/e2e/crud-forms.spec.ts tests/e2e/scheduling-and-company.spec.ts tests/e2e/audit-smoke.spec.ts",
     "test:fixtures:snapshot": "tsx scripts/snapshot-api-fixtures.ts",
     "check:force-dynamic": "node scripts/check-force-dynamic.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx,json,css}\"",

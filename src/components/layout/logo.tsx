@@ -25,7 +25,6 @@ export function Logo({ className, showText = true, size = 'md' }: LogoProps) {
         height={h}
         priority
         className="h-auto w-auto"
-        style={{ maxHeight: `${h}px` }}
       />
       {showText && (
         <span className={cn('sr-only', sizeMap[size].text)}>AlertPort</span>

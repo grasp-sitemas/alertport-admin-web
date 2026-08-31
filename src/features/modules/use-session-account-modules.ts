@@ -53,6 +53,10 @@ export function useSessionAccountModules() {
     // Two automatic retries before we surface the error - covers the
     // common "Heroku dyno restart" 503 without bothering the operator.
     retry: 2,
+    // CallProvider and page guards observe the same query. Do not restart a
+    // terminal error merely because one observer remounted; the visible
+    // retry button owns the next attempt.
+    retryOnMount: false,
   });
 
   const modulesMap = query.data?.modules ?? null;

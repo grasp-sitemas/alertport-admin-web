@@ -59,6 +59,7 @@ export const accountModulesService = {
   async getByAccount(accountId: string): Promise<AccountModulesState> {
     const { data } = await apiClient.get<StateEnvelope>(
       endpoints.accountModulesByAccount(accountId),
+      { retry: false },
     );
     if (!data?.result) {
       return { accountId, modules: {}, updatedAt: null, updatedBy: null };

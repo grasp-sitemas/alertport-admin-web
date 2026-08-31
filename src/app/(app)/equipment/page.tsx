@@ -157,6 +157,7 @@ export default function EquipmentPage() {
             variant="ghost"
             size="icon"
             className="h-8 w-8"
+            aria-label={t('common.edit')}
             onClick={(e) => {
               e.stopPropagation();
               setEditing(item);
@@ -169,6 +170,7 @@ export default function EquipmentPage() {
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-red-400 hover:bg-red-500/10"
+            aria-label={t('common.delete')}
             onClick={(e) => {
               e.stopPropagation();
               setDeleteTarget(item);
