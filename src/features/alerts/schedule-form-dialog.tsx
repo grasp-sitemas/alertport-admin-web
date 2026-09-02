@@ -41,7 +41,11 @@ import {
 } from '@/features/shared/use-hierarchy-lookups';
 import { isSuperAdminMaster } from '@/config/roles';
 import { useAuth } from '@/hooks/use-auth';
-import { resolveScheduleEditBeginDate } from './schedule-date-scope';
+import {
+  resolveCalendarInstantDay,
+  resolveScheduleCivilDay,
+  resolveScheduleEditBeginDate,
+} from './schedule-date-scope';
 
 export type ScheduleFormMode = 'create' | 'edit-series' | 'edit-occurrence';
 
@@ -78,50 +82,15 @@ function getIdOrEmpty(v: unknown): string {
 }
 
 /**
- * YYYY-MM-DD da data LOCAL do operador (TZ do browser, igual a TZ da
- * empresa). NUNCA usar `toISOString().slice(0,10)` aqui — isso devolve
- * a data em UTC, e às 21h BRT (= 00h UTC do dia seguinte) o operador
- * acabaria agendando para o dia errado. O backend depois compõe com
- * `accountTimezone` em cima desse YYYY-MM-DD local pra gerar o trigger
- * UTC absoluto correto.
- */
-function toLocalDayPart(d: Date): string {
-  // 'sv-SE' devolve "YYYY-MM-DD" no fuso local — formato ISO 8601 date.
-  return d.toLocaleDateString('sv-SE');
-}
-
-/**
  * Pull the YYYY-MM-DD piece out of whatever datetime string the backend
  * shipped. FullCalendar occurrences arrive as `start`/`startDate` (ISO),
  * plain schedules arrive as `beginDate` (already date-only).
  */
-function extractDayPart(row: AlertSchedule | undefined): string {
-  const raw =
-    row?.startDate ??
-    row?.start ??
-    row?.appointment?.startDate ??
-    row?.appointment?.start ??
-    row?.beginDate ??
-    '';
-  if (!raw) return '';
-  if (raw.length === 10) return raw; // already YYYY-MM-DD
-  const d = new Date(raw);
-  if (Number.isNaN(d.getTime())) return '';
-  return toLocalDayPart(d);
-}
-
-/**
- * Normalize whatever the backend sent (YYYY-MM-DD OR full ISO datetime
- * OR null) to the YYYY-MM-DD format that `<input type="date">` expects.
- * Without this, a series edit on an appointment-shape row gets an ISO
- * string and the native input silently refuses to render it.
- */
-function normalizeDatePart(raw: string | null | undefined): string {
-  if (!raw) return '';
-  if (raw.length === 10) return raw;
-  const d = new Date(raw);
-  if (Number.isNaN(d.getTime())) return '';
-  return toLocalDayPart(d);
+function extractDayPart(row: AlertSchedule | undefined, timezone?: string): string {
+  const instant =
+    row?.startDate ?? row?.start ?? row?.appointment?.startDate ?? row?.appointment?.start;
+  if (instant) return resolveCalendarInstantDay(instant, timezone);
+  return resolveScheduleCivilDay(row?.beginDate);
 }
 
 /**
@@ -301,7 +270,7 @@ export function ScheduleFormDialog({
   const { userSubtype, user: sessionUser } = useAuth();
   const isCreate = mode === 'create';
   const isOccurrenceEdit = mode === 'edit-occurrence';
-  const createIdempotencyKeyRef = useRef<string | null>(null);
+  const mutationIdempotencyKeyRef = useRef<string | null>(null);
   const canSelectAccount = isSuperAdminMaster(userSubtype);
   const sessionAccountId =
     typeof sessionUser?.account === 'object' ? sessionUser.account?._id : undefined;
@@ -309,11 +278,18 @@ export function ScheduleFormDialog({
   // For an occurrence edit we pin the calendar date to the clicked day.
   // The date inputs become read-only (visual hint that "this day only"
   // is the scope) and frequency controls are hidden entirely.
-  const sourceDay = schedule ? extractDayPart(schedule) : '';
+  const sourceTimezone =
+    schedule?.accountTimezone ||
+    (typeof schedule?.account === 'object' ? schedule.account.timezone : undefined) ||
+    sessionUser?.accountTimezone ||
+    (typeof sessionUser?.account === 'object' ? sessionUser.account.timezone : undefined);
+  const sourceDay = schedule ? extractDayPart(schedule, sourceTimezone) : '';
   // Only creation may default to today. During edit, an absent/invalid
   // appointment date must stay empty so the persisted series date wins; using
   // today there silently changes the edit scope after async hydration.
-  const pinnedDay = isCreate ? sourceDay || toLocalDayPart(new Date()) : sourceDay;
+  const pinnedDay = isCreate
+    ? sourceDay || resolveCalendarInstantDay(new Date().toISOString(), sourceTimezone)
+    : sourceDay;
 
   // Fetch the FULL schedule doc on edit. The calendar returns an
   // appointment-shape row that's great for painting events but misses
@@ -325,8 +301,8 @@ export function ScheduleFormDialog({
   const scheduleIdToFetch = !isCreate ? resolveScheduleId(schedule) : '';
 
   useEffect(() => {
-    if (!open || !isCreate) createIdempotencyKeyRef.current = null;
-  }, [open, isCreate]);
+    mutationIdempotencyKeyRef.current = null;
+  }, [open, mode, scheduleIdToFetch]);
 
   const scheduleQuery = useQuery({
     queryKey: ['schedule-full', scheduleIdToFetch],
@@ -346,10 +322,10 @@ export function ScheduleFormDialog({
   // `alertConfig`, `endDate` come from the full schedule when
   // available - the appointment row tends to blank those out.
   const nameSource = extractScheduleName(fullSchedule ?? schedule);
-  const seriesBeginDate = normalizeDatePart(
+  const seriesBeginDate = resolveScheduleCivilDay(
     (fullSchedule as AlertSchedule | null)?.beginDate ?? schedule?.beginDate,
   );
-  const seriesEndDate = normalizeDatePart(
+  const seriesEndDate = resolveScheduleCivilDay(
     (fullSchedule as AlertSchedule | null)?.endDate ?? schedule?.endDate,
   );
 
@@ -371,8 +347,8 @@ export function ScheduleFormDialog({
         // automaticamente, mas isso fazia o campo abrir já preenchido.
         name: '',
         account: canSelectAccount ? '' : sessionAccountId || '',
-        beginDate: normalizeDatePart(mergedSource?.beginDate) || pinnedDay,
-        endDate: normalizeDatePart(mergedSource?.endDate) || '',
+        beginDate: resolveScheduleCivilDay(mergedSource?.beginDate) || pinnedDay,
+        endDate: resolveScheduleCivilDay(mergedSource?.endDate) || '',
       }
     : mergedSource
       ? {
@@ -428,21 +404,28 @@ export function ScheduleFormDialog({
     handleSubmit,
     reset,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, dirtyFields },
   } = useAppForm<AlertScheduleFormValues>({
     resolver: zodResolver(alertScheduleSchema),
     defaultValues: sanitizeFormDefaults(defaults),
   });
 
   useEffect(() => {
-    // Reset fires on: dialog open, source row swap, mode change, OR
-    // when the async full-schedule fetch settles. The last one is
-    // critical - without it the form would render once with the
-    // half-filled calendar row and never re-hydrate when the complete
-    // schedule arrives a few hundred ms later.
+    // Opening, swapping the source row, or changing scope starts a fresh form.
+    // This reset intentionally clears dirty state from the previous context.
     if (open) reset(sanitizeFormDefaults(defaults));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, schedule?._id, mode, scheduleQuery.dataUpdatedAt]);
+  }, [open, schedule?._id, mode]);
+
+  useEffect(() => {
+    // The full schedule arrives after the appointment-shaped calendar row.
+    // Hydrate untouched fields while preserving anything the operator already
+    // changed during that request; a refetch must never erase active input.
+    if (open && !isCreate && scheduleQuery.dataUpdatedAt > 0) {
+      reset(sanitizeFormDefaults(defaults), { keepDirtyValues: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scheduleQuery.dataUpdatedAt]);
 
   // Diagnostic: when Zod rejects an edit-open the operator only sees the
   // generic "verifique os campos" toast from toastFirstError. Surface the
@@ -467,6 +450,9 @@ export function ScheduleFormDialog({
   const alertType = useWatch({ control, name: 'alertConfig.alertType' });
 
   const accountsLookup = useAccountsLookup();
+  const selectedFormAccountTimezone = accountWatched
+    ? accountsLookup.data?.results.find((account) => account._id === accountWatched)?.timezone
+    : undefined;
   const clientsLookup = useClientsLookup(accountWatched || undefined);
   const sitesLookup = useSitesLookup(clientWatched || undefined, accountWatched || undefined);
   const equipmentsLookup = useEquipmentsBySiteLookup({
@@ -474,6 +460,15 @@ export function ScheduleFormDialog({
     client: clientWatched || undefined,
     site: siteWatched || undefined,
   });
+
+  useEffect(() => {
+    if (open && isCreate && !sourceDay && !dirtyFields.beginDate && selectedFormAccountTimezone) {
+      setValue(
+        'beginDate',
+        resolveCalendarInstantDay(new Date().toISOString(), selectedFormAccountTimezone),
+      );
+    }
+  }, [dirtyFields.beginDate, isCreate, open, selectedFormAccountTimezone, setValue, sourceDay]);
   const getValidationText = (message?: string) => {
     if (!message) return '';
     try {
@@ -486,6 +481,8 @@ export function ScheduleFormDialog({
 
   const mutation = useMutation({
     mutationFn: async (data: AlertScheduleFormValues) => {
+      mutationIdempotencyKeyRef.current ??= globalThis.crypto.randomUUID();
+      const idempotencyKey = mutationIdempotencyKeyRef.current;
       const normalized: AlertScheduleFormValues = {
         ...data,
         frequencyMonth: data.frequencyMonth ? { day: data.frequencyMonth.day ?? '' } : { day: '' },
@@ -502,8 +499,7 @@ export function ScheduleFormDialog({
         // ObjectId (CastError) for optional refs like `account` when the
         // operator is not SUPER_ADMIN_MASTER. Preserves shape otherwise.
         const cleaned = stripEmpty(normalized);
-        createIdempotencyKeyRef.current ??= globalThis.crypto.randomUUID();
-        return alertsService.createSchedule(cleaned, createIdempotencyKeyRef.current);
+        return alertsService.createSchedule(cleaned, idempotencyKey);
       }
 
       const scheduleId = resolveScheduleId(schedule);
@@ -530,6 +526,7 @@ export function ScheduleFormDialog({
             endHour: normalized.endHour,
             alertConfig: normalized.alertConfig,
           }),
+          idempotencyKey,
         );
       }
 
@@ -541,6 +538,7 @@ export function ScheduleFormDialog({
           ...normalized,
           schedule: scheduleId,
         }),
+        idempotencyKey,
       );
     },
     onSuccess: (response: unknown) => {
@@ -583,7 +581,7 @@ export function ScheduleFormDialog({
       } else {
         toast.success(t('notifications.savedSuccessfully'));
       }
-      createIdempotencyKeyRef.current = null;
+      mutationIdempotencyKeyRef.current = null;
       onOpenChange(false);
       reset(DEFAULT_ALERT_SCHEDULE);
       onSaved?.();
@@ -663,9 +661,9 @@ export function ScheduleFormDialog({
                       onValueChange={(val) => {
                         field.onChange(val);
                         if (val !== prevAccountRef.current) {
-                          setValue('client', '');
-                          setValue('site', '');
-                          setValue('equipment', '');
+                          setValue('client', '', { shouldDirty: true });
+                          setValue('site', '', { shouldDirty: true });
+                          setValue('equipment', '', { shouldDirty: true });
                           prevAccountRef.current = val;
                         }
                       }}
@@ -698,8 +696,8 @@ export function ScheduleFormDialog({
                     onValueChange={(val) => {
                       field.onChange(val);
                       if (val !== prevClientRef.current) {
-                        setValue('site', '');
-                        setValue('equipment', '');
+                        setValue('site', '', { shouldDirty: true });
+                        setValue('equipment', '', { shouldDirty: true });
                         prevClientRef.current = val;
                       }
                     }}
@@ -734,7 +732,7 @@ export function ScheduleFormDialog({
                     onValueChange={(val) => {
                       field.onChange(val);
                       if (val !== prevSiteRef.current) {
-                        setValue('equipment', '');
+                        setValue('equipment', '', { shouldDirty: true });
                         prevSiteRef.current = val;
                       }
                     }}
@@ -815,9 +813,9 @@ export function ScheduleFormDialog({
                       value={field.value ?? 'DAILY'}
                       onValueChange={(val) => {
                         field.onChange(val);
-                        setValue('weeklyDays', []);
-                        setValue('frequencyMonth', { day: '' });
-                        setValue('frequencyYear', { month: '', day: '' });
+                        setValue('weeklyDays', [], { shouldDirty: true });
+                        setValue('frequencyMonth', { day: '' }, { shouldDirty: true });
+                        setValue('frequencyYear', { month: '', day: '' }, { shouldDirty: true });
                       }}
                     >
                       <SelectTrigger>

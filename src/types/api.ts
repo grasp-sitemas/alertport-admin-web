@@ -327,6 +327,8 @@ export interface AlertSchedule {
   startHour?: string;
   id?: string;
   appointment?: { _id?: string; startDate?: string; start?: string };
+  /** IANA timezone projected for the appointment owner on AlertPort calendar rows. */
+  accountTimezone?: string;
 }
 
 export interface AlertScheduleFormData {

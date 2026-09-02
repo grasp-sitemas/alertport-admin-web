@@ -19,6 +19,15 @@ import type {
 // timeout can create a second series even if the first request succeeded.
 const noTransportRetry = { retry: false } as const;
 
+function scheduleMutationConfig(idempotencyKey?: string) {
+  return idempotencyKey
+    ? {
+        ...noTransportRetry,
+        headers: { 'x-idempotency-key': idempotencyKey },
+      }
+    : noTransportRetry;
+}
+
 export const alertsService = {
   // ─── Alert Schedules ──────────────────────────────────────
 
@@ -61,12 +70,7 @@ export const alertsService = {
     const { data } = await apiClient.post<ApiSingleResponse<AlertSchedule>>(
       endpoints.alertportScheduleCreate,
       scheduleData,
-      idempotencyKey
-        ? {
-            ...noTransportRetry,
-            headers: { 'x-idempotency-key': idempotencyKey },
-          }
-        : noTransportRetry,
+      scheduleMutationConfig(idempotencyKey),
     );
     return data;
   },
@@ -103,13 +107,14 @@ export const alertsService = {
    */
   async updateScheduleSeries(
     payload: AlertScheduleFormData & { schedule: string; alertOccurrence?: boolean },
+    idempotencyKey?: string,
   ): Promise<ApiSingleResponse<AlertSchedule>> {
     const { _id, ...rest } = payload;
     void _id;
     const { data } = await apiClient.post<ApiSingleResponse<AlertSchedule>>(
       endpoints.alertportScheduleUpdate,
       { alertOccurrence: true, ...rest },
-      noTransportRetry,
+      scheduleMutationConfig(idempotencyKey),
     );
     return data;
   },
@@ -121,26 +126,29 @@ export const alertsService = {
    * Used for "this day only" edits on the calendar. Backed by ms-schedule
    * ctr-appointment.updateAlertOccurrenceAppointment.
    */
-  async updateAppointmentOccurrence(payload: {
-    schedule: string;
-    appointment: string;
-    name?: string;
-    account?: string;
-    client?: string;
-    site?: string;
-    equipment?: string;
-    category: 'ALERT_CHECK';
-    beginDate: string;
-    endDate: string;
-    beginHour: string;
-    endHour: string;
-    alertConfig?: AlertScheduleFormData['alertConfig'];
-    alertOccurrence?: boolean;
-  }): Promise<ApiSingleResponse<unknown>> {
+  async updateAppointmentOccurrence(
+    payload: {
+      schedule: string;
+      appointment: string;
+      name?: string;
+      account?: string;
+      client?: string;
+      site?: string;
+      equipment?: string;
+      category: 'ALERT_CHECK';
+      beginDate: string;
+      endDate: string;
+      beginHour: string;
+      endHour: string;
+      alertConfig?: AlertScheduleFormData['alertConfig'];
+      alertOccurrence?: boolean;
+    },
+    idempotencyKey?: string,
+  ): Promise<ApiSingleResponse<unknown>> {
     const { data } = await apiClient.post<ApiSingleResponse<unknown>>(
       endpoints.appointmentAlertportUpdateOccurrence,
       { alertOccurrence: true, ...payload },
-      noTransportRetry,
+      scheduleMutationConfig(idempotencyKey),
     );
     return data;
   },
@@ -149,15 +157,18 @@ export const alertsService = {
    * Cancel the entire series starting from a given date. Archives the
    * schedule and deletes future appointments + alert-occurrences.
    */
-  async cancelAppointmentSeries(payload: {
-    schedule: string;
-    startDate: string;
-    alertOccurrence?: boolean;
-  }): Promise<ApiSingleResponse<unknown>> {
+  async cancelAppointmentSeries(
+    payload: {
+      schedule: string;
+      startDate: string;
+      alertOccurrence?: boolean;
+    },
+    idempotencyKey?: string,
+  ): Promise<ApiSingleResponse<unknown>> {
     const { data } = await apiClient.post<ApiSingleResponse<unknown>>(
       endpoints.appointmentAlertportCancelSeries,
       { alertOccurrence: true, ...payload },
-      noTransportRetry,
+      scheduleMutationConfig(idempotencyKey),
     );
     return data;
   },
@@ -167,15 +178,18 @@ export const alertsService = {
    * other days. Deletes the appointment + its alert-occurrences +
    * firestore events.
    */
-  async cancelAppointmentOccurrence(payload: {
-    appointment: string;
-    schedule?: string;
-    alertOccurrence?: boolean;
-  }): Promise<ApiSingleResponse<unknown>> {
+  async cancelAppointmentOccurrence(
+    payload: {
+      appointment: string;
+      schedule?: string;
+      alertOccurrence?: boolean;
+    },
+    idempotencyKey?: string,
+  ): Promise<ApiSingleResponse<unknown>> {
     const { data } = await apiClient.post<ApiSingleResponse<unknown>>(
       endpoints.appointmentAlertportCancelOccurrence,
       { alertOccurrence: true, ...payload },
-      noTransportRetry,
+      scheduleMutationConfig(idempotencyKey),
     );
     return data;
   },

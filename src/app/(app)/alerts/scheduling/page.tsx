@@ -4,7 +4,7 @@
 // pre-rendered. Required by CLAUDE.md and .claude/rules/nextjs-16.md.
 export const dynamic = 'force-dynamic';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Plus, Filter, X } from 'lucide-react';
 import nextDynamic from 'next/dynamic';
@@ -32,6 +32,13 @@ import {
 import { SchedulePreviewDialog } from '@/features/alerts/schedule-preview-dialog';
 import { alertsService } from '@/services/alerts.service';
 import type { AlertSchedule } from '@/types/api';
+import { useAuth } from '@/hooks/use-auth';
+import {
+  addCivilDays,
+  resolveCalendarInstantDay,
+  resolveScheduleCivilDay,
+} from '@/features/alerts/schedule-date-scope';
+import { useAccountsLookup } from '@/features/shared/use-hierarchy-lookups';
 
 /**
  * FullCalendar touches `window` and `document` at mount, so the view must
@@ -76,32 +83,35 @@ function resolveAppointmentId(row: AlertSchedule): string {
   return row.id || row._id || '';
 }
 
-function rowDateString(row: AlertSchedule): string {
-  const raw =
-    row.startDate ??
-    row.start ??
-    row.appointment?.startDate ??
-    row.appointment?.start ??
-    row.beginDate ??
-    '';
-  if (!raw) return '';
-  if (raw.length === 10) return raw;
-  const d = new Date(raw);
-  return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+function rowDateString(row: AlertSchedule, timezone?: string): string {
+  const instant =
+    row.startDate ?? row.start ?? row.appointment?.startDate ?? row.appointment?.start;
+  if (instant) return resolveCalendarInstantDay(instant, timezone);
+  return resolveScheduleCivilDay(row.beginDate);
 }
 
 export default function AlertSchedulingPage() {
   const t = useTranslations();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const accountsLookup = useAccountsLookup();
 
   const [hierarchy, setHierarchy] = useState<HierarchyFiltersValue>({});
   const [nameFilter, setNameFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ACTIVE' | 'ARCHIVED' | ''>('ACTIVE');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const selectedAccountTimezone = hierarchy.account
+    ? accountsLookup.data?.results.find((account) => account._id === hierarchy.account)?.timezone
+    : undefined;
+  const accountTimezone =
+    selectedAccountTimezone ||
+    user?.accountTimezone ||
+    (typeof user?.account === 'object' ? user.account.timezone : undefined);
 
   const [formState, setFormState] = useState<FormState>({ kind: 'closed' });
   const [range, setRange] = useState<{ start: string; end: string } | null>(null);
   const [pendingScope, setPendingScope] = useState<PendingScope | null>(null);
+  const deleteAttemptRef = useRef<{ fingerprint: string; key: string } | null>(null);
   // New preview-driven entry point for calendar event clicks. Carries the
   // clicked schedule plus the YYYY-MM-DD of that specific occurrence so the
   // dialog can show "this day" context without re-deriving from extendedProps.
@@ -123,8 +133,9 @@ export default function AlertSchedulingPage() {
       // fallback escondia agendamentos arquivados mesmo quando o
       // operador selecionava "Todos" no filtro de status.
       ...(statusFilter ? { status: statusFilter as 'ACTIVE' | 'ARCHIVED' } : {}),
+      ...(accountTimezone ? { accountTimezone } : {}),
     }),
-    [range, hierarchy, nameFilter, statusFilter],
+    [range, hierarchy, nameFilter, statusFilter, accountTimezone],
   );
 
   const { events, isLoading, isFetching } = useScheduleEvents(eventsFilter, Boolean(range));
@@ -140,10 +151,10 @@ export default function AlertSchedulingPage() {
       // ficar com a página aberta atravessando a meia-noite, ainda é
       // possível clicar num evento já no passado. Usamos o início do
       // dia (00:00) como cutoff — mesmo critério da listagem.
-      const startMs = new Date(event.start).getTime();
-      const startOfToday = new Date();
-      startOfToday.setHours(0, 0, 0, 0);
-      if (!Number.isNaN(startMs) && startMs < startOfToday.getTime()) {
+      const eventTimezone = event.extendedProps.row.accountTimezone || accountTimezone;
+      const today = resolveCalendarInstantDay(new Date().toISOString(), eventTimezone);
+      const eventDay = resolveCalendarInstantDay(event.start, eventTimezone);
+      if (eventDay && today && eventDay < today) {
         toast.error(t('alerts.errors.scheduleAlreadyOccurred'));
         return;
       }
@@ -151,21 +162,21 @@ export default function AlertSchedulingPage() {
       // schedule context plus 4 scoped actions (edit/delete × occurrence/
       // series). Replaces the old two-step ScheduleScopeDialog flow at this
       // single entry point.
-      const occurrenceDate = (event.start || '').slice(0, 10);
+      const occurrenceDate = resolveCalendarInstantDay(event.start, eventTimezone);
       setPreviewState({
         open: true,
         schedule: event.extendedProps.row,
         occurrenceDate,
       });
     },
-    [t],
+    [accountTimezone, t],
   );
 
   const handleDateSelect = useCallback(
     ({ startISO, allDay }: { startISO: string; endISO: string; allDay: boolean }) => {
       // Click-to-create: pre-fills the start date so the operator only
       // has to pick the hierarchy and time window.
-      const day = startISO.slice(0, 10);
+      const day = resolveScheduleCivilDay(startISO);
       setFormState({
         kind: 'open',
         mode: 'create',
@@ -195,6 +206,7 @@ export default function AlertSchedulingPage() {
     mutationFn: async ({ scope, row }: { scope: ScheduleScope; row: AlertSchedule }) => {
       const scheduleId = resolveScheduleId(row);
       if (!scheduleId) throw new Error('MISSING_SCHEDULE_ID');
+      const rowTimezone = row.accountTimezone || accountTimezone;
       if (scope === 'series') {
         // Flavio (07/05): exclusão da série deve afetar SOMENTE
         // ocorrências futuras — nunca a do momento nem as passadas
@@ -202,26 +214,40 @@ export default function AlertSchedulingPage() {
         // entre a data do row clicado e amanhã (dia local). Assim
         // hoje + passado ficam protegidos independentemente de qual
         // linha o operador clicou no calendário.
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const tomorrowStr = tomorrow.toLocaleDateString('sv-SE');
-        const rowDate = rowDateString(row);
+        const accountToday = resolveCalendarInstantDay(new Date().toISOString(), rowTimezone);
+        const tomorrowStr = addCivilDays(accountToday, 1);
+        const rowDate = rowDateString(row, rowTimezone);
         const startDate = !rowDate || rowDate < tomorrowStr ? tomorrowStr : rowDate;
-        return alertsService.cancelAppointmentSeries({
-          schedule: scheduleId,
-          startDate,
-          alertOccurrence: true,
-        });
+        const fingerprint = `series:${scheduleId}:${startDate}`;
+        if (deleteAttemptRef.current?.fingerprint !== fingerprint) {
+          deleteAttemptRef.current = { fingerprint, key: globalThis.crypto.randomUUID() };
+        }
+        return alertsService.cancelAppointmentSeries(
+          {
+            schedule: scheduleId,
+            startDate,
+            alertOccurrence: true,
+          },
+          deleteAttemptRef.current.key,
+        );
       }
       const appointmentId = resolveAppointmentId(row);
       if (!appointmentId) throw new Error('MISSING_APPOINTMENT_ID');
-      return alertsService.cancelAppointmentOccurrence({
-        appointment: appointmentId,
-        schedule: scheduleId,
-        alertOccurrence: true,
-      });
+      const fingerprint = `occurrence:${scheduleId}:${appointmentId}`;
+      if (deleteAttemptRef.current?.fingerprint !== fingerprint) {
+        deleteAttemptRef.current = { fingerprint, key: globalThis.crypto.randomUUID() };
+      }
+      return alertsService.cancelAppointmentOccurrence(
+        {
+          appointment: appointmentId,
+          schedule: scheduleId,
+          alertOccurrence: true,
+        },
+        deleteAttemptRef.current.key,
+      );
     },
     onSuccess: (response: unknown) => {
+      deleteAttemptRef.current = null;
       queryClient.invalidateQueries({ queryKey: ['alert-schedules'] });
       queryClient.invalidateQueries({ queryKey: ['alert-schedule-events'] });
       toast.success(t('alerts.deleteSuccess'));

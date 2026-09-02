@@ -223,6 +223,14 @@ describe('alertsService schedule series vs occurrence updates', () => {
       await alertsService.updateScheduleSeries(seriesPayload);
       expect(post.mock.calls[0][2]).toEqual({ retry: false });
     });
+
+    it('forwards a stable idempotency key for a series edit attempt', async () => {
+      await alertsService.updateScheduleSeries(seriesPayload, 'stable-series-edit');
+      expect(post.mock.calls[0][2]).toEqual({
+        retry: false,
+        headers: { 'x-idempotency-key': 'stable-series-edit' },
+      });
+    });
   });
 
   describe('schedule creation and legacy update', () => {
@@ -276,6 +284,25 @@ describe('alertsService schedule series vs occurrence updates', () => {
         endHour: '18:00',
       });
       expect(post.mock.calls[0][2]).toEqual({ retry: false });
+    });
+
+    it('forwards a stable idempotency key for an occurrence edit attempt', async () => {
+      await alertsService.updateAppointmentOccurrence(
+        {
+          schedule: 'sched-existing-id',
+          appointment: 'appt-1',
+          category: 'ALERT_CHECK',
+          beginDate: '2026-06-10',
+          endDate: '2026-06-10',
+          beginHour: '08:00',
+          endHour: '18:00',
+        },
+        'stable-occurrence-edit',
+      );
+      expect(post.mock.calls[0][2]).toEqual({
+        retry: false,
+        headers: { 'x-idempotency-key': 'stable-occurrence-edit' },
+      });
     });
   });
 
@@ -333,6 +360,26 @@ describe('alertsService schedule series vs occurrence updates', () => {
 
       expect(post.mock.calls[0][2]).toEqual({ retry: false });
       expect(post.mock.calls[1][2]).toEqual({ retry: false });
+    });
+
+    it('forwards stable idempotency keys for cancellation attempts', async () => {
+      await alertsService.cancelAppointmentOccurrence(
+        { appointment: 'appt-1', schedule: 'sched-existing-id' },
+        'stable-occurrence-cancel',
+      );
+      await alertsService.cancelAppointmentSeries(
+        { schedule: 'sched-existing-id', startDate: '2026-06-11' },
+        'stable-series-cancel',
+      );
+
+      expect(post.mock.calls[0][2]).toEqual({
+        retry: false,
+        headers: { 'x-idempotency-key': 'stable-occurrence-cancel' },
+      });
+      expect(post.mock.calls[1][2]).toEqual({
+        retry: false,
+        headers: { 'x-idempotency-key': 'stable-series-cancel' },
+      });
     });
   });
 });
