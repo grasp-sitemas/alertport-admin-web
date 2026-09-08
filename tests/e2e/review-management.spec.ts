@@ -23,6 +23,17 @@ async function select(page: Page, label: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click();
 }
 
+for (const role of ['ADMIN', 'MANAGER']) {
+  test(`${role} client actions match the assignable scope`, async ({ page }) => {
+    await seedSession(page, { ...adminSession, user: { ...adminSession.user, companyUser: { ...adminSession.user.companyUser, subtype: role } } });
+    await mockApi(page, { '/api/company/filter/v1/': envelope([sampleClient]) });
+    await page.goto('/clients');
+    const saved = page.getByRole('row').filter({ hasText: sampleClient.name });
+    await expect(saved.getByRole('button', { name: 'Editar', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Criar Cliente', exact: true })).toHaveCount(role === 'ADMIN' ? 1 : 0);
+  });
+}
+
 test('users retain the legacy name when split name fields are absent', async ({ page }) => {
   await seedSession(page);
   await mockApi(page, {

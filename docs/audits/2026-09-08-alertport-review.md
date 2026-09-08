@@ -74,3 +74,11 @@ Não executar os testes legados de agenda em dados de clientes: alguns deles edi
 ## Compatibilidade com cadastros migrados
 
 Cadastros antigos podem fornecer somente `name`. A listagem e a confirmação de exclusão agora usam esse campo quando `fullName` e os nomes separados estão ausentes. A regressão de navegador falhou antes com nome vazio e passou após o ajuste. O novo gate aprovou 19/19 E2E, 463 unitários, TypeScript, lint sem erros e build HML.
+
+## Integração final e escopo de cliente
+
+O commit remoto `47b05fa` foi incorporado integralmente, preservando as correções de datas civis e chaves de idempotência das agendas. Após a integração, passaram 473 testes unitários, 19 E2E e o build HML.
+
+MANAGER mantém a edição dos clientes atribuídos, mas não recebe o botão de criar um novo cliente que ficaria fora desse escopo. ADMIN e os perfis master preservam a criação. Duas regressões de navegador comprovaram essa distinção; o caso MANAGER falhou antes e ambos passaram depois.
+
+O auditor live agora aguarda o fim do corpo das respostas (`requestfinished`) e a renderização do dashboard antes de navegar. Isso evita cancelar consultas ainda em andamento por iniciativa do próprio auditor. Erros de rede continuam reprovando a execução; suspensões do Mac exigem repetir a verificação.

@@ -45,7 +45,7 @@ function safeError(error) {
     .replace(/https?:\/\/[^\s"'<>]+/g, value => safeURL(value))
     .slice(0, 500);
 }
-function row(route) { return { route, pageStatus: null, finalPath: null, headingVisible: false, api: [], networkErrors: [], pageErrors: [], pending: new Set(), state: 'pending' }; }
+function row(route) { return { route, pageStatus: null, finalPath: null, headingVisible: false, api: [], networkErrors: [], pageErrors: [], pending: new Set(), lastActivity: Date.now(), state: 'pending' }; }
 
 // Fail if a build accidentally points at production while auditing HML.
 await page.route('**/api/**', async route => {
@@ -61,17 +61,24 @@ page.on('request', request => {
   if (!current || !new URL(request.url()).pathname.startsWith('/api/')) return;
   owners.set(request, current);
   current.pending.add(request);
+  current.lastActivity = Date.now();
 });
 page.on('response', response => {
   const owner = owners.get(response.request());
   if (!owner) return;
-  owner.pending.delete(response.request());
   owner.api.push({ method: response.request().method(), url: safeURL(response.url()), status: response.status() });
+});
+page.on('requestfinished', request => {
+  const owner = owners.get(request);
+  if (!owner) return;
+  owner.pending.delete(request);
+  owner.lastActivity = Date.now();
 });
 page.on('requestfailed', request => {
   const owner = owners.get(request);
   if (!owner) return;
   owner.pending.delete(request);
+  owner.lastActivity = Date.now();
   owner.networkErrors.push({ url: safeURL(request.url()), reason: request.failure()?.errorText });
 });
 page.on('pageerror', error => current?.pageErrors.push(safeError(error)));
@@ -80,7 +87,7 @@ async function settle(row) {
   const deadline = Date.now() + 35_000;
   do {
     await page.waitForTimeout(500);
-    if (!row.pending.size) return;
+    if (!row.pending.size && Date.now() - row.lastActivity >= 1000) return;
   } while (Date.now() < deadline);
 }
 
@@ -92,6 +99,7 @@ try {
   await page.locator('input[type="password"]').fill(credentials.password);
   await page.getByRole('button', { name: /^entrar$|sign in|ingresar/i }).click();
   await page.waitForURL(url => url.pathname !== '/login', { timeout: 60_000 });
+  await page.locator('main h1, main h2, main h3').first().waitFor({ state: 'visible', timeout: 30_000 });
   await settle(current);
   current.finalPath = new URL(page.url()).pathname;
   current.headingVisible = await page.locator('main h1, main h2').first().isVisible();
@@ -123,7 +131,7 @@ try {
   report.error = safeError(error);
 } finally {
   report.finishedAt = new Date().toISOString();
-  report.rows = report.rows.map(({ pending, ...value }) => ({ ...value, pendingRequests: pending.size }));
+  report.rows = report.rows.map(({ pending, lastActivity, ...value }) => ({ ...value, pendingRequests: pending.size }));
   await fs.mkdir(path.dirname(output), { recursive: true });
   await fs.writeFile(output, JSON.stringify(report, null, 2));
   await browser.close();
