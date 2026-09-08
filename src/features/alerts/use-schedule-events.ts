@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { alertsService } from '@/services/alerts.service';
 import type { AlertSchedule } from '@/types/api';
 import type { ScheduleCalendarEvent } from './scheduling-calendar';
+import { resolveCalendarInstantDay } from './schedule-date-scope';
 
 export interface ScheduleEventsFilter {
   startDate: string; // ISO
@@ -14,6 +15,7 @@ export interface ScheduleEventsFilter {
   site?: string;
   name?: string;
   status?: 'ACTIVE' | 'ARCHIVED' | '';
+  accountTimezone?: string;
 }
 
 /**
@@ -30,6 +32,7 @@ function buildKey(filter: ScheduleEventsFilter) {
     filter.site ?? '',
     filter.name ?? '',
     filter.status ?? 'ACTIVE',
+    filter.accountTimezone ?? '',
   ] as const;
 }
 
@@ -205,19 +208,18 @@ export function useScheduleEvents(filter: ScheduleEventsFilter, enabled = true) 
     // Esconde ocorrências de dias anteriores a HOJE. O backend devolve
     // todo o histórico do mês consultado pelo calendário, mas o
     // operador só precisa ver agendamentos a partir do dia atual em
-    // diante (12/05/2026 — Flavio). Usamos o INÍCIO do dia local
-    // (00:00) como cutoff para que agendamentos de mais cedo no dia
-    // de hoje continuem aparecendo mesmo após o horário ter passado.
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-    const todayMs = startOfToday.getTime();
+    // diante (12/05/2026 — Flavio). Compare civil days in the appointment
+    // owner's account timezone so an operator travelling in another timezone
+    // neither hides today's rows nor keeps yesterday's rows by mistake.
+    const now = new Date().toISOString();
     return rows
       .map((row): ScheduleCalendarEvent | null => {
         const start = pickEventStart(row);
         if (!start) return null;
-        const startMs = new Date(start).getTime();
-        if (Number.isNaN(startMs)) return null;
-        if (startMs < todayMs) return null;
+        const timezone = row.accountTimezone || filter.accountTimezone;
+        const today = resolveCalendarInstantDay(now, timezone);
+        const startDay = resolveCalendarInstantDay(start, timezone);
+        if (!today || !startDay || startDay < today) return null;
         const appointmentId = pickAppointmentId(row);
         const scheduleId = pickScheduleId(row);
         return {
@@ -236,7 +238,7 @@ export function useScheduleEvents(filter: ScheduleEventsFilter, enabled = true) 
         };
       })
       .filter((e): e is ScheduleCalendarEvent => e !== null);
-  }, [query.data]);
+  }, [filter.accountTimezone, query.data]);
 
   return {
     ...query,

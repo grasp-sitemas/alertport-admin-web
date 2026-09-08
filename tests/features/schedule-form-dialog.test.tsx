@@ -25,9 +25,18 @@ vi.mock('@/hooks/use-auth', () => ({
 
 vi.mock('@/features/shared/use-hierarchy-lookups', () => ({
   useAccountsLookup: () => ({ data: { results: [] } }),
-  useClientsLookup: () => ({ data: { results: [] } }),
-  useSitesLookup: () => ({ data: { results: [] } }),
-  useEquipmentsBySiteLookup: () => ({ data: { results: [] } }),
+  useClientsLookup: () => ({
+    data: {
+      results: [
+        { _id: 'client-1', name: 'Client 1' },
+        { _id: 'client-2', name: 'Client 2' },
+      ],
+    },
+  }),
+  useSitesLookup: () => ({ data: { results: [{ _id: 'site-1', name: 'Site 1' }] } }),
+  useEquipmentsBySiteLookup: () => ({
+    data: { results: [{ _id: 'equipment-1', name: 'Equipment 1' }] },
+  }),
 }));
 
 vi.mock('next-intl', () => ({
@@ -64,12 +73,18 @@ function makeSchedule(overrides: Partial<AlertSchedule> = {}): AlertSchedule {
 }
 
 describe('ScheduleFormDialog edit-series date scope', () => {
+  const originalTimezone = process.env.TZ;
+
   beforeEach(() => {
     vi.clearAllMocks();
     serviceMocks.updateScheduleSeries.mockResolvedValue({ status: 200, result: {} });
   });
 
-  afterEach(() => cleanup());
+  afterEach(() => {
+    if (originalTimezone === undefined) delete process.env.TZ;
+    else process.env.TZ = originalTimezone;
+    cleanup();
+  });
 
   it('keeps the clicked appointment day after full-schedule hydration and on submission', async () => {
     let resolveFullSchedule!: (schedule: AlertSchedule) => void;
@@ -121,5 +136,163 @@ describe('ScheduleFormDialog edit-series date scope', () => {
       schedule: 'schedule-1',
       beginDate: '2026-08-26',
     });
+  });
+
+  it('keeps schedule begin and end as civil dates when the backend returns midnight UTC', async () => {
+    process.env.TZ = 'America/Sao_Paulo';
+    serviceMocks.getScheduleById.mockResolvedValue(
+      makeSchedule({
+        _id: 'schedule-1',
+        beginDate: '2026-09-01T00:00:00.000Z',
+        endDate: '2026-09-05T00:00:00.000Z',
+      }),
+    );
+    const appointmentRow = makeSchedule({
+      _id: 'appointment-1',
+      startDate: '2026-09-02T00:45:00.000Z',
+      ...({ schedule: { _id: 'schedule-1' } } as Partial<AlertSchedule>),
+    });
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ScheduleFormDialog
+          open
+          onOpenChange={vi.fn()}
+          schedule={appointmentRow}
+          mode="edit-series"
+        />
+      </QueryClientProvider>,
+    );
+
+    const endDate = document.querySelector<HTMLInputElement>('input[name="endDate"]');
+    await waitFor(() => expect(endDate?.value).toBe('2026-09-05'));
+  });
+
+  it('does not overwrite operator changes when full-schedule hydration finishes', async () => {
+    let resolveFullSchedule!: (schedule: AlertSchedule) => void;
+    serviceMocks.getScheduleById.mockReturnValue(
+      new Promise<AlertSchedule>((resolve) => {
+        resolveFullSchedule = resolve;
+      }),
+    );
+    const appointmentRow = makeSchedule({
+      _id: 'appointment-1',
+      name: 'Calendar row',
+      startDate: '2026-09-02T00:45:00.000Z',
+      ...({ schedule: { _id: 'schedule-1' } } as Partial<AlertSchedule>),
+    });
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ScheduleFormDialog
+          open
+          onOpenChange={vi.fn()}
+          schedule={appointmentRow}
+          mode="edit-series"
+        />
+      </QueryClientProvider>,
+    );
+    const name = document.querySelector<HTMLInputElement>('input[name="name"]');
+    const endDate = document.querySelector<HTMLInputElement>('input[name="endDate"]');
+    expect(name).not.toBeNull();
+    expect(endDate).not.toBeNull();
+    fireEvent.change(name!, { target: { value: 'Alteração do operador' } });
+
+    await act(async () => {
+      resolveFullSchedule(
+        makeSchedule({
+          _id: 'schedule-1',
+          name: 'Persisted name',
+          endDate: '2026-12-31',
+        }),
+      );
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(endDate?.value).toBe('2026-12-31'));
+    expect(name?.value).toBe('Alteração do operador');
+  });
+
+  it('does not restore stale hierarchy children after the operator changes their parent', async () => {
+    let resolveFullSchedule!: (schedule: AlertSchedule) => void;
+    serviceMocks.getScheduleById.mockReturnValue(
+      new Promise<AlertSchedule>((resolve) => {
+        resolveFullSchedule = resolve;
+      }),
+    );
+    const appointmentRow = makeSchedule({
+      _id: 'appointment-1',
+      startDate: '2026-09-02T00:45:00.000Z',
+      ...({ schedule: { _id: 'schedule-1' } } as Partial<AlertSchedule>),
+    });
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ScheduleFormDialog
+          open
+          onOpenChange={vi.fn()}
+          schedule={appointmentRow}
+          mode="edit-series"
+        />
+      </QueryClientProvider>,
+    );
+
+    const [clientTrigger, siteTrigger, equipmentTrigger] = screen.getAllByRole('combobox');
+    const clientNativeSelect = document.querySelectorAll('select')[0];
+    fireEvent.change(clientNativeSelect, { target: { value: 'client-2' } });
+
+    await act(async () => {
+      resolveFullSchedule(makeSchedule({ _id: 'schedule-1', endDate: '2026-12-31' }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(clientTrigger).toHaveTextContent('Client 2'));
+    expect(siteTrigger).toHaveTextContent('common.selectOption');
+    expect(equipmentTrigger).toHaveTextContent('common.selectOption');
+  });
+
+  it('reuses the same idempotency key when an operator retries the same save attempt', async () => {
+    serviceMocks.getScheduleById.mockResolvedValue(makeSchedule({ _id: 'schedule-1' }));
+    serviceMocks.updateScheduleSeries
+      .mockRejectedValueOnce(new Error('temporary network failure'))
+      .mockResolvedValueOnce({ status: 200, result: {} });
+    const appointmentRow = makeSchedule({
+      _id: 'appointment-1',
+      startDate: '2026-09-02T12:00:00.000Z',
+      ...({ schedule: { _id: 'schedule-1' } } as Partial<AlertSchedule>),
+    });
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ScheduleFormDialog
+          open
+          onOpenChange={vi.fn()}
+          schedule={appointmentRow}
+          mode="edit-series"
+        />
+      </QueryClientProvider>,
+    );
+
+    const save = screen.getByRole('button', { name: 'common.save' });
+    fireEvent.click(save);
+    await waitFor(() => expect(serviceMocks.updateScheduleSeries).toHaveBeenCalledTimes(1));
+    const firstKey = serviceMocks.updateScheduleSeries.mock.calls[0][1];
+    expect(firstKey).toEqual(expect.any(String));
+
+    fireEvent.click(save);
+    await waitFor(() => expect(serviceMocks.updateScheduleSeries).toHaveBeenCalledTimes(2));
+    expect(serviceMocks.updateScheduleSeries.mock.calls[1][1]).toBe(firstKey);
   });
 });
