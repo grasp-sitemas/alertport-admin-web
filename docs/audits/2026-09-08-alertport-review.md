@@ -82,3 +82,18 @@ O commit remoto `47b05fa` foi incorporado integralmente, preservando as correç�
 MANAGER mantém a edição dos clientes atribuídos, mas não recebe o botão de criar um novo cliente que ficaria fora desse escopo. ADMIN e os perfis master preservam a criação. Duas regressões de navegador comprovaram essa distinção; o caso MANAGER falhou antes e ambos passaram depois.
 
 O auditor live agora aguarda o fim do corpo das respostas (`requestfinished`) e a renderização do dashboard antes de navegar. Isso evita cancelar consultas ainda em andamento por iniciativa do próprio auditor. Erros de rede continuam reprovando a execução; suspensões do Mac exigem repetir a verificação.
+
+## Publicação e verificação final
+
+O candidato `d534bd406729d1d10dac7e7b21000e03cf48225e` foi publicado nos dois ambientes em 08/09/2026:
+
+| Ambiente | URL pública | Deployment Vercel | Verificação real |
+| --- | --- | --- | --- |
+| HML | https://admin-hml.alertport.com.br | `dpl_5TrZuEemM47E9ayK3gZQUw1nWfxU` | Login e 28 páginas, zero erros, concluída 12:44 UTC |
+| PROD | https://admin.alertport.com.br | `dpl_9unx5CJtz7XFtoVsav8rsqSWCqR9` | Login e 28 páginas, zero erros, concluída 12:59 UTC |
+
+Também passaram **21/21 regressões de navegador na interface HML publicada**, com transporte HTTP controlado, além dos 473 unitários e demais gates descritos acima. As verificações autenticadas reais usaram SUPER_ADMIN_MASTER e somente leitura após o login; não substituem os testes de persistência e isolamento dos serviços.
+
+A auditoria conjunta de CORS cobriu quatro origens principais dos admins: **30/30 preflights e 16/16 verificações Chromium**, incluindo APIs, ViaCEP e chat por polling/WebSocket. Não reproduziu bloqueios CORS/CSP nos fluxos verificados. As evidências JSON estão em `audit-2026-09-08` no workspace; o relatório CORS está no repositório dos microserviços.
+
+A integração de código está no [PR #5 em rascunho](https://github.com/grasp-sitemas/alertport-admin-web/pull/5). A revisão automática recusou o push direto em `main`; essa branch foi preservada. A publicação Vercel foi aprovada após comprovação de que o repositório e o candidato já eram públicos. O deployment PROD anterior `admin-alertport-hvikn2zgl-developmentgraspgmailcoms-projects.vercel.app` permanece identificado para rollback.
