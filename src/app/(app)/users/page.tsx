@@ -27,6 +27,10 @@ import { useAuth } from '@/hooks/use-auth';
 import type { User } from '@/types/api';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 
+function userName(user?: User) {
+  return user?.fullName?.trim() || `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim() || user?.name?.trim() || '-';
+}
+
 export default function UsersPage() {
   const t = useTranslations();
   const queryClient = useQueryClient();
@@ -92,9 +96,7 @@ export default function UsersPage() {
       key: 'name',
       headerKey: 'common.name',
       render: (item) => {
-        const name =
-          item.fullName ?? `${item.firstName ?? ''} ${item.lastName ?? ''}`.trim();
-        return <p className="font-medium text-white">{name || '-'}</p>;
+        return <p className="font-medium text-white">{userName(item)}</p>;
       },
     },
     { key: 'email', headerKey: 'common.email', render: (item) => item.email },
@@ -238,7 +240,7 @@ export default function UsersPage() {
           open={!!deleteTarget}
           onOpenChange={(open) => !open && setDeleteTarget(undefined)}
           title={t('users.deleteConfirm')}
-          description={`${deleteTarget?.firstName} ${deleteTarget?.lastName}`}
+          description={userName(deleteTarget)}
           onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
           isLoading={deleteMutation.isPending}
         />

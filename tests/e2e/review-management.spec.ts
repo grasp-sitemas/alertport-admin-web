@@ -23,6 +23,19 @@ async function select(page: Page, label: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click();
 }
 
+test('users retain the legacy name when split name fields are absent', async ({ page }) => {
+  await seedSession(page);
+  await mockApi(page, {
+    '/api/users/system/search/companyuser/v1/': envelope([
+      { _id: 'legacy-user', name: 'Operador legado QA', email: 'legacy@example.invalid', status: 'ACTIVE', companyUser: { subtype: 'OPERATOR' } },
+    ]),
+  });
+  await page.goto('/users');
+  await expect(page.getByRole('row').filter({ hasText: 'legacy@example.invalid' })).toContainText('Operador legado QA');
+  await page.getByRole('row').filter({ hasText: 'legacy@example.invalid' }).getByRole('button', { name: 'Excluir' }).click();
+  await expect(page.getByRole('dialog')).toContainText('Operador legado QA');
+});
+
 test('company load failure is explicit and can recover without showing an empty record', async ({ page }) => {
   await seedSession(page);
   await mockApi(page, {});

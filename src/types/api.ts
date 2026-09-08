@@ -103,6 +103,8 @@ export interface User {
   firstName: string;
   lastName: string;
   fullName?: string;
+  /** Display name retained by migrated records without split name fields. */
+  name?: string;
   email: string;
   username?: string;
   primaryPhone?: string;

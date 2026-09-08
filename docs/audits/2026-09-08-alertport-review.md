@@ -70,3 +70,7 @@ Uma falha ao carregar os dados da empresa agora mostra erro e botão de nova ten
 Na retomada, TypeScript, lint (os mesmos nove avisos), 463 testes unitários e verificação das rotas dinâmicas passaram. As 18 regressões de navegador passaram, sem skips, em `/private/tmp/alertport-resume-browser-correct-endpoint.log`. A auditoria do build local com APIs reais de HML passou no login e nas 28 páginas autenticadas, como SUPER_ADMIN_MASTER, sem erros de HTTP, rede ou JavaScript: `audit-2026-09-08/alertport-live-routes-resume.json` no workspace. Essa leitura não substitui a validação de persistência, perfis restritos nem o teste posterior na URL publicada.
 
 Não executar os testes legados de agenda em dados de clientes: alguns deles editam o primeiro evento encontrado. Mutações live desta auditoria devem usar somente fixtures dedicadas `QA-AUDIT`.
+
+## Compatibilidade com cadastros migrados
+
+Cadastros antigos podem fornecer somente `name`. A listagem e a confirmação de exclusão agora usam esse campo quando `fullName` e os nomes separados estão ausentes. A regressão de navegador falhou antes com nome vazio e passou após o ajuste. O novo gate aprovou 19/19 E2E, 463 unitários, TypeScript, lint sem erros e build HML.
