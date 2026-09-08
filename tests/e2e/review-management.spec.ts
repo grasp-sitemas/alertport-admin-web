@@ -23,6 +23,22 @@ async function select(page: Page, label: string, option: string) {
   await page.getByRole('option', { name: option, exact: true }).click();
 }
 
+test('company load failure is explicit and can recover without showing an empty record', async ({ page }) => {
+  await seedSession(page);
+  await mockApi(page, {});
+  let unavailable = true;
+  await page.route('**/api/users/system/companyuser/me/v1', route => unavailable
+    ? route.fulfill({ status: 400, json: { status: 400, message: 'Fixture unavailable' } })
+    : route.fulfill({ json: single({ ...adminSession.user, account: sampleAccount }) }));
+  await page.goto('/company');
+  await expect(page.locator('main').getByRole('alert')).toContainText('Ocorreu um erro');
+  await expect(page.getByText('Nenhum dado disponível', { exact: true })).not.toBeVisible();
+  unavailable = false;
+  await page.getByRole('button', { name: 'Atualizar', exact: true }).click();
+  await expect(page.locator('input[name="name"]')).toHaveValue(sampleAccount.name);
+  await expect(page.locator('main').getByRole('alert')).not.toBeVisible();
+});
+
 test('company save refreshes the list and reopens all persisted values', async ({ page }) => {
   await seedSession(page, { ...adminSession, user: { ...adminSession.user, companyUser: { ...adminSession.user.companyUser, subtype: 'SUPER_ADMIN_MASTER' } } });
   let stored: Record<string, unknown> = { ...sampleAccount, timezone: 'America/Sao_Paulo' };

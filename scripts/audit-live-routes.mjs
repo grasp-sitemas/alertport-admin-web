@@ -38,6 +38,13 @@ const report = {
 let current;
 const owners = new WeakMap();
 function safeURL(value) { const url = new URL(value); return `${url.origin}${url.pathname}`; }
+function safeError(error) {
+  return String(error?.message ?? error)
+    .replaceAll(credentials.email, '[redacted]')
+    .replaceAll(credentials.password, '[redacted]')
+    .replace(/https?:\/\/[^\s"'<>]+/g, value => safeURL(value))
+    .slice(0, 500);
+}
 function row(route) { return { route, pageStatus: null, finalPath: null, headingVisible: false, api: [], networkErrors: [], pageErrors: [], pending: new Set(), state: 'pending' }; }
 
 // Fail if a build accidentally points at production while auditing HML.
@@ -67,7 +74,7 @@ page.on('requestfailed', request => {
   owner.pending.delete(request);
   owner.networkErrors.push({ url: safeURL(request.url()), reason: request.failure()?.errorText });
 });
-page.on('pageerror', error => current?.pageErrors.push(error.message.slice(0, 500)));
+page.on('pageerror', error => current?.pageErrors.push(safeError(error)));
 
 async function settle(row) {
   const deadline = Date.now() + 35_000;
@@ -108,12 +115,12 @@ try {
       current.state = failed ? 'failed' : current.denied ? 'access_denied' : current.pageStatus === 200 && current.headingVisible && current.finalPath === route ? 'loaded' : 'incomplete';
     } catch (error) {
       current.state = 'failed';
-      current.pageErrors.push(error.message.slice(0, 500));
+      current.pageErrors.push(safeError(error));
     }
     console.log(JSON.stringify({ route, state: current.state, requests: current.api.length, errors: current.networkErrors.length + current.pageErrors.length + current.api.filter(response => response.status >= 400).length }));
   }
 } catch (error) {
-  report.error = error.message.slice(0, 500);
+  report.error = safeError(error);
 } finally {
   report.finishedAt = new Date().toISOString();
   report.rows = report.rows.map(({ pending, ...value }) => ({ ...value, pendingRequests: pending.size }));

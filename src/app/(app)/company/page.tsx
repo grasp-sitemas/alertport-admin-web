@@ -76,6 +76,16 @@ export default function CompanyPage() {
   if (meQuery.isLoading) {
     return <div className="flex items-center justify-center py-20"><Spinner size="lg" /></div>;
   }
+  if (meQuery.isError) {
+    return (
+      <div role="alert" className="flex flex-col items-center gap-4 py-20 text-center">
+        <p>{t('notifications.errorOccurred')}</p>
+        <Button onClick={() => meQuery.refetch()} disabled={meQuery.isFetching}>
+          {t('common.refresh')}
+        </Button>
+      </div>
+    );
+  }
   if (!company) {
     return <div className="text-text-secondary py-20 text-center">{t('common.noData')}</div>;
   }

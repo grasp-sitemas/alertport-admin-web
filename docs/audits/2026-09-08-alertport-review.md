@@ -61,4 +61,12 @@ A avaliação live de produção/HML, os testes de isolamento entre produtos e o
 
 O runner `scripts/audit-live-routes.mjs` percorre todas as páginas autenticadas presentes em `src/app/(app)`, após login normal. Registra somente caminhos, status HTTP, erros de rede, erros JavaScript e presença de título; não extrai registros pessoais. Exige origem de API explícita e bloqueia chamadas a outra origem, evitando testar acidentalmente produção com o candidato HML. Uma restrição de acesso inesperada, uma rota sem terminar de carregar ou um erro HTTP fazem o processo sair com código 1. Restrições esperadas para testes de perfil devem ser declaradas explicitamente em `ALERTPORT_AUDIT_EXPECT_DENIED`.
 
+## Retomada: login e falha de carregamento da empresa
+
+O ensaio live anterior detectou envio nativo do formulário de login antes de o JavaScript hidratar, levando credenciais para a query string. O HTML inicial agora mantém campos e botão desabilitados até hidratar e declara `method="post"`. O auditor também elimina query strings e credenciais das mensagens de erro persistidas. A regressão sem JavaScript passou; login normal e navegação autenticada passaram com API HML real.
+
+Uma falha ao carregar os dados da empresa agora mostra erro e botão de nova tentativa. O teste inicialmente interceptava `/api/users/me/v1/`, mas a tela usa `/api/users/system/companyuser/me/v1`; esse teste foi corrigido e restringe o seletor de alerta ao conteúdo principal, sem confundi-lo com o anunciador de rotas do Next. Ele comprova falha explícita, nova consulta e recuperação do formulário.
+
+Na retomada, TypeScript, lint (os mesmos nove avisos), 463 testes unitários e verificação das rotas dinâmicas passaram. As 18 regressões de navegador passaram, sem skips, em `/private/tmp/alertport-resume-browser-correct-endpoint.log`. A auditoria do build local com APIs reais de HML passou no login e nas 28 páginas autenticadas, como SUPER_ADMIN_MASTER, sem erros de HTTP, rede ou JavaScript: `audit-2026-09-08/alertport-live-routes-resume.json` no workspace. Essa leitura não substitui a validação de persistência, perfis restritos nem o teste posterior na URL publicada.
+
 Não executar os testes legados de agenda em dados de clientes: alguns deles editam o primeiro evento encontrado. Mutações live desta auditoria devem usar somente fixtures dedicadas `QA-AUDIT`.
