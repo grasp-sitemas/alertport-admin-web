@@ -6,7 +6,6 @@ import {
   Mic,
   Clock,
   Users,
-  UserCheck,
   Cpu,
   Building2,
   Briefcase,
@@ -264,13 +263,6 @@ export const navigation: NavSection[] = [
         icon: Users,
         roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN'],
         moduleKey: 'USERS',
-      },
-      {
-        titleKey: 'sidebar.collaborators',
-        href: '/collaborators',
-        icon: UserCheck,
-        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER'],
-        moduleKey: 'COLLABORATORS',
       },
       {
         titleKey: 'sidebar.equipment',

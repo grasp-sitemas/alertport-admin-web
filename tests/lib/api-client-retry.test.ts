@@ -36,6 +36,16 @@ describe('apiClient retry policy', () => {
     vi.restoreAllMocks();
   });
 
+  it.each(['post', 'put', 'delete'] as const)('does not replay %s mutations after an uncertain timeout', async (method) => {
+    let attempts = 0;
+    await expect(apiClient.request({
+      method,
+      url: '/api/company/v1/test',
+      adapter: timeoutAdapter(() => { attempts += 1; }),
+    })).rejects.toThrow('timeout exceeded');
+    expect(attempts).toBe(1);
+  });
+
   it('does not replay a mutation explicitly marked retry=false', async () => {
     let attempts = 0;
 

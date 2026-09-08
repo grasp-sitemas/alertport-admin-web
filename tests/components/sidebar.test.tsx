@@ -104,6 +104,12 @@ async function renderSidebar({
 }
 
 describe('Sidebar — RBAC + structure', () => {
+  it('keeps equipment and user management visible while collaborator registration is hidden', async () => {
+    await renderSidebar({ pathname: '/users', role: 'ADMIN' });
+    expect(screen.getByRole('link', { name: 'Usuários' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Equipamentos' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Colaboradores' })).not.toBeInTheDocument();
+  });
   it('renders sections allowed for an ADMIN role', async () => {
     await renderSidebar({ pathname: '/dashboard', role: 'ADMIN' });
     // Multi-item section headers (pt.json). Schedules has only one

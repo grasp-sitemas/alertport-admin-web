@@ -16,8 +16,8 @@ import {
  * Smoke tests that exercise the "edit existing record → Save" flow across
  * every CRUD form. The invariant under test:
  *
- *   Clicking Save MUST either succeed (success toast) or surface a visible
- *   validation toast. A silent outcome is a bug.
+ *   Valid edit fixtures MUST save successfully. Validation or API errors
+ *   are failures and may not be counted as a passing smoke check.
  *
  * This protects against the two prod incidents that motivated the plan:
  *   - zod enum rejecting a legacy API field (`WHITE-LABEL-COMPANY`) → Save
@@ -32,24 +32,11 @@ import {
 // Matches messages from src/messages/pt.json. Keep broad so future copy
 // tweaks don't break the smoke test.
 const SUCCESS = /atualizado com sucesso|criado com sucesso|salvo com sucesso|atualizada com sucesso|criada com sucesso/i;
-const VALIDATION = /corrija os campos|verifique os campos|obrigatório/i;
-const GENERIC_ERROR = /ocorreu um erro/i;
-
 async function waitForSaveOutcome(page: Page) {
-  // A successful mutation, a validation toast, or a generic error toast -
-  // any ONE of those is acceptable. What we refuse is silence.
-  await expect
-    .poll(
-      async () => {
-        const bodyText = await page.locator('body').innerText();
-        if (SUCCESS.test(bodyText)) return 'success';
-        if (VALIDATION.test(bodyText)) return 'validation';
-        if (GENERIC_ERROR.test(bodyText)) return 'error';
-        return null;
-      },
-      { timeout: 10_000, message: 'Clicking Save produced no toast - the submit was silent' },
-    )
-    .not.toBeNull();
+  const outcome = page.locator('[data-sonner-toast]').first();
+  await expect(outcome).toBeVisible();
+  expect(await outcome.getAttribute('data-type'), await outcome.innerText()).toBe('success');
+  await expect(outcome).toContainText(SUCCESS);
 }
 
 async function clickSave(page: Page) {
@@ -73,7 +60,7 @@ async function clickRowEdit(page: Page) {
   throw new Error('No edit control found on the list page');
 }
 
-test.describe('CRUD form smoke - every edit+save path must toast an outcome', () => {
+test.describe('CRUD form smoke - every valid edit must save successfully', () => {
   test.beforeEach(async ({ page }) => {
     await seedSession(page);
   });
@@ -179,8 +166,13 @@ test.describe('CRUD form smoke - every edit+save path must toast an outcome', ()
 
     await page.goto('/company');
     await expect(page.locator('input[name="name"]')).toBeVisible();
+    await expect(page.getByPlaceholder('(11) 99999-9999').first()).toHaveValue('(11) 99999-9999');
+    await expect(page.locator('button[role="combobox"]').filter({ hasText: 'Jurídica' })).toBeVisible();
     // The company page has an always-visible Save button.
+    const saveRequest = page.waitForRequest(request => request.method() === 'PUT' && request.url().includes('/api/company/formdata/v1/'));
     await clickSave(page);
     await waitForSaveOutcome(page);
+    const payload = (await saveRequest).postData()?.match(/name="jsonData"\r\n\r\n([\s\S]*?)\r\n--/)?.[1];
+    expect(JSON.parse(payload!)).toMatchObject({ personType: 'LEGAL', primaryPhone: '11999999999' });
   });
 });

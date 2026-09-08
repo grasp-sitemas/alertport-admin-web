@@ -49,6 +49,7 @@ const CSP = [
     'https://*.herokuapp.com',
     'wss://*.herokuapp.com',
     'https://*.shieldgo.com.br',
+    'https://viacep.com.br',
     'wss://*.shieldgo.com.br',
     'https://*.googleapis.com',
     'https://*.firebaseio.com',
