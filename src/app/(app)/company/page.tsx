@@ -66,6 +66,38 @@ function pickOwnEntity(me: User | undefined | null): Company | null {
 
 export default function CompanyPage() {
   const t = useTranslations();
+  const meQuery = useQuery({
+    queryKey: ['me'],
+    queryFn: () => companyService.getMe(),
+    staleTime: 60 * 1000,
+  });
+  const company = useMemo(() => pickOwnEntity(meQuery.data?.result), [meQuery.data]);
+
+  if (meQuery.isLoading) {
+    return <div className="flex items-center justify-center py-20"><Spinner size="lg" /></div>;
+  }
+  if (meQuery.isError) {
+    return (
+      <div role="alert" className="flex flex-col items-center gap-4 py-20 text-center">
+        <p>{t('notifications.errorOccurred')}</p>
+        <Button onClick={() => meQuery.refetch()} disabled={meQuery.isFetching}>
+          {t('common.refresh')}
+        </Button>
+      </div>
+    );
+  }
+  if (!company) {
+    return <div className="text-text-secondary py-20 text-center">{t('common.noData')}</div>;
+  }
+
+  // Mount controlled inputs with the loaded record. Resetting an empty
+  // form while its Radix selects first mount can emit an empty value and
+  // erase personType, making an otherwise valid company impossible to save.
+  return <CompanyDetailsForm key={company._id} company={company} />;
+}
+
+function CompanyDetailsForm({ company }: { company: Company }) {
+  const t = useTranslations();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -77,57 +109,11 @@ export default function CompanyPage() {
     user?.companyUser?.subtype === 'ADMIN_MASTER' ||
     user?.companyUser?.subtype === 'ADMIN';
 
-  const meQuery = useQuery({
-    queryKey: ['me'],
-    queryFn: () => companyService.getMe(),
-    staleTime: 60 * 1000,
-  });
-
-  const company = useMemo(() => pickOwnEntity(meQuery.data?.result), [meQuery.data]);
-
-  const {
-    register,
-    control,
-    handleSubmit,
-    setValue,
-    reset,
-    watch,
-    formState: { errors, isSubmitting },
-  } = useAppForm<CompanyFormValues>({
-    resolver: zodResolver(companyFormSchema),
-    defaultValues: {
-      name: '',
-      fantasyName: '',
-      document: '',
-      email: '',
-      primaryPhone: '',
-      secondaryPhone: '',
-      logoURL: '',
-      status: 'ACTIVE',
-      type: 'ACCOUNT',
-      address: {
-        cep: '',
-        address: '',
-        number: '',
-        complement: '',
-        neighborhood: '',
-        city: '',
-        state: '',
-        country: 'BR',
-        ibge: '',
-        gia: '',
-        name: 'MAIN',
-      },
-    },
-  });
-
-  // Hydrate the form once the /me response lands
-  useEffect(() => {
-    if (!company) return;
+  const defaults = useMemo<CompanyFormValues>(() => {
     // `secondaryPhone` lives on CompanyFormData but not on the read-model
     // `Company` — keep the narrow cast just for that extra field.
     const extras = company as unknown as { secondaryPhone?: string };
-    reset({
+    return {
       _id: company._id,
       name: company.name ?? '',
       fantasyName: company.fantasyName ?? '',
@@ -153,21 +139,36 @@ export default function CompanyPage() {
         gia: company.address?.gia ?? '',
         name: company.address?.name ?? 'MAIN',
       },
-    });
-  }, [company, reset]);
+    };
+  }, [company]);
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    setValue,
+    reset,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useAppForm<CompanyFormValues>({
+    resolver: zodResolver(companyFormSchema),
+    defaultValues: defaults,
+  });
+
+  useEffect(() => {
+    reset(defaults);
+  }, [defaults, reset]);
 
   const cep = useCepLookup(setValue, 'address');
   const [logoFile, setLogoFile] = useState<File | null>(null);
 
   const mutation = useMutation({
     mutationFn: (values: CompanyFormValues) => {
-      if (!company) throw new Error('No company loaded');
       // Strip empty-string ObjectId refs + normalize masked phone/document fields.
       const sanitized = sanitizeFormPayload(values as unknown as Record<string, unknown>);
       return companyService.update(company._id, sanitized as never, logoFile);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['me'] });
       // Editing the company (ACCOUNT) can ripple into every downstream lookup
       // (its clients, sites, equipment). Invalidate the whole tree.
       invalidateHierarchyAfter(queryClient, 'account');
@@ -182,18 +183,6 @@ export default function CompanyPage() {
       toast.error(t('notifications.errorOccurred'));
     },
   });
-
-  if (meQuery.isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
-  if (!company) {
-    return <div className="text-text-secondary py-20 text-center">{t('common.noData')}</div>;
-  }
 
   return (
     <RoleGuard roles={['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN', 'MANAGER', 'OPERATOR']}>

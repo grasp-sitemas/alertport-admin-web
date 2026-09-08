@@ -1,0 +1,17 @@
+# Environment values come from the selected Vercel project. Tracked local
+# environment files must not supply production fallbacks to an HML build.
+.env*
+!.env.example
+
+node_modules
+.next
+.git
+.vercel*
+!.vercelignore
+coverage
+test-results
+playwright-report
+.claude/settings.local.json
+.claude/agent-memory
+*.tsbuildinfo
+*.log

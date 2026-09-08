@@ -44,7 +44,7 @@ export function useCepLookup<T extends FieldValues>(
       set('ibge', data.ibge);
       set('gia', data.gia);
     },
-    onError: () => toast.error(t('sites.cepInvalid')),
+    onError: () => toast.error(t('sites.cepUnavailable')),
   });
 
   /**
