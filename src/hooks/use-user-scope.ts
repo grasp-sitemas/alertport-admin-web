@@ -15,6 +15,7 @@ export interface UserScope {
    * attendance updates.
    */
   siteGroupId?: string;
+  isGroupOperator?: boolean;
 }
 
 /**
@@ -34,13 +35,17 @@ export function useUserScope(): UserScope {
       accountId: extractId(user?.account),
       clientId: extractId(user?.client),
       siteId: extractId(user?.site),
+      isGroupOperator:
+        user?.companyUser?.subtype === 'OPERATOR' &&
+        typeof user.siteGroup === 'object' &&
+        user.siteGroup?.status !== 'ARCHIVED' &&
+        Array.isArray(user.siteGroup?.sites) &&
+        user.siteGroup.sites.length > 0,
       // `siteGroup` is not declared on the typed User but ms-user/ms-company
       // hydrate it at login for OPERATOR sessions. Read it via a runtime cast
       // so we don't need to widen the User type (same pattern already used in
       // attendance-dialog.tsx).
-      siteGroupId: extractId(
-        (user as unknown as { siteGroup?: unknown })?.siteGroup,
-      ),
+      siteGroupId: extractId((user as unknown as { siteGroup?: unknown })?.siteGroup),
     }),
     [user],
   );
@@ -53,10 +58,13 @@ export function useUserScope(): UserScope {
 export function applyUserScope<T extends Record<string, unknown>>(
   params: T,
   scope: UserScope,
+  forGroupMonitor = false,
 ): T & { account?: string; client?: string; site?: string } {
   const next: T & { account?: string; client?: string; site?: string } = { ...params };
   if (scope.accountId && !next.account) next.account = scope.accountId;
-  if (scope.clientId && !next.client) next.client = scope.clientId;
-  if (scope.siteId && !next.site) next.site = scope.siteId;
+  if (!(forGroupMonitor && scope.isGroupOperator)) {
+    if (scope.clientId && !next.client) next.client = scope.clientId;
+    if (scope.siteId && !next.site) next.site = scope.siteId;
+  }
   return next;
 }

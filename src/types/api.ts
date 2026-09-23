@@ -118,6 +118,7 @@ export interface User {
   client?: Company;
   site?: Company;
   accountTimezone?: string;
+  siteGroup?: string | { _id: string; name?: string; status?: EntityStatus; sites?: Array<string | Company> };
   address?: Address;
   type?: 'USER-COMPANY' | 'USER-CUSTOMER';
   createDate?: string;

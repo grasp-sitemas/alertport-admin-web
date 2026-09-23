@@ -118,13 +118,15 @@ export function HierarchyFilters({
   // even fires those requests).
   const effectiveAccount = canSelectAccount ? value.account : scope.accountId;
   const effectiveClientForSites =
-    value.client || (isManagerOrAbove(userSubtype) ? undefined : scope.clientId);
+    value.client ||
+    (isManagerOrAbove(userSubtype) || scope.isGroupOperator ? undefined : scope.clientId);
 
   const accountsLookup = useAccountsLookup();
   const clientsLookup = useClientsLookup(effectiveAccount || undefined);
   const sitesLookup = useSitesLookup(
     effectiveClientForSites || undefined,
     effectiveAccount || undefined,
+    true,
   );
 
   // Merge the session's own hierarchy (account/client/site) as a fallback
@@ -135,8 +137,14 @@ export function HierarchyFilters({
   // dropdown would be empty and the user couldn't even pick their own
   // scope. Merging the session object guarantees at least one entry so
   // the filter remains usable.
-  const sessionAccount = useMemo(() => extractSessionOption(sessionUser?.account), [sessionUser?.account]);
-  const sessionClient = useMemo(() => extractSessionOption(sessionUser?.client), [sessionUser?.client]);
+  const sessionAccount = useMemo(
+    () => extractSessionOption(sessionUser?.account),
+    [sessionUser?.account],
+  );
+  const sessionClient = useMemo(
+    () => extractSessionOption(sessionUser?.client),
+    [sessionUser?.client],
+  );
   const sessionSite = useMemo(() => extractSessionOption(sessionUser?.site), [sessionUser?.site]);
 
   const accountOptions = mergeSessionOption(accountsLookup.data?.results ?? [], sessionAccount);
@@ -152,9 +160,7 @@ export function HierarchyFilters({
     <>
       {canSelectAccount && (
         <div>
-          <label className={labelClass}>
-            {t('common.account')}
-          </label>
+          <label className={labelClass}>{t('common.account')}</label>
           <Select
             value={value.account || '__all__'}
             onValueChange={(val) => {
@@ -179,9 +185,7 @@ export function HierarchyFilters({
 
       {canSelectClient && (
         <div>
-          <label className={labelClass}>
-            {t('common.client')}
-          </label>
+          <label className={labelClass}>{t('common.client')}</label>
           <Select
             value={value.client || '__all__'}
             onValueChange={(val) => {
@@ -206,9 +210,7 @@ export function HierarchyFilters({
 
       {canSelectSite && (
         <div>
-          <label className={labelClass}>
-            {t('common.site')}
-          </label>
+          <label className={labelClass}>{t('common.site')}</label>
           <Select
             value={value.site || '__all__'}
             onValueChange={(val) => {

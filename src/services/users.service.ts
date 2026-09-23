@@ -28,6 +28,7 @@ export interface AdminUserFormData {
   account?: string;
   client?: string;
   site?: string;
+  siteGroup?: string | null;
   status: 'ACTIVE' | 'ARCHIVED';
   companyUser: {
     subtype: string;

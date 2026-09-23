@@ -25,6 +25,7 @@ export const userFormSchema = z
     account: z.string().optional(),
     client: z.string().optional(),
     site: z.string().optional(),
+    siteGroup: z.string().optional(),
     status: z.enum(['ACTIVE', 'ARCHIVED']),
     companyUser: z.object({
       subtype: z.enum(['ADMIN', 'MANAGER', 'OPERATOR', 'AUDITOR']),
@@ -78,6 +79,7 @@ export const DEFAULT_USER_VALUES: UserFormValues = {
   account: '',
   client: '',
   site: '',
+  siteGroup: '',
   status: 'ACTIVE',
   companyUser: {
     subtype: 'OPERATOR',
