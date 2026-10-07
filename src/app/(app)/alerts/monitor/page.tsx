@@ -197,6 +197,7 @@ function AlertMonitor() {
         ...(activeFilters.endDate ? { endDate: activeFilters.endDate } : {}),
       },
       scope,
+      true,
     ),
     ...(activeHierarchy.account ? { account: activeHierarchy.account } : {}),
     ...(activeHierarchy.client ? { client: activeHierarchy.client } : {}),

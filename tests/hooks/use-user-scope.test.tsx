@@ -86,6 +86,23 @@ describe('useUserScope', () => {
 });
 
 describe('applyUserScope', () => {
+  it('uses the operator group across clients for monitor queries while preserving the account', async () => {
+    const scope = await runScope({
+      companyUser: { subtype: 'OPERATOR' }, account: { _id: 'we' },
+      client: { _id: 'old-client' }, site: { _id: 'single-site' },
+      siteGroup: { _id: 'group', status: 'ACTIVE', sites: ['site-a', 'site-b'] },
+    });
+    const { applyUserScope } = await import('@/hooks/use-user-scope');
+    expect(applyUserScope({ limit: 50 }, scope, true)).toEqual({ account: 'we', limit: 50 });
+    expect(applyUserScope({ site: 'site-b' }, scope, true)).toEqual({ account: 'we', site: 'site-b' });
+    expect(applyUserScope({}, scope)).toEqual({ account: 'we', client: 'old-client', site: 'single-site' });
+  });
+  it('keeps single-site restrictions when a group is absent or empty', async () => {
+    const scope = await runScope({ companyUser: { subtype: 'OPERATOR' }, account: { _id: 'we' },
+      client: { _id: 'client' }, site: { _id: 'site' }, siteGroup: { _id: 'group', sites: [] } });
+    const { applyUserScope } = await import('@/hooks/use-user-scope');
+    expect(applyUserScope({}, scope, true)).toEqual({ account: 'we', client: 'client', site: 'site' });
+  });
   it('injects missing account/client/site from the scope', async () => {
     const { applyUserScope } = await import('@/hooks/use-user-scope');
     const out = applyUserScope(

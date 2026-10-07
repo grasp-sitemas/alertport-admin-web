@@ -1482,8 +1482,14 @@
         "label": "Relatórios",
         "desc": "Aderência, SLA, SOS, Presença. Exportáveis em XLSX/CSV/PDF."
       },
-      "CLIENTS": { "label": "Clientes", "desc": "Cadastro das empresas/condomínios atendidos." },
-      "SITES": { "label": "Postos", "desc": "Locais físicos onde os vigias atuam." },
+      "CLIENTS": {
+        "label": "Clientes",
+        "desc": "Cadastro das empresas/condomínios atendidos."
+      },
+      "SITES": {
+        "label": "Postos",
+        "desc": "Locais físicos onde os vigias atuam."
+      },
       "EQUIPMENT": {
         "label": "Equipamentos",
         "desc": "Dispositivos vinculados aos postos via QR Code."
@@ -1501,5 +1507,16 @@
         "desc": "Dados cadastrais, timezone e políticas internas."
       }
     }
+  },
+  "siteGroups": {
+    "title": "Grupos de postos",
+    "description": "Organize os postos que cada operador pode monitorar.",
+    "new": "Novo grupo",
+    "sites": "Postos",
+    "saved": "Grupo salvo. Entre novamente para atualizar os acessos do operador.",
+    "singleSite": "Somente o posto individual",
+    "operatorHint": "O operador monitora os postos do grupo, inclusive de clientes diferentes da mesma empresa. Associe o grupo no cadastro do usuário.",
+    "archive": "Arquivar",
+    "archiveConfirm": "Arquivar este grupo de postos?"
   }
 }

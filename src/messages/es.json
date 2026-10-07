@@ -1486,7 +1486,10 @@
         "label": "Clientes",
         "desc": "Registro de las empresas o condominios atendidos."
       },
-      "SITES": { "label": "Puestos", "desc": "Ubicaciones físicas donde actúan los vigilantes." },
+      "SITES": {
+        "label": "Puestos",
+        "desc": "Ubicaciones físicas donde actúan los vigilantes."
+      },
       "EQUIPMENT": {
         "label": "Equipos",
         "desc": "Dispositivos vinculados a los puestos vía QR Code."
@@ -1504,5 +1507,16 @@
         "desc": "Datos de registro, zona horaria y políticas internas."
       }
     }
+  },
+  "siteGroups": {
+    "title": "Site groups",
+    "description": "Choose the sites each operator can monitor.",
+    "new": "New group",
+    "sites": "Sites",
+    "saved": "Group saved. Sign in again to refresh operator access.",
+    "singleSite": "Individual site only",
+    "operatorHint": "Operators monitor the group sites across clients within the same company. Assign the group in the user form.",
+    "archive": "Archive",
+    "archiveConfirm": "Archive this site group?"
   }
 }

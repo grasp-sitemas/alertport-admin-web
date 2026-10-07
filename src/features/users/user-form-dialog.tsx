@@ -5,7 +5,7 @@ import { Controller, useWatch } from 'react-hook-form';
 import { useAppForm } from '@/hooks/use-app-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Search } from 'lucide-react';
 import {
@@ -43,6 +43,7 @@ import {
   useClientsLookup,
   useSitesLookup,
 } from '@/features/shared/use-hierarchy-lookups';
+import { siteGroupsService } from '@/services/site-groups.service';
 import type { User } from '@/types/api';
 
 interface UserFormDialogProps {
@@ -117,6 +118,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
         account: getIdOrEmpty(user.account),
         client: getIdOrEmpty(user.client),
         site: getIdOrEmpty(user.site),
+        siteGroup: getIdOrEmpty(user.siteGroup),
         status: user.status ?? 'ACTIVE',
         companyUser: {
           subtype:
@@ -192,6 +194,11 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
   const accountWatched = useWatch({ control, name: 'account' });
   const clientWatched = useWatch({ control, name: 'client' });
 
+  const groupsLookup = useQuery({
+    queryKey: ['site-groups', accountWatched],
+    queryFn: () => siteGroupsService.list(accountWatched || ''),
+    enabled: !!accountWatched && subtypeWatched === 'OPERATOR',
+  });
   const accountsLookup = useAccountsLookup();
   const clientsLookup = useClientsLookup(accountWatched || undefined);
   const sitesLookup = useSitesLookup(clientWatched || undefined);
@@ -209,10 +216,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
     clientsLookup.data?.results ?? [],
     extractLookupOption(user?.client),
   );
-  const siteOptions = mergeOption(
-    sitesLookup.data?.results ?? [],
-    extractLookupOption(user?.site),
-  );
+  const siteOptions = mergeOption(sitesLookup.data?.results ?? [], extractLookupOption(user?.site));
 
   const cep = useCepLookup(setValue, 'address');
 
@@ -237,11 +241,13 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
       // Strip empty strings / nulls so Mongoose doesn't try to cast "" into
       // ObjectId refs (site/client/account), email validators, etc. Also
       // normalizes primaryPhone / cep / document down to digits-only.
-      const sanitized = sanitizeFormPayload(payload) as unknown;
+      const sanitized = sanitizeFormPayload(payload) as Record<string, unknown>;
+      sanitized.siteGroup =
+        data.companyUser.subtype === 'OPERATOR' && data.siteGroup ? data.siteGroup : null;
       if (isEdit && user) {
         return usersService.update(user._id, sanitized as Partial<AdminUserFormData>, photoFile);
       }
-      return usersService.create(sanitized as AdminUserFormData, photoFile);
+      return usersService.create(sanitized as unknown as AdminUserFormData, photoFile);
     },
     onSuccess: (response) => {
       invalidateHierarchyAfter(queryClient, 'user');
@@ -249,15 +255,15 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
       // Fire-and-forget audit capture. Never awaited - the service
       // swallows failures so a transient audit outage can't block
       // the user from closing the dialog.
-      const saved = response?.result as { _id?: string; firstName?: string; lastName?: string; email?: string } | undefined;
+      const saved = response?.result as
+        | { _id?: string; firstName?: string; lastName?: string; email?: string }
+        | undefined;
       void auditLogService.capture({
         action: isEdit ? 'USER_UPDATED' : 'USER_CREATED',
         domain: 'USER',
         resourceId: saved?._id || user?._id,
         resourceLabel:
-          `${saved?.firstName ?? ''} ${saved?.lastName ?? ''}`.trim() ||
-          saved?.email ||
-          undefined,
+          `${saved?.firstName ?? ''} ${saved?.lastName ?? ''}`.trim() || saved?.email || undefined,
       });
       onOpenChange(false);
       reset();
@@ -286,7 +292,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-3xl max-h-[90vh] overflow-y-auto"
+        className="max-h-[90vh] max-w-3xl overflow-y-auto"
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
@@ -306,7 +312,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
             shape="circle"
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>{t('users.role')}</Label>
               <Controller
@@ -321,9 +327,11 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
                       if (val === 'ADMIN') {
                         setValue('client', '');
                         setValue('site', '');
+                        setValue('siteGroup', '');
                       }
                       if (val === 'MANAGER') {
                         setValue('site', '');
+                        setValue('siteGroup', '');
                       }
                     }}
                   >
@@ -352,10 +360,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
                     value={field.value ?? 'ACTIVE'}
                     onValueChange={(val) => {
                       field.onChange(val);
-                      setValue(
-                        'companyUser.status',
-                        val as 'ACTIVE' | 'ARCHIVED',
-                      );
+                      setValue('companyUser.status', val as 'ACTIVE' | 'ARCHIVED');
                     }}
                   >
                     <SelectTrigger>
@@ -384,6 +389,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
                         if (val !== prevAccount) {
                           setValue('client', '');
                           setValue('site', '');
+                          setValue('siteGroup', '');
                           prevAccount = val;
                         }
                       }}
@@ -417,6 +423,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
                         field.onChange(val);
                         if (val !== prevClient) {
                           setValue('site', '');
+                          setValue('siteGroup', '');
                           prevClient = val;
                         }
                       }}
@@ -437,6 +444,25 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
                 {errors.client && (
                   <p className="text-xs text-red-400">{t(errors.client.message as string)}</p>
                 )}
+              </div>
+            )}
+
+            {subtypeWatched === 'OPERATOR' && (
+              <div className="space-y-2">
+                <Label htmlFor="operatorSiteGroup">{t('siteGroups.title')}</Label>
+                <select
+                  id="operatorSiteGroup"
+                  className="bg-surface border-border w-full rounded-md border p-2"
+                  {...register('siteGroup')}
+                >
+                  <option value="">{t('siteGroups.singleSite')}</option>
+                  {(groupsLookup.data || []).map((group) => (
+                    <option key={group._id} value={group._id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-text-secondary text-xs">{t('siteGroups.operatorHint')}</p>
               </div>
             )}
 
@@ -509,16 +535,10 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
               <PasswordField
                 label={`${t('auth.password')}${isEdit ? ` (${t('common.optional')})` : ''}`}
                 value={watch('password') ?? ''}
-                onChange={(e) =>
-                  setValue('password', e.target.value, { shouldValidate: false })
-                }
+                onChange={(e) => setValue('password', e.target.value, { shouldValidate: false })}
                 placeholder={isEdit ? '••••••••' : undefined}
                 showPolicy={!isEdit || !!(watch('password') ?? '').length}
-                error={
-                  errors.password
-                    ? t(errors.password.message as string)
-                    : undefined
-                }
+                error={errors.password ? t(errors.password.message as string) : undefined}
               />
             </div>
             <div className="sm:col-span-2">
@@ -529,18 +549,16 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
                   setValue('confirmPassword', e.target.value, { shouldValidate: false })
                 }
                 error={
-                  errors.confirmPassword
-                    ? t(errors.confirmPassword.message as string)
-                    : undefined
+                  errors.confirmPassword ? t(errors.confirmPassword.message as string) : undefined
                 }
               />
             </div>
           </div>
 
-          <div className="h-px bg-white/10 my-2" />
+          <div className="my-2 h-px bg-white/10" />
           <h4 className="text-sm font-semibold text-white">{t('common.address')}</h4>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-2">
               <Label>{t('sites.cep')}</Label>
               <div className="flex gap-2">

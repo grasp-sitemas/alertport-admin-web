@@ -67,9 +67,10 @@ export function useClientsLookup(account?: string) {
  * gives the server everything it needs to apply the correct role-based
  * visibility without guessing.
  */
-export function useSitesLookup(client?: string, account?: string) {
+export function useSitesLookup(client?: string, account?: string, allGroupClients = false) {
   const scope = useUserScope();
-  const effectiveClient = client || scope.clientId;
+  const effectiveClient =
+    client || (allGroupClients && scope.isGroupOperator ? undefined : scope.clientId);
   const effectiveAccount = account || scope.accountId;
 
   return useQuery({
@@ -85,7 +86,8 @@ export function useSitesLookup(client?: string, account?: string) {
         ...(effectiveAccount ? { account: effectiveAccount } : {}),
         client: effectiveClient,
       }),
-    enabled: !!effectiveClient,
+    enabled:
+      !!effectiveClient || (allGroupClients && !!scope.isGroupOperator && !!effectiveAccount),
     staleTime: 5 * 60 * 1000,
   });
 }

@@ -252,6 +252,12 @@ export const navigation: NavSection[] = [
         moduleKey: 'CLIENTS',
       },
       {
+        titleKey: 'siteGroups.title',
+        href: '/site-groups',
+        icon: Users2,
+        roles: ['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN'],
+      },
+      {
         titleKey: 'sidebar.sites',
         href: '/sites',
         icon: MapPin,
