@@ -53,7 +53,7 @@ export interface AdherenceSummary {
 
 export interface AdherenceRow {
   _id: string;
-  status: 'PENDING' | 'RESPONDED' | 'MISSED' | 'EXPIRED';
+  status: 'PENDING' | 'RESPONDED' | 'MISSED' | 'EXPIRED' | 'CANCELLED';
   scheduledAt: string;
   triggeredAt?: string | null;
   respondedAt?: string | null;

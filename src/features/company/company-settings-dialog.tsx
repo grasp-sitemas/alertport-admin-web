@@ -72,8 +72,8 @@ export function CompanySettingsDialog({ open, onOpenChange }: CompanySettingsDia
 
   const mutation = useMutation({
     mutationFn: (values: MonitorSettingsFormValues) => {
-      const { targetId, body } = buildMonitorSettingsUpdate(settings, values.eventTimeWindowHours);
-      return companyService.updateSettings(targetId, body);
+      const { body } = buildMonitorSettingsUpdate(settings, values.eventTimeWindowHours);
+      return companyService.updateSettings(body);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['company', 'settings', 'me'] });

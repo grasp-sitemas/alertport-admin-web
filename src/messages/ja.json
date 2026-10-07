@@ -277,6 +277,7 @@
         "PENDING": "保留中",
         "RESPONDED": "対応済み",
         "MISSED": "未対応",
+        "CANCELLED": "キャンセル済み",
         "EXPIRED": "期限切れ"
       }
     },
@@ -950,6 +951,7 @@
     "state": "都道府県",
     "country": "国",
     "cepInvalid": "郵便番号が無効です",
+    "cepUnavailable": "郵便番号を検索できませんでした。もう一度お試しいただくか、住所を手入力してください。",
     "deleteConfirm": "この拠点をアーカイブしますか？",
     "deleteSuccess": "拠点をアーカイブしました",
     "createSuccess": "拠点を作成しました",

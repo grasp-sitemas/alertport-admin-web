@@ -487,7 +487,9 @@ function AlertMonitor() {
       {/* Best-effort live presence. Renders only when the chat socket is
           available (call modules enabled); otherwise `call` is null and the
           panel hides itself. Not historical — ms-chat keeps no lastSeen. */}
-      <OfflineDevicesPanel onlineUserIds={call?.onlineUsers} />
+      <OfflineDevicesPanel
+        onlineUserIds={call?.socketConnected && call.socketReady ? call.onlineUsers : undefined}
+      />
 
       <MonitorKpiGrid
         eventsCount={events.length}

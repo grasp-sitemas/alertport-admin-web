@@ -35,6 +35,8 @@ export function invalidateHierarchyAfter(queryClient: QueryClient, kind: Mutated
 
   switch (kind) {
     case 'account':
+      invalidate(['companies']);
+      invalidate(['me']);
       invalidate(['lookup', 'accounts']);
       invalidate(['lookup', 'clients']);
       invalidate(['lookup', 'sites']);

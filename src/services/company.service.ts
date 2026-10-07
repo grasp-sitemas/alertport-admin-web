@@ -88,11 +88,12 @@ export const companyService = {
   },
 
   async updateSettings(
-    id: string,
     settings: Record<string, unknown>,
   ): Promise<ApiSingleResponse<CompanySettings>> {
     const { data } = await apiClient.put<ApiSingleResponse<CompanySettings>>(
-      endpoints.companySettingsById(id),
+      // The server selects the account from the session. Its published
+      // update route has no id segment (adding one returns 404).
+      endpoints.companySettings,
       settings,
     );
     return data;

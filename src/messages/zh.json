@@ -277,6 +277,7 @@
         "PENDING": "待处理",
         "RESPONDED": "已处置",
         "MISSED": "未处置",
+        "CANCELLED": "已取消",
         "EXPIRED": "已过期"
       }
     },
@@ -950,6 +951,7 @@
     "state": "省",
     "country": "国家",
     "cepInvalid": "无效的邮政编码",
+    "cepUnavailable": "无法查询邮政编码。请重试或手动填写地址。",
     "deleteConfirm": "确定要归档此站点吗？",
     "deleteSuccess": "站点已归档",
     "createSuccess": "站点创建成功",

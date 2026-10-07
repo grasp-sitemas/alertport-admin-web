@@ -172,7 +172,7 @@ function AdherencePageBody() {
       ],
       columns: [
         { header: t('reports.adherence.scheduledAt'), value: (r) => new Date(r.scheduledAt) },
-        { header: t('reports.adherence.status'), value: (r) => r.status },
+        { header: t('reports.adherence.status'), value: (r) => t(`reports.adherence.statusValue.${r.status}`) },
         {
           header: t('reports.adherence.respondedAt'),
           value: (r) => (r.respondedAt ? new Date(r.respondedAt) : ''),

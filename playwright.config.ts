@@ -26,6 +26,8 @@ export default defineConfig({
     : [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: externalBaseUrl || 'http://localhost:3000',
+    channel: process.env.PLAYWRIGHT_CHANNEL || undefined,
+    launchOptions: { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined },
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: isCi ? 'retain-on-failure' : 'off',
