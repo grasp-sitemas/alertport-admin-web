@@ -277,6 +277,7 @@
         "PENDING": "Pending",
         "RESPONDED": "Processed",
         "MISSED": "Not Processed",
+        "CANCELLED": "Cancelled",
         "EXPIRED": "Expired"
       }
     },
@@ -950,6 +951,7 @@
     "state": "State",
     "country": "Country",
     "cepInvalid": "Invalid ZIP code",
+    "cepUnavailable": "Could not look up the postal code. Try again or enter the address manually.",
     "deleteConfirm": "Are you sure you want to archive this site?",
     "deleteSuccess": "Site archived successfully",
     "createSuccess": "Site created successfully",

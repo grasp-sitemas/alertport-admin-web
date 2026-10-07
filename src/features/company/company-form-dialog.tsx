@@ -109,14 +109,14 @@ export function CompanyListFormDialog({ open, onOpenChange, company }: Props) {
         type: 'ACCOUNT' as const,
         status: data.status,
       };
-      if (data.fantasyName && data.fantasyName.trim()) {
-        sanitized.fantasyName = data.fantasyName.trim();
+      if (isEdit || data.fantasyName?.trim()) {
+        sanitized.fantasyName = data.fantasyName?.trim() ?? '';
       }
       if (data.personType) sanitized.personType = data.personType;
-      if (data.document && data.document.trim()) sanitized.document = data.document.trim();
-      if (data.email && data.email.trim()) sanitized.email = data.email.trim();
-      if (data.primaryPhone && data.primaryPhone.trim()) {
-        sanitized.primaryPhone = data.primaryPhone.replace(/\D/g, '');
+      if (isEdit || data.document?.trim()) sanitized.document = data.document?.trim() ?? '';
+      if (isEdit || data.email?.trim()) sanitized.email = data.email?.trim() ?? '';
+      if (isEdit || data.primaryPhone?.trim()) {
+        sanitized.primaryPhone = data.primaryPhone?.replace(/\D/g, '') ?? '';
       }
       if (data.timezone && data.timezone.trim()) {
         sanitized.timezone = data.timezone.trim();

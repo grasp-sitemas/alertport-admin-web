@@ -277,6 +277,7 @@
         "PENDING": "Pendiente",
         "RESPONDED": "Atendido",
         "MISSED": "No atendido",
+        "CANCELLED": "Cancelado",
         "EXPIRED": "Expirado"
       }
     },
@@ -950,6 +951,7 @@
     "state": "Estado",
     "country": "País",
     "cepInvalid": "Código postal inválido",
+    "cepUnavailable": "No se pudo consultar el código postal. Inténtelo de nuevo o ingrese la dirección manualmente.",
     "deleteConfirm": "¿Archivar este puesto?",
     "deleteSuccess": "Puesto archivado",
     "createSuccess": "Puesto creado",

@@ -23,9 +23,11 @@ import { useFilters } from '@/hooks/use-filters';
 import type { Company } from '@/types/api';
 import { invalidateHierarchyAfter } from '@/lib/query-invalidation';
 import { maskPhoneBR } from '@/lib/br-masks';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function ClientsPage() {
   const t = useTranslations();
+  const { hasRole } = useAuth();
   const queryClient = useQueryClient();
   const pagination = usePagination({ initialPageSize: 20 });
   const { filters, setFilter, clearFilters, buildFilterParams } = useFilters({
@@ -126,7 +128,7 @@ export default function ClientsPage() {
       <div className="space-y-6">
         <PageHeader
           title={t('clients.title')}
-          action={
+          action={hasRole(['SUPER_ADMIN_MASTER', 'ADMIN_MASTER', 'ADMIN']) ? (
             <GatedCreateButton
               resource="clients"
               data-tour="page-clients-create"
@@ -138,7 +140,7 @@ export default function ClientsPage() {
               <Plus className="h-4 w-4" />
               {t('clients.createClient')}
             </GatedCreateButton>
-          }
+          ) : undefined}
         />
 
         <FilterPanel

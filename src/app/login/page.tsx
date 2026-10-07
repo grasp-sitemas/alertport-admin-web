@@ -6,7 +6,7 @@ import { useWatch } from 'react-hook-form';
 import { useAppForm } from '@/hooks/use-app-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, LogIn, KeyRound } from 'lucide-react';
 import type { AxiosError } from 'axios';
@@ -22,10 +22,15 @@ import { RequestUnlockDialog } from '@/features/auth/request-unlock-dialog';
 import { isSessionValid } from '@/lib/session';
 import Link from 'next/link';
 
+const subscribeToHydration = () => () => {};
+const clientHydrated = () => true;
+const serverHydrated = () => false;
+
 export default function LoginPage() {
   const t = useTranslations();
   const router = useRouter();
   const login = useLogin();
+  const hydrated = useSyncExternalStore(subscribeToHydration, clientHydrated, serverHydrated);
   const [recoveryOpen, setRecoveryOpen] = useState(false);
   const [unlockOpen, setUnlockOpen] = useState(false);
 
@@ -89,7 +94,7 @@ export default function LoginPage() {
               <p className="text-text-secondary text-sm">{t('auth.loginSubtitle')}</p>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <form method="post" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="email">{t('auth.email')}</Label>
                 <div className="relative">
@@ -97,6 +102,7 @@ export default function LoginPage() {
                   <Input
                     id="email"
                     type="email"
+                    disabled={!hydrated}
                     autoComplete="email"
                     className="pl-10"
                     placeholder="seu@email.com"
@@ -124,6 +130,7 @@ export default function LoginPage() {
                   <Input
                     id="password"
                     type="password"
+                    disabled={!hydrated}
                     autoComplete="current-password"
                     className="pl-10"
                     placeholder="••••••••"
@@ -135,7 +142,7 @@ export default function LoginPage() {
                 )}
               </div>
 
-              <Button type="submit" className="w-full" size="lg" disabled={login.isPending}>
+              <Button type="submit" className="w-full" size="lg" disabled={!hydrated || login.isPending}>
                 {login.isPending ? (
                   <>{t('common.loading')}</>
                 ) : (

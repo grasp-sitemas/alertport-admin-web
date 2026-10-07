@@ -659,6 +659,7 @@ export function ScheduleFormDialog({
                     <Select
                       value={field.value ?? ''}
                       onValueChange={(val) => {
+                        if (!val) return;
                         field.onChange(val);
                         if (val !== prevAccountRef.current) {
                           setValue('client', '', { shouldDirty: true });
@@ -694,6 +695,7 @@ export function ScheduleFormDialog({
                   <Select
                     value={field.value ?? ''}
                     onValueChange={(val) => {
+                      if (!val) return;
                       field.onChange(val);
                       if (val !== prevClientRef.current) {
                         setValue('site', '', { shouldDirty: true });
@@ -730,6 +732,7 @@ export function ScheduleFormDialog({
                   <Select
                     value={field.value ?? ''}
                     onValueChange={(val) => {
+                      if (!val) return;
                       field.onChange(val);
                       if (val !== prevSiteRef.current) {
                         setValue('equipment', '', { shouldDirty: true });
@@ -771,7 +774,15 @@ export function ScheduleFormDialog({
                 control={control}
                 name="equipment"
                 render={({ field }) => (
-                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value ?? ''}
+                    onValueChange={(value) => {
+                      // Radix's native form select emits '' while async
+                      // options mount. It is not a user choice; parent changes
+                      // explicitly clear this field through setValue above.
+                      if (value) field.onChange(value);
+                    }}
+                  >
                     <SelectTrigger data-testid="schedule-equipment-trigger">
                       <SelectValue placeholder={t('common.selectOption')} />
                     </SelectTrigger>

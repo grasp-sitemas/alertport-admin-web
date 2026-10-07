@@ -1,12 +1,10 @@
 import type { CompanySettings } from '@/types/api';
 
 /**
- * Target id + body for {@link companyService.updateSettings}. The backend
- * derives the account from the JWT and ignores the URL id, but we still send
- * a stable identifier (preferring the immutable account FK).
+ * Body for {@link companyService.updateSettings}. The backend selects
+ * the account from the authenticated ADMIN session.
  */
 export interface MonitorSettingsUpdate {
-  targetId: string;
   body: {
     monitor: {
       eventFilters: NonNullable<CompanySettings['monitor']>['eventFilters'];
@@ -34,12 +32,10 @@ export function buildMonitorSettingsUpdate(
   current: CompanySettings | undefined,
   rawHours: string,
 ): MonitorSettingsUpdate {
-  const targetId = current?.account ?? current?._id ?? '';
   const trimmed = rawHours.trim();
   const eventTimeWindowHours = trimmed === '' ? null : Number(trimmed);
 
   return {
-    targetId,
     body: {
       monitor: {
         eventFilters: current?.monitor?.eventFilters ?? [],

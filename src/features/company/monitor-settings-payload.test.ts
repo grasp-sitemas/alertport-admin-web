@@ -40,19 +40,14 @@ describe('buildMonitorSettingsUpdate', () => {
     expect(body.monitor.eventTimeWindowHours).toBeNull();
   });
 
-  test('prefers the immutable account FK as the target id', () => {
-    const { targetId } = buildMonitorSettingsUpdate(settings, '12');
-    expect(targetId).toBe('acc-1');
-  });
-
-  test('falls back to _id when account is absent', () => {
-    const { targetId } = buildMonitorSettingsUpdate({ ...settings, account: undefined }, '12');
-    expect(targetId).toBe('settings-1');
+  test('does not send an account override to the session-scoped endpoint', () => {
+    const { body } = buildMonitorSettingsUpdate(settings, '12');
+    expect(body).not.toHaveProperty('account');
+    expect(body).not.toHaveProperty('_id');
   });
 
   test('defaults to an empty eventFilters array and ACTIVE status when settings are unloaded', () => {
-    const { targetId, body } = buildMonitorSettingsUpdate(undefined, '');
-    expect(targetId).toBe('');
+    const { body } = buildMonitorSettingsUpdate(undefined, '');
     expect(body.monitor.eventFilters).toEqual([]);
     expect(body.monitor.callRecordingEnabled).toBe(false);
     expect(body.monitor.eventTimeWindowHours).toBeNull();

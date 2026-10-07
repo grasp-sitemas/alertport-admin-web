@@ -2,7 +2,7 @@ import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestCo
 
 declare module 'axios' {
   interface AxiosRequestConfig {
-    /** Disable replay for non-idempotent requests such as schedule mutations. */
+    /** Override retry policy. Only GET/HEAD/OPTIONS are replayed by default. */
     retry?: boolean;
   }
 }
@@ -228,7 +228,11 @@ apiClient.interceptors.response.use(
 
     // Retry logic
     config._retryCount = config._retryCount || 0;
-    if (config.retry !== false && config._retryCount < MAX_RETRIES && isRetryable(error)) {
+    // A timeout can arrive after a write committed. Replaying a mutation
+    // then creates duplicates or repeats archive side effects. Only reads
+    // are safe by default; a caller may explicitly opt in for a read POST.
+    const retryAllowed = config.retry ?? ['get', 'head', 'options'].includes(config.method?.toLowerCase() ?? 'get');
+    if (retryAllowed && config._retryCount < MAX_RETRIES && isRetryable(error)) {
       config._retryCount += 1;
       const delay = resolveRetryDelay(error);
       await new Promise((resolve) => setTimeout(resolve, delay));

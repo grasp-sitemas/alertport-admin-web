@@ -277,6 +277,7 @@
         "PENDING": "Pendente",
         "RESPONDED": "Atendido",
         "MISSED": "Não atendido",
+        "CANCELLED": "Cancelado",
         "EXPIRED": "Expirado"
       }
     },
@@ -950,6 +951,7 @@
     "state": "UF",
     "country": "País",
     "cepInvalid": "CEP inválido",
+    "cepUnavailable": "Não foi possível consultar o CEP. Tente novamente ou preencha o endereço manualmente.",
     "deleteConfirm": "Tem certeza que deseja arquivar este posto?",
     "deleteSuccess": "Posto arquivado com sucesso",
     "createSuccess": "Posto criado com sucesso",
